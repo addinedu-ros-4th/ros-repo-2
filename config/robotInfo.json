@@ -1,0 +1,15 @@
+
+{
+    "command": "GS",
+    "robotID": "R01",
+    "End": "\n"
+}
+  
+{
+    "command": "GS",
+    "status": "active",
+    "location": "P1",
+    "battery": "85",
+    "End": "\n"
+}
+  
