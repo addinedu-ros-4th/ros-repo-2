@@ -1,0 +1,6 @@
+source;share/task_manager/hook/pythonpath.ps1
+source;share/task_manager/hook/pythonpath.dsv
+source;share/task_manager/hook/pythonpath.sh
+source;share/task_manager/hook/ament_prefix_path.ps1
+source;share/task_manager/hook/ament_prefix_path.dsv
+source;share/task_manager/hook/ament_prefix_path.sh

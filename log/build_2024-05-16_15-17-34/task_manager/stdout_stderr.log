@@ -1,0 +1,37 @@
+running egg_info
+creating ../../build/task_manager/task_manager.egg-info
+writing ../../build/task_manager/task_manager.egg-info/PKG-INFO
+writing dependency_links to ../../build/task_manager/task_manager.egg-info/dependency_links.txt
+writing entry points to ../../build/task_manager/task_manager.egg-info/entry_points.txt
+writing requirements to ../../build/task_manager/task_manager.egg-info/requires.txt
+writing top-level names to ../../build/task_manager/task_manager.egg-info/top_level.txt
+writing manifest file '../../build/task_manager/task_manager.egg-info/SOURCES.txt'
+reading manifest file '../../build/task_manager/task_manager.egg-info/SOURCES.txt'
+writing manifest file '../../build/task_manager/task_manager.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/addinedu/git_ws/FinalProject/build/task_manager/build
+creating /home/addinedu/git_ws/FinalProject/build/task_manager/build/lib
+creating /home/addinedu/git_ws/FinalProject/build/task_manager/build/lib/task_manager
+copying task_manager/task_dispather.py -> /home/addinedu/git_ws/FinalProject/build/task_manager/build/lib/task_manager
+copying task_manager/task_receiver.py -> /home/addinedu/git_ws/FinalProject/build/task_manager/build/lib/task_manager
+copying task_manager/__init__.py -> /home/addinedu/git_ws/FinalProject/build/task_manager/build/lib/task_manager
+running install
+running install_lib
+creating /home/addinedu/git_ws/FinalProject/install/task_manager/lib/python3.10/site-packages/task_manager
+copying /home/addinedu/git_ws/FinalProject/build/task_manager/build/lib/task_manager/task_dispather.py -> /home/addinedu/git_ws/FinalProject/install/task_manager/lib/python3.10/site-packages/task_manager
+copying /home/addinedu/git_ws/FinalProject/build/task_manager/build/lib/task_manager/task_receiver.py -> /home/addinedu/git_ws/FinalProject/install/task_manager/lib/python3.10/site-packages/task_manager
+copying /home/addinedu/git_ws/FinalProject/build/task_manager/build/lib/task_manager/__init__.py -> /home/addinedu/git_ws/FinalProject/install/task_manager/lib/python3.10/site-packages/task_manager
+byte-compiling /home/addinedu/git_ws/FinalProject/install/task_manager/lib/python3.10/site-packages/task_manager/task_dispather.py to task_dispather.cpython-310.pyc
+byte-compiling /home/addinedu/git_ws/FinalProject/install/task_manager/lib/python3.10/site-packages/task_manager/task_receiver.py to task_receiver.cpython-310.pyc
+byte-compiling /home/addinedu/git_ws/FinalProject/install/task_manager/lib/python3.10/site-packages/task_manager/__init__.py to __init__.cpython-310.pyc
+running install_data
+creating /home/addinedu/git_ws/FinalProject/install/task_manager/share/ament_index
+creating /home/addinedu/git_ws/FinalProject/install/task_manager/share/ament_index/resource_index
+creating /home/addinedu/git_ws/FinalProject/install/task_manager/share/ament_index/resource_index/packages
+copying resource/task_manager -> /home/addinedu/git_ws/FinalProject/install/task_manager/share/ament_index/resource_index/packages
+copying package.xml -> /home/addinedu/git_ws/FinalProject/install/task_manager/share/task_manager
+running install_egg_info
+Copying ../../build/task_manager/task_manager.egg-info to /home/addinedu/git_ws/FinalProject/install/task_manager/lib/python3.10/site-packages/task_manager-0.0.0-py3.10.egg-info
+running install_scripts
+writing list of installed files to '/home/addinedu/git_ws/FinalProject/build/task_manager/install.log'
