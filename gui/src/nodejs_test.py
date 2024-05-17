@@ -35,7 +35,7 @@ class WindowClass(QMainWindow, from_class) :
         ws.send(data)
         result = ws.recv()
         print("Received from server: " + result)
-        ws.close()const clients = new Map(); // 클라이언트를 저장할 Map
+        ws.close()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

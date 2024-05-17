@@ -1,0 +1,4 @@
+# AssignTask.srv
+string task_id
+---
+bool success

@@ -24,15 +24,16 @@ class ConsumerGui(QMainWindow, from_class):
         # Create a WebSocket connection to the rosbridge
         ws = create_connection("ws://192.168.0.85:9090")
         
-        order_data = {
-            "customer_id": 123,
-            "order_details": "cola"
+        orders = {
+            "user_id": "123",
+            "items": ["cola", "water"],
+            "quantities": [1, 2]
         }
-
+        
         order_message = json.dumps({
             "op": "publish",
             "topic": "/order",
-            "msg": {"data": json.dumps(order_data)}
+            "msg": {"data": json.dumps(orders)}
         })
                                 
         # Send the task message
