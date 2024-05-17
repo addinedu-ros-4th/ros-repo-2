@@ -3,6 +3,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 from std_msgs.msg import Bool
+import json
 
 class TaskDispather(Node):
     def __init__(self):
@@ -20,10 +21,17 @@ class TaskDispather(Node):
 
 
     def callback(self, msg):
-        bool_value = True if msg.data == 'activate' else False
+        order_info = json.loads(msg.data)  # 외부 JSON 구조 파싱
+        
+        if 'customer_id' in order_info:
+            bool_value = True
+        else:
+            bool_value = False
+            
         # Bool 메시지 생성 및 발행
         self.publisher.publish(Bool(data=bool_value))
-        self.get_logger().info("Success")
+
+        
 
 def main(args=None):
     rclpy.init(args=args)  # ROS 2 초기화
