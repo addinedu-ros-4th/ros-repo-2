@@ -8,6 +8,7 @@ setup.py
 ../../build/task_manager/task_manager.egg-info/requires.txt
 ../../build/task_manager/task_manager.egg-info/top_level.txt
 ../../build/task_manager/task_manager.egg-info/zip-safe
+launch/task_manager_launch.py
 resource/task_manager
 task_manager/__init__.py
 task_manager/order_receiver.py

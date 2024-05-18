@@ -16,6 +16,7 @@ from PyQt5 import uic
 import sys 
 import json
 import os
+from websocket import create_connection
 
 from_orderpage_class = uic.loadUiType("gui/ui/order.ui")[0]
 
@@ -114,7 +115,30 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         
         # user_id 증가
         self.user_id += 1
+        self.send_task_to_ros()
+    
+    
+    def send_task_to_ros(self):
+        # Create a WebSocket connection to the rosbridge
+        json_file_path = 'gui/json/order_data.json'
         
+        # Reading json file
+        with open(json_file_path, 'r') as file:
+            orders = json.load(file)
+        
+        ws = create_connection("ws://192.168.0.85:9090")
+        
+        order_message = json.dumps({
+            "op": "publish",
+            "topic": "/order",
+            "msg": {"data": json.dumps(orders)}
+        })
+                                
+        # Send the task message
+        ws.send(order_message)
+        ws.close()
+        
+           
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")

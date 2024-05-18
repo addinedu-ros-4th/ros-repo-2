@@ -160,5 +160,5 @@ cython_debug/
 #.idea/
 
 
-install/
-log/
+install
+log
