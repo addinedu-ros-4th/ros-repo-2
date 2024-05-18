@@ -1,0 +1,24 @@
+[
+    {
+        "user_id": 0,
+        "product_name": [
+            "cola",
+            "water"
+        ],
+        "quantity": [
+            3,
+            2
+        ]
+    },
+    {
+        "user_id": 1,
+        "product_name": [
+            "cola",
+            "ramen"
+        ],
+        "quantity": [
+            1,
+            2
+        ]
+    }
+]
