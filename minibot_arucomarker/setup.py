@@ -26,6 +26,7 @@ setup(
         'console_scripts': [
             'detect_aruco = minibot_arucomarker.detect_aruco:main',
             'img_publisher =minibot_arucomarker.img_publisher:main',
+            'detect_aruco2 = minibot_arucomarker.detect_aruco2:main',
         ],
     },
 )
