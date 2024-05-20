@@ -2,28 +2,52 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
-from task_msgs.msg import Task
+from task_msgs.msg import Task, RobotState, Inbound
 import json
 
-class TaskDispather(Node):
+class TaskDispatcher(Node):
     def __init__(self):
-        super().__init__('task_dispather')
+        super().__init__('task_dispatcher')
         
-        self.subscription = self.create_subscription(
-            String,       # 메시지 타입
-            '/order',      # 토픽 이름
-            self.order_callback,  # 콜백 함수
-            10)            # 큐 사이즈
-        
-
-        self.task_publisher = self.create_publisher(Task, '/task', 10)
-        
+        self.robot_ready = False
         self.order_list = []
+        self.inBound_list = []
         
-        # 주기적으로 로봇 상태를 확인하고 Task 발행
-        self.timer = self.create_timer(2.0, self.process_orders)
+        # Robot state
+        self.state_subscription = self.create_subscription(
+            RobotState,
+            '/robot_state',
+            self.state_callback,
+            10
+        )
+        
+        # Order
+        self.order_subscription = self.create_subscription(
+            String,       
+            '/order',      
+            self.order_callback,  
+            10
+        )
+        
+        # InBound
+        self.inbound_subscription = self.create_subscription(
+            String,       
+            '/inbound',      
+            self.inbound_callback,  
+            10
+        )
+        
+        # Task
+        self.task_publisher = self.create_publisher(Task, '/task', 10)
+        self.timer = self.create_timer(1.0, self.process_orders)
     
     
+    # Robot state 
+    def state_callback(self, msg):
+        self.robot_ready = msg.is_ready
+
+    
+    # Add order in order list
     def order_callback(self, msg):
         try:
             order_info = json.loads(msg.data)  # JSON 문자열을 파싱하여 리스트로 변환
@@ -44,6 +68,7 @@ class TaskDispather(Node):
             self.get_logger().error(f"Missing key in order_info: {e}")
         except TypeError as e:
             self.get_logger().error(f"Type error in order_info: {e}")
+    
 
     def process_single_order(self, single_order):
         try:
@@ -69,42 +94,43 @@ class TaskDispather(Node):
                 })
 
             self.get_logger().info(f"Order added: user_id={user_id}, items={items}, quantities={quantities}")
-
+            
         except KeyError as e:
             self.get_logger().error(f"Missing key in single order: {e}")
         except TypeError as e:
             self.get_logger().error(f"Type error in single order: {e}")
 
-    
+
+    # Exist order_list and robot's task success, assignment next task
     def process_orders(self):
-        # 로봇이 대기 상태일 때 작업 처리
-        if self.is_robot_ready() and self.order_list:
-            order = self.order_list.pop(0)
-            task_msg = Task()
-            task_msg.location = order['location']
-            task_msg.task_name = 'OutBound'
-            task_msg.quantity = order['quantity']
-            task_msg.item_name = order['item']
-            
-            self.task_publisher.publish(task_msg)
-            self.get_logger().info(f"Published task: {task_msg}")
-    
-    
-    def is_robot_ready(self):
-        # 로봇의 상태를 확인
-        # robot 상태 받기
-        # self.pose_subscription = self.create_subscription(
-            
-        # )
-        return True
+        if self.robot_ready
+            if self.order_list:
+                order = self.order_list.pop(0)
+                task_msg = Task()
+                task_msg.location = order['location']
+                task_msg.task_name = 'OutBound'
+                task_msg.quantity = order['quantity']
+                task_msg.item_name = order['item']
+                
+                self.task_publisher.publish(task_msg)
+                self.get_logger().info(f"Published task: {task_msg}")
+            elif self.inBound_list:
+                inBound_msg = InBound()
+                self.task_publisher.publish(inBound_msg)
+                
+    def inbound_callback(self):
+        # 데이터 가져와서 inBound list에 넣기
+        pass
 
 
 def main(args=None):
-    rclpy.init(args=args)  # ROS 2 초기화
-    task_dispather = TaskDispather()  # 노드 인스턴스 생성
-    rclpy.spin(task_dispather)  # 노드가 메시지를 수신하도록 대기
-    task_dispather.destroy_node()
+    rclpy.init(args=args)
+    task_dispatcher = TaskDispatcher()
+    task_dispatcher.order_list = task_dispatcher.load_orders()
+    task_dispatcher.inbound_list = task_dispatcher.load_inbounds()
+    rclpy.spin(task_dispatcher)
+    task_dispatcher.destroy_node()
     rclpy.shutdown()
-
+    
 if __name__ == '__main__':
     main()

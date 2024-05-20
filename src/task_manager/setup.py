@@ -26,7 +26,9 @@ setup(
     entry_points={
         'console_scripts': [
             'order_receiver = task_manager.order_receiver:main',
-            'task_dispather = task_manager.task_dispather:main'
+            'task_dispatcher = task_manager.task_dispatcher:main',
+            'robot_controller = task_manager.robot_controller:main',
+            'main_executable = task_manager.main:main'
         ],
     },
 )
