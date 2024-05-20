@@ -75,40 +75,42 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         new_data = {
             "user_id": self.user_id,
             "product_name": [],
-            "quantities": []
+            "quantity": []
         }
 
         for row in range(self.model.rowCount()):
             item = self.model.item(row).text()
             product_name, quantity = item.split(": ")
             new_data["product_name"].append(product_name)
-            new_data["quantities"].append(int(quantity))
+            new_data["quantity"].append(int(quantity))
         
         # 기존 데이터 불러오기
         if os.path.exists("order_data.json"):
             with open("order_data.json", "r", encoding="utf-8") as file:
                 existing_data = json.load(file)
-                if not isinstance(existing_data, list):
-                    existing_data = []
+                if not isinstance(existing_data, dict):
+                    existing_data = {}
         else:
-            existing_data = []
+            existing_data = {}
 
         # 동일 user_id가 있는지 확인하고, 있으면 병합
-        for data in existing_data:
-            if data["user_id"] == new_data["user_id"]:
-                for product, qty in zip(new_data["product_name"], new_data["quantities"]):
-                    if product in data["product_name"]:
-                        index = data["product_name"].index(product)
-                        data["quantities"][index] += qty
-                    else:
-                        data["product_name"].append(product)
-                        data["quantities"].append(qty)
-                break
+        user_id_str = str(new_data["user_id"])
+        if user_id_str in existing_data:
+            for product, qty in zip(new_data["product_name"], new_data["quantity"]):
+                if product in existing_data[user_id_str]["product_name"]:
+                    index = existing_data[user_id_str]["product_name"].index(product)
+                    existing_data[user_id_str]["quantity"][index] += qty
+                else:
+                    existing_data[user_id_str]["product_name"].append(product)
+                    existing_data[user_id_str]["quantity"].append(qty)
         else:
-            existing_data.append(new_data)
+            existing_data[user_id_str] = {
+                "product_name": new_data["product_name"],
+                "quantity": new_data["quantity"]
+            }
 
         # 업데이트된 데이터를 JSON 파일에 저장
-        with open("gui/json/order_data.json", "w", encoding="utf-8") as file:
+        with open("order_data.json", "w", encoding="utf-8") as file:
             json.dump(existing_data, file, ensure_ascii=False, indent=4)
         
         QMessageBox.information(self, "Saved", "결제완료")
