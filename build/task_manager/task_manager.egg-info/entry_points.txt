@@ -1,4 +1,0 @@
-[console_scripts]
-order_receiver = task_manager.order_receiver:main
-task_dispather = task_manager.task_dispather:main
-
