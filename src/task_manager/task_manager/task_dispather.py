@@ -2,8 +2,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
-from std_msgs.msg import Bool
-from task_msgs.msg import Order, Task
+from task_msgs.msg import Task
 import json
 
 class TaskDispather(Node):
@@ -23,35 +22,60 @@ class TaskDispather(Node):
         
         # 주기적으로 로봇 상태를 확인하고 Task 발행
         self.timer = self.create_timer(2.0, self.process_orders)
-
-
-    # order list에 저장 (location 추가)
+    
+    
     def order_callback(self, msg):
-        order_info = json.loads(msg.data)  # JSON 문자열을 파이썬 딕셔너리로 변환
+        try:
+            order_info = json.loads(msg.data)  # JSON 문자열을 파싱하여 리스트로 변환
 
-        user_id = order_info['user_id']  # user_id 추출
-        items = order_info['items']
-        quantities = order_info['quantities']
+            # order_info가 리스트인지 확인
+            if isinstance(order_info, list):
+                for single_order in order_info:
+                    if isinstance(single_order, dict):
+                        self.process_single_order(single_order)
+                    else:
+                        self.get_logger().warn(f"Invalid order format: {single_order}")
+            else:
+                self.get_logger().warn("order_info is not a list")
 
-        for item, quantity in zip(items, quantities):
-            if item == 'cola':
-                location = 'A1'
-            elif item == 'water':
-                location = 'A2'
-            elif item == 'ramen':
-                location = 'A3'
-            else :
-                location = 'X'
-            
-            self.order_list.append({
-            'user_id': user_id,
-            'item': item,
-            'quantity': quantity,
-            'location': location
-            })
-             
+        except json.JSONDecodeError as e:
+            self.get_logger().error(f"JSON decode error: {e}")
+        except KeyError as e:
+            self.get_logger().error(f"Missing key in order_info: {e}")
+        except TypeError as e:
+            self.get_logger().error(f"Type error in order_info: {e}")
 
-        
+    def process_single_order(self, single_order):
+        try:
+            user_id = single_order['user_id']
+            items = single_order['items']
+            quantities = single_order['quantities']
+
+            for item, quantity in zip(items, quantities):
+                if item == 'cola':
+                    location = 'A1'
+                elif item == 'water':
+                    location = 'A2'
+                elif item == 'ramen':
+                    location = 'A3'
+                else:
+                    location = 'X'
+
+                self.order_list.append({
+                    'user_id': user_id,
+                    'item': item,
+                    'quantity': quantity,
+                    'location': location
+                })
+
+            self.get_logger().info(f"Order added: user_id={user_id}, items={items}, quantities={quantities}")
+
+        except KeyError as e:
+            self.get_logger().error(f"Missing key in single order: {e}")
+        except TypeError as e:
+            self.get_logger().error(f"Type error in single order: {e}")
+
+    
     def process_orders(self):
         # 로봇이 대기 상태일 때 작업 처리
         if self.is_robot_ready() and self.order_list:
