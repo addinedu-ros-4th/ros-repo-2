@@ -75,14 +75,14 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         new_data = {
             "user_id": self.user_id,
             "product_name": [],
-            "quantity": []
+            "quantities": []
         }
 
         for row in range(self.model.rowCount()):
             item = self.model.item(row).text()
             product_name, quantity = item.split(": ")
             new_data["product_name"].append(product_name)
-            new_data["quantity"].append(int(quantity))
+            new_data["quantities"].append(int(quantity))
         
         # 기존 데이터 불러오기
         if os.path.exists("order_data.json"):
@@ -96,13 +96,13 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         # 동일 user_id가 있는지 확인하고, 있으면 병합
         for data in existing_data:
             if data["user_id"] == new_data["user_id"]:
-                for product, qty in zip(new_data["product_name"], new_data["quantity"]):
+                for product, qty in zip(new_data["product_name"], new_data["quantities"]):
                     if product in data["product_name"]:
                         index = data["product_name"].index(product)
-                        data["quantity"][index] += qty
+                        data["quantities"][index] += qty
                     else:
                         data["product_name"].append(product)
-                        data["quantity"].append(qty)
+                        data["quantities"].append(qty)
                 break
         else:
             existing_data.append(new_data)
@@ -206,7 +206,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.home.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon1 = QIcon()
-        icon1.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon1.addFile(u"gui/image/order.png", QSize(), QIcon.Normal, QIcon.Off)
         self.home.setIcon(icon1)
         self.home.setIconSize(QSize(25, 25))
         self.order = QPushButton(self.Wmenu)
@@ -215,7 +215,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.order.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon2 = QIcon()
-        icon2.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon2.addFile(u"gui/image/bar_chart.png", QSize(), QIcon.Normal, QIcon.Off)
         self.order.setIcon(icon2)
         self.order.setIconSize(QSize(30, 30))
         self.chart = QPushButton(self.Wmenu)
@@ -224,7 +224,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.chart.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon3 = QIcon()
-        icon3.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon3.addFile(u"gui/image/user.png", QSize(), QIcon.Normal, QIcon.Off)
         self.chart.setIcon(icon3)
         self.chart.setIconSize(QSize(30, 30))
         self.label = QLabel(self.Wmenu)
@@ -236,7 +236,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.user.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon4 = QIcon()
-        icon4.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon4.addFile(u"gui/image/cart.png", QSize(), QIcon.Normal, QIcon.Off)
         self.user.setIcon(icon4)
         self.user.setIconSize(QSize(30, 30))
         
@@ -246,7 +246,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.add_btn.setStyleSheet(u"border:none;")
         
         icon5 = QIcon()
-        icon5.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon5.addFile(u"gui/image/delete.png", QSize(), QIcon.Normal, QIcon.Off)
         self.add_btn.setIcon(icon5)
         self.add_btn.setIconSize(QSize(35, 35))
         self.delete_btn = QPushButton(self.centralwidget)

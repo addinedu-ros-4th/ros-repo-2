@@ -13,6 +13,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
 import sys 
+import os
+from ui_order import Ui_OrderWindow
 
 from_mainpage_class = uic.loadUiType("gui/ui/main.ui")[0]
 
@@ -22,6 +24,12 @@ class Ui_MainWindow(QMainWindow, from_mainpage_class):
         self.setupUi(self)
         self.setWindowTitle("Main")
         
+        self.go_order.clicked.connect(self.open_order_window)
+   
+    def open_order_window(self):
+        self.order_window = Ui_OrderWindow()
+        self.order_window.show()
+       
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
