@@ -30,7 +30,7 @@ class ImageConverter(Node):
         self.image_sub = self.create_subscription(Image, '/camera', self.callback, 1)
         
         # Load calibration data
-        npz_path = '/home/yongtak_ras/test/picamera/calibration_data/MultiMatrix.npz'
+        npz_path = '/FinalProject/minibot_arucomarker/config/MultiMatrix.npz'
         if not os.path.exists(npz_path):
             self.get_logger().error(f'Calibration file not found: {npz_path}')
             raise FileNotFoundError(f'Calibration file not found: {npz_path}')
