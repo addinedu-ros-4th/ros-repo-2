@@ -80,7 +80,7 @@ class ImageConverter(Node):
         self.arduino.send_initial_commands()
 
         # Load calibration data
-        npz_path = '/home/yongtak_ras/pinkbot/src/pinklab_minibot_robot/minibot_arucomarker/config/MultiMatrix.npz'
+        npz_path = '/FinalProject/minibot_arucomarker/config/MultiMatrix.npz'
         if not os.path.exists(npz_path):
             self.get_logger().error(f'Calibration file not found: {npz_path}')
             raise FileNotFoundError(f'Calibration file not found: {npz_path}')
