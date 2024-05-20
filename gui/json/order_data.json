@@ -1,13 +1,15 @@
 [
     {
-        "user_id": 0,
-        "product_name": [
+        "user_id": "1",
+        "items": [
+            "ramen",
             "water",
             "cola"
         ],
-        "quantity": [
+        "quantities": [
             1,
-            1
+            2,
+            4
         ]
     }
 ]

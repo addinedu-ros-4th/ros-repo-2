@@ -16,7 +16,7 @@ from PyQt5 import uic
 import sys 
 import json
 import os
-from websocket import create_connection
+# from websocket import create_connection
 
 from_orderpage_class = uic.loadUiType("gui/ui/order.ui")[0]
 
@@ -31,25 +31,18 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.num.setText(str(self.num_value))  # 초기값 설정
         self.num.setReadOnly(True)  # QLineEdit을 읽기 전용으로 설정
         
+        self.orders = []  # 모든 주문을 저장할 리스트
+        
         self.plus.clicked.connect(self.increase_num)
         self.minus.clicked.connect(self.decrease_num)
         self.add_btn.clicked.connect(self.add_to_list)
-        self.buy_btn.clicked.connect(self.save_to_json)
+        self.buy_btn.clicked.connect(self.save_to_variable)
         self.delete_btn.clicked.connect(self.delete_from_list)
         
         self.model = QStandardItemModel(self.listView)  # QStandardItemModel 생성
         self.listView.setModel(self.model)  # QListView에 모델 설정
-        
-        # 기존 JSON 파일에서 user_id를 불러옵니다.
-        self.load_user_id()
-        
-    def load_user_id(self):
-        if os.path.exists("order_data.json"):
-            with open("order_data.json", "r", encoding="utf-8") as file:
-                data = json.load(file)
-                if isinstance(data, list) and data:  # 데이터가 리스트이고 비어 있지 않으면
-                    self.user_id = data[-1].get("user_id", -1) + 1
-                    
+
+
     def increase_num(self):
         self.num_value += 1
         self.num.setText(str(self.num_value))
@@ -71,74 +64,53 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         list_item = QStandardItem(f"{product_name}: {quantity}")
         self.model.appendRow(list_item)  # 모델에 항목 추가
         
-    def save_to_json(self):
-        new_data = {
-            "user_id": self.user_id,
-            "product_name": [],
-            "quantity": []
+
+    def save_to_variable(self):
+        new_order = {
+            "user_id": str(self.user_id),
+            "items": [],
+            "quantities": []
         }
 
         for row in range(self.model.rowCount()):
             item = self.model.item(row).text()
             product_name, quantity = item.split(": ")
-            new_data["product_name"].append(product_name)
-            new_data["quantity"].append(int(quantity))
+            new_order["items"].append(product_name)
+            new_order["quantities"].append(int(quantity))
         
-        # 기존 데이터 불러오기
-        if os.path.exists("order_data.json"):
-            with open("order_data.json", "r", encoding="utf-8") as file:
-                existing_data = json.load(file)
-                if not isinstance(existing_data, dict):
-                    existing_data = {}
-        else:
-            existing_data = {}
+        # 새로운 주문을 orders 리스트에 추가
+        self.orders.append(new_order)
+        print(self.orders)  # 저장된 주문 출력 (디버깅 용도로)
 
-        # 동일 user_id가 있는지 확인하고, 있으면 병합
-        user_id_str = str(new_data["user_id"])
-        if user_id_str in existing_data:
-            for product, qty in zip(new_data["product_name"], new_data["quantity"]):
-                if product in existing_data[user_id_str]["product_name"]:
-                    index = existing_data[user_id_str]["product_name"].index(product)
-                    existing_data[user_id_str]["quantity"][index] += qty
-                else:
-                    existing_data[user_id_str]["product_name"].append(product)
-                    existing_data[user_id_str]["quantity"].append(qty)
-        else:
-            existing_data[user_id_str] = {
-                "product_name": new_data["product_name"],
-                "quantity": new_data["quantity"]
-            }
-
-        # 업데이트된 데이터를 JSON 파일에 저장
-        with open("order_data.json", "w", encoding="utf-8") as file:
-            json.dump(existing_data, file, ensure_ascii=False, indent=4)
-        
-        QMessageBox.information(self, "Saved", "결제완료")
+        QMessageBox.information(self, "Saved", "The order has been saved to variable.")
         
         # user_id 증가
         self.user_id += 1
-        self.send_task_to_ros()
+        
+        # 리스트 뷰 초기화
+        self.model.clear()
+        self.num_value = 0
+        self.num.setText(str(self.num_value))
     
-    
-    def send_task_to_ros(self):
-        # Create a WebSocket connection to the rosbridge
-        json_file_path = 'gui/json/order_data.json'
+    # def send_task_to_ros(self):
+    #     # Create a WebSocket connection to the rosbridge
+    #     json_file_path = 'gui/json/order_data.json'
         
-        # Reading json file
-        with open(json_file_path, 'r') as file:
-            orders = json.load(file)
+    #     # Reading json file
+    #     with open(json_file_path, 'r') as file:
+    #         orders = json.load(file)
         
-        ws = create_connection("ws://192.168.0.85:9090")
+    #     ws = create_connection("ws://192.168.0.85:9090")
         
-        order_message = json.dumps({
-            "op": "publish",
-            "topic": "/order",
-            "msg": {"data": json.dumps(orders)}
-        })
+    #     order_message = json.dumps({
+    #         "op": "publish",
+    #         "topic": "/order",
+    #         "msg": {"data": json.dumps(orders)}
+    #     })
                                 
-        # Send the task message
-        ws.send(order_message)
-        ws.close()
+    #     # Send the task message
+    #     ws.send(order_message)
+    #     ws.close()
         
            
     def setupUi(self, MainWindow):
@@ -191,7 +163,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
 "	border:none;\n"
 "")
         icon = QIcon()
-        icon.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u"gui/image/buy.png", QSize(), QIcon.Normal, QIcon.Off)
         self.buy_btn.setIcon(icon)
         self.buy_btn.setIconSize(QSize(80, 80))
         self.listView = QListView(self.centralwidget)
@@ -208,7 +180,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.home.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon1 = QIcon()
-        icon1.addFile(u"gui/image/order.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon1.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
         self.home.setIcon(icon1)
         self.home.setIconSize(QSize(25, 25))
         self.order = QPushButton(self.Wmenu)
@@ -217,7 +189,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.order.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon2 = QIcon()
-        icon2.addFile(u"gui/image/bar_chart.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon2.addFile(u"gui/image/order.png", QSize(), QIcon.Normal, QIcon.Off)
         self.order.setIcon(icon2)
         self.order.setIconSize(QSize(30, 30))
         self.chart = QPushButton(self.Wmenu)
@@ -226,7 +198,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.chart.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon3 = QIcon()
-        icon3.addFile(u"gui/image/user.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon3.addFile(u"gui/image/bar_chart.png", QSize(), QIcon.Normal, QIcon.Off)
         self.chart.setIcon(icon3)
         self.chart.setIconSize(QSize(30, 30))
         self.label = QLabel(self.Wmenu)
@@ -238,7 +210,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.user.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon4 = QIcon()
-        icon4.addFile(u"gui/image/cart.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon4.addFile(u"gui/image/user.png", QSize(), QIcon.Normal, QIcon.Off)
         self.user.setIcon(icon4)
         self.user.setIconSize(QSize(30, 30))
         
@@ -248,7 +220,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.add_btn.setStyleSheet(u"border:none;")
         
         icon5 = QIcon()
-        icon5.addFile(u"gui/image/delete.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon5.addFile(u"gui/image/cart.png", QSize(), QIcon.Normal, QIcon.Off)
         self.add_btn.setIcon(icon5)
         self.add_btn.setIconSize(QSize(35, 35))
         self.delete_btn = QPushButton(self.centralwidget)
@@ -256,7 +228,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.delete_btn.setGeometry(QRect(210, 420, 41, 25))
         self.delete_btn.setStyleSheet(u"border:none;")
         icon6 = QIcon()
-        icon6.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon6.addFile(u"gui/image/delete.png", QSize(), QIcon.Normal, QIcon.Off)
         self.delete_btn.setIcon(icon6)
         self.delete_btn.setIconSize(QSize(25, 26))
         MainWindow.setCentralWidget(self.centralwidget)
