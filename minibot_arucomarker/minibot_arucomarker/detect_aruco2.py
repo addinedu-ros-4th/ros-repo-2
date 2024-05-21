@@ -13,9 +13,9 @@ marker_id_map = {
     0: "I1", 1: "I2", 2: "I3",
     3: "O1", 4: "O2", 5: "O3",
     6: "R1", 7: "R2",
-    8: "A1", 9: "A2", 10: "A3",
-    11: "B1", 12: "B2", 13: "B3",
-    14: "C1", 15: "C2", 16: "C3",
+    8: "A1", 9: "A2", 
+    11: "B1", 12: "B2", 
+    14: "C1", 15: "C2", 
     17: "P1", 18: "P2", 19: "P3"
 }
 
@@ -79,30 +79,43 @@ class ImageConverter(Node):
         self.arduino = ArduinoController()
         self.arduino.send_initial_commands()
 
-        # Load calibration data
-        npz_path = '/FinalProject/minibot_arucomarker/config/MultiMatrix.npz'
-        if not os.path.exists(npz_path):
-            self.get_logger().error(f'Calibration file not found: {npz_path}')
-            raise FileNotFoundError(f'Calibration file not found: {npz_path}')
-        with np.load(npz_path) as data:
-            self.matrix_coefficients = data['camMatrix']
-            self.distortion_coefficients = data['distCoef']
-
         # Declare parameters
         self.declare_parameter('width', 640)
         self.declare_parameter('length', 480)
+        self.declare_parameter("marker_id", "O1")
+        self.declare_parameter("marker_shape", "DICT_4X4_50")
+        self.declare_parameter('cam_matrix', [299.26361032, 0.0, 324.93723462, 0.0, 303.22330886, 177.3524136, 0.0, 0.0, 1.0])
+        self.declare_parameter('dist_coeff', [0.11564661, -0.05059582, 0.00192533, -0.01093668, -0.03163341])
+        self.declare_parameter('left_pid_kp', 1.5)
+        self.declare_parameter('left_pid_ki', 0.5)
+        self.declare_parameter('left_pid_kd', 1.0)
+        self.declare_parameter('right_pid_kp', 1.5)
+        self.declare_parameter('right_pid_ki', 0.5)
+        self.declare_parameter('right_pid_kd', 1.0)
 
-        # Initialize PID controllers with tuned gains
-        self.left_pid = PIDController(kp=2.0, ki=0.1, kd=1.0)
-        self.right_pid = PIDController(kp=2.0, ki=0.1, kd=1.0)
+        self.matrix_coefficients = np.array(self.get_parameter('cam_matrix').get_parameter_value().double_array_value).reshape((3, 3))
+        self.distortion_coefficients = np.array(self.get_parameter('dist_coeff').get_parameter_value().double_array_value)
+
+        self.marker_id = self.get_parameter("marker_id").get_parameter_value().string_value
+        self.marker_shape = self.get_parameter("marker_shape").get_parameter_value().string_value
+
+        left_kp = self.get_parameter('left_pid_kp').get_parameter_value().double_value
+        left_ki = self.get_parameter('left_pid_ki').get_parameter_value().double_value
+        left_kd = self.get_parameter('left_pid_kd').get_parameter_value().double_value
+        right_kp = self.get_parameter('right_pid_kp').get_parameter_value().double_value
+        right_ki = self.get_parameter('right_pid_ki').get_parameter_value().double_value
+        right_kd = self.get_parameter('right_pid_kd').get_parameter_value().double_value
+
+        self.left_pid = PIDController(kp=left_kp, ki=left_ki, kd=left_kd)
+        self.right_pid = PIDController(kp=right_kp, ki=right_ki, kd=right_kd)
 
     def callback(self, data):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, desired_encoding='bgr8')
             gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
-            aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
+            self.aruco_dict = aruco.getPredefinedDictionary(aruco.__getattribute__(self.marker_shape))
             parameters = aruco.DetectorParameters()
-            corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+            corners, ids, _ = aruco.detectMarkers(gray, self.aruco_dict, parameters=parameters)
 
             p = Pose()
             if ids is not None:
@@ -110,13 +123,13 @@ class ImageConverter(Node):
                     marker_id = ids[i][0]
                     marker_name = marker_id_map.get(marker_id, "Unknown")
 
-                    # Only process the marker if it is "O1"
-                    if marker_name == "O1":
+                    # Only detect marker id "O1"
+                    if marker_name == self.marker_id:
                         self.get_logger().info(f'Marker detected: {marker_name}')
                         rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners[i], 0.1, self.matrix_coefficients, self.distortion_coefficients)
                         cv2.drawFrameAxes(cv_image, self.matrix_coefficients, self.distortion_coefficients, rvec, tvec, 0.1)  # The last parameter scales the axis size
 
-                        # Directly use tvec for position information
+                        # position information
                         p.position.x = tvec[0][0][0]
                         p.position.y = tvec[0][0][1]
                         p.position.z = tvec[0][0][2]
@@ -125,7 +138,6 @@ class ImageConverter(Node):
                         p.orientation.z = 0.0
                         p.orientation.w = 1.0
 
-                        # Draw marker name on the image
                         cv2.polylines(cv_image, [corners[i].astype(np.int32)], True, (0, 0, 255), 3)
                         cv_image = cv2.putText(cv_image, marker_name, (int(corners[i][0][0][0]), int(corners[i][0][0][1]) - 10), 
                                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2, cv2.LINE_AA)
@@ -133,7 +145,7 @@ class ImageConverter(Node):
                         # Calculate the distance directly from tvec
                         distance = tvec[0][0][2]
                         
-                        scaling_factor = 0.5  # Adjust this factor if needed
+                        scaling_factor = 0.2  
                         distance_corrected = distance * scaling_factor
 
                         # X offset from the camera center
@@ -142,40 +154,40 @@ class ImageConverter(Node):
                         # Calculate the ratio of x_offset to distance
                         x_ratio = x_offset / distance_corrected if distance_corrected != 0 else 0
 
+                        left_adjustment = self.left_pid.compute(x_ratio)
+                        right_adjustment = self.right_pid.compute(x_ratio)
+
                         # Check if the marker is directly in front and stop the robot
                         if -0.012 < x_ratio < 0.012:
-                            self.arduino.update_command(detected=False, left_wheel_speed=252, right_wheel_speed=2)
+                            self.arduino.update_command(detected=False, left_wheel_speed=254, right_wheel_speed=0)
                             cv_image = cv2.putText(cv_image, "Front", (int(corners[i][0][0][0]), int(corners[i][0][0][1]) - 20), 
                                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2, cv2.LINE_AA)
                         else:
-                            # Movement logic based on x_ratio
                             if distance_corrected > 0.12:
                                 if x_ratio > 0.012:
                                     # Move left
-                                    left_wheel_speed = 252
+                                    left_wheel_speed = 253 
                                     right_wheel_speed = 0
                                 elif x_ratio < -0.012:
                                     # Move right
-                                    left_wheel_speed = 254
-                                    right_wheel_speed = 3
+                                    left_wheel_speed = 254 
+                                    right_wheel_speed = 2
                                 else:
                                     # Move straight
-                                    left_wheel_speed = 252
-                                    right_wheel_speed = 2
+                                    left_wheel_speed = 254 - left_adjustment
+                                    right_wheel_speed = 0 + right_adjustment
 
                                 self.arduino.update_command(detected=True, left_wheel_speed=left_wheel_speed, right_wheel_speed=right_wheel_speed)
                             else:
                                 # Stop the robot if the distance is less than or equal to 0.12 meters
                                 self.arduino.update_command(detected=False, left_wheel_speed=255, right_wheel_speed=255)
 
-                        # Draw arrows based on the marker's position
                         if x_ratio > 0.012:
                             cv_image = cv2.arrowedLine(cv_image, (490, 240), (590, 240), (138, 43, 226), 3)
                         elif x_ratio < -0.012:
                             cv_image = cv2.arrowedLine(cv_image, (150, 240), (50, 240), (138, 43, 226), 3)
 
-                        # Display corrected distances on the image
-                        cv_image = cv2.putText(cv_image, f'Distance: {distance_corrected:.2f}m', (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2, cv2.LINE_AA)
+                        cv_image = cv2.putText(cv_image, f'Distance from AR: {distance_corrected:.2f}m, {self.marker_id}', (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2, cv2.LINE_AA)
             else:
                 self.arduino.update_command(detected=False)
 
