@@ -18,7 +18,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Order.msg"
   "msg/Task.msg"
-  "msg/InBound.msg"
+  "msg/Inbound.msg"
   "msg/RobotState.msg"
 )
 

@@ -11,7 +11,7 @@ class TaskDispatcher(Node):
         
         self.robot_ready = False
         self.order_list = []
-        self.inBound_list = []
+        self.inbound_list = []
         
         # Robot state
         self.state_subscription = self.create_subscription(
@@ -103,7 +103,7 @@ class TaskDispatcher(Node):
 
     # Exist order_list and robot's task success, assignment next task
     def process_orders(self):
-        if self.robot_ready
+        if self.robot_ready:
             if self.order_list:
                 order = self.order_list.pop(0)
                 task_msg = Task()
@@ -114,8 +114,8 @@ class TaskDispatcher(Node):
                 
                 self.task_publisher.publish(task_msg)
                 self.get_logger().info(f"Published task: {task_msg}")
-            elif self.inBound_list:
-                inBound_msg = InBound()
+            elif self.inbound_list:
+                inBound_msg = Inbound()
                 self.task_publisher.publish(inBound_msg)
                 
     def inbound_callback(self):
@@ -126,8 +126,6 @@ class TaskDispatcher(Node):
 def main(args=None):
     rclpy.init(args=args)
     task_dispatcher = TaskDispatcher()
-    task_dispatcher.order_list = task_dispatcher.load_orders()
-    task_dispatcher.inbound_list = task_dispatcher.load_inbounds()
     rclpy.spin(task_dispatcher)
     task_dispatcher.destroy_node()
     rclpy.shutdown()

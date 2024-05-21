@@ -28,7 +28,9 @@ setup(
             'order_receiver = task_manager.order_receiver:main',
             'task_dispatcher = task_manager.task_dispatcher:main',
             'robot_controller = task_manager.robot_controller:main',
-            'main_executable = task_manager.main:main'
+            'main_executable = task_manager.main:main',
+            'robot_state_publisher = task_manager.test:main',
+            'robot1 = task_manager.domain_test:main'
         ],
     },
 )

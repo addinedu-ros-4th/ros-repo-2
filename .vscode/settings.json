@@ -1,3 +1,6 @@
 {
-    "cmake.sourceDirectory": "/home/addinedu/git_ws/FinalProject/build/task_msgs/task_msgs__py"
+    "cmake.sourceDirectory": "/home/addinedu/git_ws/FinalProject/build/task_msgs/task_msgs__py",
+    "files.associations": {
+        "topic_bridge.hpp": "c"
+    }
 }
