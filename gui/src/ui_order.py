@@ -82,7 +82,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.orders.append(new_order)
         print(self.orders)  # 저장된 주문 출력 (디버깅 용도로)
 
-        QMessageBox.information(self, "Saved", "The order has been saved to variable.")
+        QMessageBox.information(self, "Saved", "결제완료")
         
         # user_id 증가
         self.user_id += 1
@@ -93,6 +93,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.num.setText(str(self.num_value))
         
         # 주문을 ROS로 전송
+
         self.send_task_to_ros()
 
     def send_task_to_ros(self):
@@ -109,8 +110,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         # 메시지 전송
         ws.send(order_message)
         ws.close()
-        
-           
+
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
@@ -261,5 +261,3 @@ if __name__ == "__main__":
     window = Ui_OrderWindow()
     window.show()
     sys.exit(app.exec())
-
-
