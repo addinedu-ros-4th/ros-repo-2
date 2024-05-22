@@ -1,47 +1,47 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'orderIYjGSt.ui'
+## Form generated from reading UI file 'order.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.15.3
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-
+import sys
+import json
+import mysql.connector
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
-import sys 
-import json
-import os
+from datetime import datetime
 from websocket import create_connection
 
-from_orderpage_class = uic.loadUiType("gui/ui/order.ui")[0]
+from_orderpage_class = uic.loadUiType("order.ui")[0]
 
 class Ui_OrderWindow(QMainWindow, from_orderpage_class):
-    def __init__(self):
+    def __init__(self, db_connection):
         super().__init__()
         self.setupUi(self)
         self.setWindowTitle("Order Page")
-        
+
+        self.db_connection = db_connection
         self.num_value = 0  # 숫자 값을 저장하는 변수
         self.user_id = 0  # 유저 아이디를 저장하는 변수
         self.num.setText(str(self.num_value))  # 초기값 설정
         self.num.setReadOnly(True)  # QLineEdit을 읽기 전용으로 설정
         
         self.orders = []  # 모든 주문을 저장할 리스트
-        
+
         self.plus.clicked.connect(self.increase_num)
         self.minus.clicked.connect(self.decrease_num)
         self.add_btn.clicked.connect(self.add_to_list)
-        self.buy_btn.clicked.connect(self.save_to_variable)
+        self.buy_btn.clicked.connect(self.save_to_database)
         self.delete_btn.clicked.connect(self.delete_from_list)
         
         self.model = QStandardItemModel(self.listView)  # QStandardItemModel 생성
         self.listView.setModel(self.model)  # QListView에 모델 설정
-
 
     def increase_num(self):
         self.num_value += 1
@@ -51,25 +51,29 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         if self.num_value > 0:
             self.num_value -= 1
         self.num.setText(str(self.num_value))
-        
-    def delete_from_list(self):
-        selected_index = self.listView.selectedIndexes()
-        if selected_index:
-            index = selected_index[0]
-            self.model.removeRow(index.row())
-        
+
     def add_to_list(self):
         product_name = self.select.currentText()  # 선택된 상품명 가져오기
         quantity = self.num.text()  # 수량 가져오기
         list_item = QStandardItem(f"{product_name}: {quantity}")
         self.model.appendRow(list_item)  # 모델에 항목 추가
-        
 
-    def save_to_variable(self):
+    def delete_from_list(self):
+        selected_index = self.listView.selectedIndexes()
+        if selected_index:
+            index = selected_index[0]
+            self.model.removeRow(index.row())
+
+    def save_to_database(self):
+        # 현재 시각을 가져오기
+        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        # 마지막 주문을 orders 리스트에 추가
         new_order = {
             "user_id": str(self.user_id),
             "items": [],
-            "quantities": []
+            "quantities": [],
+            "timestamp": current_time
         }
 
         for row in range(self.model.rowCount()):
@@ -77,23 +81,34 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
             product_name, quantity = item.split(": ")
             new_order["items"].append(product_name)
             new_order["quantities"].append(int(quantity))
-        
-        # 새로운 주문을 orders 리스트에 추가
+
         self.orders.append(new_order)
-        print(self.orders)  # 저장된 주문 출력 (디버깅 용도로)
+        
+        # orders 리스트의 마지막 주문만 데이터베이스에 저장
+        last_order = self.orders[-1]
+        cursor = self.db_connection.cursor()
+
+        for item, quantity in zip(last_order["items"], last_order["quantities"]):
+            product_id = self.get_product_id(item)
+            query = """
+                INSERT INTO Product_Order (cname, ordered_at, id, pname, ea)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+            cursor.execute(query, (last_order["user_id"], last_order["timestamp"], product_id, item, quantity))
+
+        self.db_connection.commit()
+        cursor.close()
 
         QMessageBox.information(self, "Saved", "결제완료")
-        
+
         # user_id 증가
         self.user_id += 1
-        
+
         # 리스트 뷰 초기화
         self.model.clear()
         self.num_value = 0
         self.num.setText(str(self.num_value))
         
-        # 주문을 ROS로 전송
-
         self.send_task_to_ros()
 
     def send_task_to_ros(self):
@@ -110,6 +125,10 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         # 메시지 전송
         ws.send(order_message)
         ws.close()
+
+    def get_product_id(self, product_name):
+        product_ids = {"cola": 1, "water": 2, "ramen": 3}
+        return product_ids.get(product_name.lower(), None)
 
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
@@ -161,7 +180,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
 "	border:none;\n"
 "")
         icon = QIcon()
-        icon.addFile(u"gui/image/buy.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u"image/buy.png", QSize(), QIcon.Normal, QIcon.Off)
         self.buy_btn.setIcon(icon)
         self.buy_btn.setIconSize(QSize(80, 80))
         self.listView = QListView(self.centralwidget)
@@ -178,7 +197,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.home.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon1 = QIcon()
-        icon1.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon1.addFile(u"image/home.png", QSize(), QIcon.Normal, QIcon.Off)
         self.home.setIcon(icon1)
         self.home.setIconSize(QSize(25, 25))
         self.order = QPushButton(self.Wmenu)
@@ -187,7 +206,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.order.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon2 = QIcon()
-        icon2.addFile(u"gui/image/order.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon2.addFile(u"image/order.png", QSize(), QIcon.Normal, QIcon.Off)
         self.order.setIcon(icon2)
         self.order.setIconSize(QSize(30, 30))
         self.chart = QPushButton(self.Wmenu)
@@ -196,7 +215,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.chart.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon3 = QIcon()
-        icon3.addFile(u"gui/image/bar_chart.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon3.addFile(u"image/bar_chart.png", QSize(), QIcon.Normal, QIcon.Off)
         self.chart.setIcon(icon3)
         self.chart.setIconSize(QSize(30, 30))
         self.label = QLabel(self.Wmenu)
@@ -208,7 +227,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.user.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon4 = QIcon()
-        icon4.addFile(u"gui/image/user.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon4.addFile(u"image/user.png", QSize(), QIcon.Normal, QIcon.Off)
         self.user.setIcon(icon4)
         self.user.setIconSize(QSize(30, 30))
         
@@ -218,7 +237,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.add_btn.setStyleSheet(u"border:none;")
         
         icon5 = QIcon()
-        icon5.addFile(u"gui/image/cart.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon5.addFile(u"image/cart.png", QSize(), QIcon.Normal, QIcon.Off)
         self.add_btn.setIcon(icon5)
         self.add_btn.setIconSize(QSize(35, 35))
         self.delete_btn = QPushButton(self.centralwidget)
@@ -226,7 +245,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.delete_btn.setGeometry(QRect(210, 420, 41, 25))
         self.delete_btn.setStyleSheet(u"border:none;")
         icon6 = QIcon()
-        icon6.addFile(u"gui/image/delete.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon6.addFile(u"image/delete.png", QSize(), QIcon.Normal, QIcon.Off)
         self.delete_btn.setIcon(icon6)
         self.delete_btn.setIconSize(QSize(25, 26))
         MainWindow.setCentralWidget(self.centralwidget)
@@ -237,13 +256,13 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         QMetaObject.connectSlotsByName(MainWindow)
     # setupUi
 
-    def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
+    def retranslateUi(self, OrderWindow):
+        OrderWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Order Page", None))
         self.select.addItem(QCoreApplication.translate("OrderWindow", u"선택해주세요", None))
         self.select.addItem(QCoreApplication.translate("OrderWindow", u"cola", None))
         self.select.addItem(QCoreApplication.translate("OrderWindow", u"water", None))
         self.select.addItem(QCoreApplication.translate("OrderWindow", u"ramen", None))
-
+        
         self.minus.setText(QCoreApplication.translate("MainWindow", u"-", None))
         self.plus.setText(QCoreApplication.translate("MainWindow", u"+", None))
         self.buy_btn.setText("")
@@ -254,10 +273,15 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.user.setText("")
         self.num.setText(QCoreApplication.translate("MainWindow", u"0", None))
         self.add_btn.setText("")
-    # retranslateUi
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    
-    window = Ui_OrderWindow()
-    window.show()
-    sys.exit(app.exec())
+    db_connection = mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='0000',
+        database='amrcenter'
+    )
+    order_window = Ui_OrderWindow(db_connection)
+    order_window.show()
+    sys.exit(app.exec_())
