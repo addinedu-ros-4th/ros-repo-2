@@ -5,12 +5,20 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='task_manager',
-            executable='robot_controller',
-            name='robot_controller'
+            executable='order_receiver',
+            name='order_receiver',
+            output='screen'
         ),
         Node(
             package='task_manager',
-            executable='task_dispatcher',
-            name='task_dispatcher'
+            executable='task_allocator',
+            name='task_allocator',
+            output='screen'
+        ),
+        Node(
+            package='task_manager',
+            executable='robot_status_monitor',
+            name='robot_status_monitor',
+            output='screen'
         ),
     ])

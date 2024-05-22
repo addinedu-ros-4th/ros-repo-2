@@ -1,26 +1,32 @@
+import threading
 import rclpy
-from rclpy.executors import MultiThreadedExecutor
-from task_manager.robot_controller import RobotController
-from task_manager.task_dispatcher import TaskDispatcher
+from order_receiver import OrderReceiver
+from task_allocator import TaskAllocator
+from robot_status_monitor import RobotStatusMonitor
+from task_success_handler import TaskSuccessHandler
 
-def main(args=None):
-    rclpy.init(args=args)
+def main():
+    rclpy.init()
 
-    robot_controller = RobotController()
-    task_dispatcher = TaskDispatcher()
+    order_receiver = OrderReceiver()
+    task_allocator = TaskAllocator()
+    robot_status_monitor = RobotStatusMonitor()
+    task_success_handler = TaskSuccessHandler()
 
-    executor = MultiThreadedExecutor()
-    executor.add_node(robot_controller)
-    executor.add_node(task_dispatcher)
+    nodes = [order_receiver, task_allocator, robot_status_monitor, task_success_handler]
 
-    robot_controller.get_logger().info('Starting RobotController and TaskDispatcher nodes.')
+    threads = []
+    for node in nodes:
+        thread = threading.Thread(target=rclpy.spin, args=(node,))
+        thread.start()
+        threads.append(thread)
 
     try:
-        executor.spin()
-    finally:
-        executor.shutdown()
-        robot_controller.destroy_node()
-        task_dispatcher.destroy_node()
+        for thread in threads:
+            thread.join()
+    except KeyboardInterrupt:
+        for node in nodes:
+            node.destroy_node()
         rclpy.shutdown()
 
 if __name__ == '__main__':

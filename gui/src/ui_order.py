@@ -97,7 +97,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.send_task_to_ros()
 
     def send_task_to_ros(self):
-        # WebSocket을 통해 rosbridge로 연결
+        # Connect Ros Bridge through WebSocket
         ws = create_connection("ws://192.168.0.85:9090")
         
         # JSON 메시지 생성

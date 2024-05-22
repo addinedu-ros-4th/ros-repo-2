@@ -56,8 +56,8 @@ class OrderReceiver(Node):
                 task.task_id = str(uuid.uuid4())
                 task.task_type = "Outbound"
                 task.priority = 3
-                task.item = items
-                task.quantity = quantities
+                task.item = item
+                task.quantity = quantity
                 task.location = location
                 
                 tasks.append(task)

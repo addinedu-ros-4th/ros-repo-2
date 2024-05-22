@@ -10,13 +10,14 @@ class RobotController(Node):
 
         self.state_subscription = self.create_subscription(
             RobotState,
-            '/robot_state',
+            '/task_success',
             self.state_callback,
             10
         )
 
     def state_callback(self, msg):
         self.robot_ready = msg.is_ready
+        # 로봇 상태 변경 후 db 변경
 
     def is_robot_ready(self):
         return self.robot_ready
