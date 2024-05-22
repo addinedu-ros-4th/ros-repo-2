@@ -1,0 +1,9 @@
+PersonDetector:
+  ros__parameters:
+    model_proto_path: "/human_detection/models/MobileNetSSD_deploy.prototxt"
+    model_weights_path: "/human_detection/models/MobileNetSSD_deploy.caffemodel"
+    conf_threshold: 0.2
+    frame_width: 320
+    frame_height: 240
+    fps: 30
+    detection_interval: 0.2
