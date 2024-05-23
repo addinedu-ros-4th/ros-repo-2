@@ -19,7 +19,6 @@ class TaskAllocator(Node):
         self.task_list_sub = self.create_subscription(TaskList, '/task_list', self.task_list_callback, 10)
         self.robot_status_sub = self.create_subscription(RobotStatus, '/robot_status', self.robot_status_callback, 10)
         self.completion_sub = self.create_subscription(TaskCompletion, '/task_completion', self.task_completion_callback, 10)
-        self.allocate_task_client = self.create_client(AllocateTask, '/allocate_task')
 
         self.tasks = []              # Priority queue for tasks
         self.tasks_in_progress = {}  # Dictionary to keep track of tasks in progress
@@ -39,6 +38,7 @@ class TaskAllocator(Node):
         robot_id = msg.robot_id
         robot_status = msg.robot_status
         self.robot_status[robot_id] = robot_status
+        self.get_logger().info(f'Received status from {robot_id}: {robot_status}')
         self.allocate_tasks()
             
             
@@ -66,6 +66,11 @@ class TaskAllocator(Node):
         request.location = task.location
         
         self.get_logger().info(f'Assigning task {task.task_id} to robot {robot_id}')
+        
+        # Dynamically set the service name and assign it to a specific robot
+        service_name = f'/allocate_task_{robot_id}'
+        allocate_task_client = self.create_client(AllocateTask, service_name)
+        
         future = self.allocate_task_client.call_async(request) # asyncronize
         future.add_done_callback(lambda future: self.task_allocation_response(future, task, robot_id))
     
@@ -75,14 +80,14 @@ class TaskAllocator(Node):
             response = future.result()
             if response.success:
                 self.get_logger().info(f'Task allocation successful')
-                self.tasks_in_progress[task.task_id] = (task, robot_id)  # Add task to in-progress list
-                self.robot_status[robot_id] = "buzy"                     # Update robot status
+                self.tasks_in_progress[task.task_id] = (task, robot_id)              # Add task to in-progress list
+                self.robot_status[robot_id] = "buzy"                                 # Update robot status
             else:
                 self.get_logger().warn(f'Task allocation failed: {response.message}')
-                heapq.heappush(self.tasks, (task.priority, task))        # Re-add task to queue
+                heapq.heappush(self.tasks, PriorityTask(task.priority, task))        # Re-add task to queue
         except Exception as e:
             self.get_logger().error(f'Task allocation service call failed: {e}')
-            heapq.heappush(self.tasks, (task.priority, task))   
+            heapq.heappush(self.tasks, PriorityTask(task.priority, task))   
             
             
     def task_completion_callback(self, msg):
@@ -101,9 +106,9 @@ class TaskAllocator(Node):
     def reassign_task(self, task_id):
         if task_id in self.tasks_in_progress:
             task, robot_id = self.tasks_in_progress[task_id]
-            heapq.heappush(self.tasks, (task.priority, task))  # Re-add task to queue
+            heapq.heappush(self.tasks, PriorityTask(task.priority, task))  # Re-add task to queue
             del self.tasks_in_progress[task_id]
-            self.robot_status[robot_id] = 'available'          # Update robot status
+            self.robot_status[robot_id] = 'available'                      # Update robot status
             self.get_logger().info(f'Reassigning task {task_id} due to failure')      
 
 
