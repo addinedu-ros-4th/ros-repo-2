@@ -20,20 +20,18 @@ topics:
     remap: amcl_pose_3
 
 
-
-
   task_213:
-    type: task_msgs/srv/Task
+    type: task_msgs/srv/AllocateTask
     from_domain: 213
     to_domain: 212
 
   task_214:
-    type: task_msgs/srv/Task
+    type: task_msgs/srv/AllocateTask
     from_domain: 214
     to_domain: 212
 
   task_215:
-    type: task_msgs/srv/Task
+    type: task_msgs/srv/AllocateTask
     from_domain: 215
     to_domain: 212
     
