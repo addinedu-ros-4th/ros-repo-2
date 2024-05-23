@@ -23,8 +23,8 @@ def generate_launch_description():
         ),
         Node(
             package='minibot_arucomarker',
-            executable='detect_aruco2',
-            name='detect_aruco2',
+            executable='detect_aruco3',
+            name='detect_aruco3',
             parameters=[param_dir],
             output='screen'
         ),
