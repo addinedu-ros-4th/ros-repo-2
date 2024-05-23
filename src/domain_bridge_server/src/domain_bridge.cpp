@@ -22,10 +22,12 @@
 #include "domain_bridge/parse_domain_bridge_yaml_config.hpp"
 #include "domain_bridge/process_cmd_line_arguments.hpp"
 #include "task_msgs/srv/allocate_task.hpp"
+
 int SERVER_ID = 212;
 int ROBOT_1_ID = 213;
 int ROBOT_2_ID = 214;
 int ROBOT_3_ID = 215;
+
 int main(int argc, char ** argv)
 {
   auto arguments = rclcpp::init_and_remove_ros_arguments(argc, argv);

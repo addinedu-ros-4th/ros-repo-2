@@ -1,72 +1,39 @@
 # Name of the domain bridge, used for node naming and logging
+# robot_1_ID: 213
 name: domain_bridge
 
 topics:
-  # amcl_pose:
-  #   type: geometry_msgs/msg/PoseWithCovarianceStamped
-  #   from_domain: 213
-  #   to_domain: 212
-  #   remap: amcl_pose_1
-  # amcl_pose:
-  #   type: geometry_msgs/msg/PoseWithCovarianceStamped
-  #   from_domain: 214
-  #   to_domain: 212
-  #   remap: amcl_pose_2
-  # amcl_pose:
-  #   type: geometry_msgs/msg/PoseWithCovarianceStamped
-  #   from_domain: 215
-  #   to_domain: 212
-  #   remap: amcl_pose_3
-
-  # task_success:
-  #   type: std_msgs/msg/Bool
-  #   from_domain: 213
-  #   to_domain: 212
-  #   remap: task_success_1
-
-  # task_success:
-  #   type: std_msgs/msg/Bool
-  #   from_domain: 214
-  #   to_domain: 212
-  #   remap: task_success_2
-
-  # task_success:
-  #   type: std_msgs/msg/Bool
-  #   from_domain: 215
-  #   to_domain: 212
-  #   remap: task_success_3
-
-
-  # task_1:
-  #   type: task_msgs/msg/Task
-  #   from_domain: 212
-  #   to_domain: 213
-  #   remap: task
-
-  # task_2:
-  #   type: task_msgs/msg/Task
-  #   from_domain: 212
-  #   to_domain: 214
-  #   remap: task
-
-  # task_3:
-  #   type: task_msgs/msg/Task
-  #   from_domain: 212
-  #   to_domain: 215
-  #   remap: task
+  amcl_pose:
+    type: geometry_msgs/msg/PoseWithCovarianceStamped
+    from_domain: 213
+    to_domain: 212
+    remap: amcl_pose_1
+  amcl_pose:
+    type: geometry_msgs/msg/PoseWithCovarianceStamped
+    from_domain: 214
+    to_domain: 212
+    remap: amcl_pose_2
+  amcl_pose:
+    type: geometry_msgs/msg/PoseWithCovarianceStamped
+    from_domain: 215
+    to_domain: 212
+    remap: amcl_pose_3
 
 
 
-  /add_two_ints:
-    type: example_interfaces/srv/AddTwoInts
-    from_domain: 20
-    to_domain: 10
 
-  
+  task_213:
+    type: task_msgs/srv/Task
+    from_domain: 213
+    to_domain: 212
 
-# actions:
-#     turtle1/rotate_absolute:
-#     type: turtlesim/action/RotateAbsolute
-#     from_domain: 213
-#     to_domain: 212
-#     remap: turtle1/rotate_absolute
+  task_214:
+    type: task_msgs/srv/Task
+    from_domain: 214
+    to_domain: 212
+
+  task_215:
+    type: task_msgs/srv/Task
+    from_domain: 215
+    to_domain: 212
+    
