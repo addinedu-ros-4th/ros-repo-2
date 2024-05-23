@@ -1,2 +1,2 @@
 string robot_id
-bool is_ready
+string robot_status

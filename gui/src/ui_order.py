@@ -18,13 +18,13 @@ from PyQt5 import uic
 from datetime import datetime
 from websocket import create_connection
 
-from_orderpage_class = uic.loadUiType("order.ui")[0]
+from_orderpage_class = uic.loadUiType("gui/ui/order.ui")[0]
 
 class Ui_OrderWindow(QMainWindow, from_orderpage_class):
     def __init__(self, db_connection):
         super().__init__()
         self.setupUi(self)
-        self.setWindowTitle("Order Page")
+        self.setWindowTitle("Consumer Order Page")
 
         self.db_connection = db_connection
         self.num_value = 0  # 숫자 값을 저장하는 변수
@@ -83,21 +83,6 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
             new_order["quantities"].append(int(quantity))
 
         self.orders.append(new_order)
-        
-        # orders 리스트의 마지막 주문만 데이터베이스에 저장
-        last_order = self.orders[-1]
-        cursor = self.db_connection.cursor()
-
-        for item, quantity in zip(last_order["items"], last_order["quantities"]):
-            product_id = self.get_product_id(item)
-            query = """
-                INSERT INTO Product_Order (cname, ordered_at, id, pname, ea)
-                VALUES (%s, %s, %s, %s, %s)
-            """
-            cursor.execute(query, (last_order["user_id"], last_order["timestamp"], product_id, item, quantity))
-
-        self.db_connection.commit()
-        cursor.close()
 
         QMessageBox.information(self, "Saved", "결제완료")
 
@@ -180,7 +165,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
 "	border:none;\n"
 "")
         icon = QIcon()
-        icon.addFile(u"image/buy.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u"gui/image/buy.png", QSize(), QIcon.Normal, QIcon.Off)
         self.buy_btn.setIcon(icon)
         self.buy_btn.setIconSize(QSize(80, 80))
         self.listView = QListView(self.centralwidget)
@@ -197,7 +182,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.home.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon1 = QIcon()
-        icon1.addFile(u"image/home.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon1.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
         self.home.setIcon(icon1)
         self.home.setIconSize(QSize(25, 25))
         self.order = QPushButton(self.Wmenu)
@@ -206,7 +191,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.order.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon2 = QIcon()
-        icon2.addFile(u"image/order.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon2.addFile(u"gui/image/order.png", QSize(), QIcon.Normal, QIcon.Off)
         self.order.setIcon(icon2)
         self.order.setIconSize(QSize(30, 30))
         self.chart = QPushButton(self.Wmenu)
@@ -215,7 +200,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.chart.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon3 = QIcon()
-        icon3.addFile(u"image/bar_chart.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon3.addFile(u"gui/image/bar_chart.png", QSize(), QIcon.Normal, QIcon.Off)
         self.chart.setIcon(icon3)
         self.chart.setIconSize(QSize(30, 30))
         self.label = QLabel(self.Wmenu)
@@ -227,7 +212,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.user.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon4 = QIcon()
-        icon4.addFile(u"image/user.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon4.addFile(u"gui/image/user.png", QSize(), QIcon.Normal, QIcon.Off)
         self.user.setIcon(icon4)
         self.user.setIconSize(QSize(30, 30))
         
@@ -237,7 +222,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.add_btn.setStyleSheet(u"border:none;")
         
         icon5 = QIcon()
-        icon5.addFile(u"image/cart.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon5.addFile(u"gui/image/cart.png", QSize(), QIcon.Normal, QIcon.Off)
         self.add_btn.setIcon(icon5)
         self.add_btn.setIconSize(QSize(35, 35))
         self.delete_btn = QPushButton(self.centralwidget)
@@ -245,7 +230,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.delete_btn.setGeometry(QRect(210, 420, 41, 25))
         self.delete_btn.setStyleSheet(u"border:none;")
         icon6 = QIcon()
-        icon6.addFile(u"image/delete.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon6.addFile(u"gui/image/delete.png", QSize(), QIcon.Normal, QIcon.Off)
         self.delete_btn.setIcon(icon6)
         self.delete_btn.setIconSize(QSize(25, 26))
         MainWindow.setCentralWidget(self.centralwidget)

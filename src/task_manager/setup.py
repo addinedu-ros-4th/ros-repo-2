@@ -29,7 +29,6 @@ setup(
             'robot_controller = task_manager.robot_controller:main',
             'order_receiver = task_manager.order_receiver:main',
             'task_allocator = task_manager.task_allocator:main',
-            'task_success_handler = task_manager.task_success_handler:main',
             'robot_status_publisher = task_manager.robot_status_publisher:main'
         ],
     },

@@ -17,7 +17,7 @@ import os
 from ui_order import Ui_OrderWindow
 from db_connection import create_db_connection
 
-from_mainpage_class = uic.loadUiType("main.ui")[0]
+from_mainpage_class = uic.loadUiType("gui/ui/main.ui")[0]
 
 class Ui_MainWindow(QMainWindow, from_mainpage_class):
     def __init__(self, db_connection):
@@ -48,7 +48,7 @@ class Ui_MainWindow(QMainWindow, from_mainpage_class):
         self.home.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon = QIcon()
-        icon.addFile(u"image/home.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
         self.home.setIcon(icon)
         self.home.setIconSize(QSize(25, 25))
         self.order = QPushButton(self.Wmenu)
@@ -57,7 +57,7 @@ class Ui_MainWindow(QMainWindow, from_mainpage_class):
         self.order.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon1 = QIcon()
-        icon1.addFile(u"image/home.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon1.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
         self.order.setIcon(icon1)
         self.order.setIconSize(QSize(30, 30))
         self.chart = QPushButton(self.Wmenu)
@@ -66,7 +66,7 @@ class Ui_MainWindow(QMainWindow, from_mainpage_class):
         self.chart.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon2 = QIcon()
-        icon2.addFile(u"image/home.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon2.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
         self.chart.setIcon(icon2)
         self.chart.setIconSize(QSize(30, 30))
         self.label = QLabel(self.Wmenu)
@@ -78,7 +78,7 @@ class Ui_MainWindow(QMainWindow, from_mainpage_class):
         self.user.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "border-radius: 30px")
         icon3 = QIcon()
-        icon3.addFile(u"image/home.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon3.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
         self.user.setIcon(icon3)
         self.user.setIconSize(QSize(30, 30))
         self.Worder = QWidget(self.centralwidget)
