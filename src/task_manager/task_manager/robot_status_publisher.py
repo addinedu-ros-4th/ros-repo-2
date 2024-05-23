@@ -22,7 +22,9 @@ class RobotStatusPublisher(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    robot_id = '212'  # Robot ID = Domain ID
+    robot_id = '213'  # Robot ID = Domain ID
+    # robot_id = '214'
+    # robot_id = '215'
     robot_status_publisher = RobotStatusPublisher(robot_id)
 
     rclpy.spin(robot_status_publisher)
