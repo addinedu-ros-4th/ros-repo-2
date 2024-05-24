@@ -9,6 +9,8 @@
 ################################################################################
 
 import sys
+sys.path.append('./db/src')
+
 import json
 import mysql.connector
 from PyQt5.QtCore import *
@@ -16,17 +18,18 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
 from datetime import datetime
-from websocket import create_connection
+# from websocket import create_connection
+from DatabaseManager import DatabaseManager
 
 from_orderpage_class = uic.loadUiType("gui/ui/order.ui")[0]
 
 class Ui_OrderWindow(QMainWindow, from_orderpage_class):
-    def __init__(self, db_connection):
+    def __init__(self, db_manager):
         super().__init__()
+        self.db_manager = db_manager
         self.setupUi(self)
         self.setWindowTitle("Consumer Order Page")
 
-        self.db_connection = db_connection
         self.num_value = 0  # 숫자 값을 저장하는 변수
         self.user_id = 0  # 유저 아이디를 저장하는 변수
         self.num.setText(str(self.num_value))  # 초기값 설정
@@ -73,7 +76,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
             "user_id": str(self.user_id),
             "items": [],
             "quantities": [],
-            "timestamp": current_time
+            "order_time": current_time
         }
 
         for row in range(self.model.rowCount()):
@@ -83,6 +86,21 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
             new_order["quantities"].append(int(quantity))
 
         self.orders.append(new_order)
+        
+        # orders 리스트의 마지막 주문만 데이터베이스에 저장
+        last_order = self.orders[-1]
+
+        for item, quantity in zip(last_order["items"], last_order["quantities"]):
+            product_id = self.db_manager.get_product_id(item)
+           
+            data = {
+                "user_id": last_order["user_id"],
+                "order_time": last_order["order_time"],
+                "item_id": product_id,
+                "items": item,
+                "quantities": quantity,
+            }
+            self.db_manager.save_data("ProductOrder", data)
 
         QMessageBox.information(self, "Saved", "결제완료")
 
@@ -94,22 +112,24 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.num_value = 0
         self.num.setText(str(self.num_value))
         
-        self.send_task_to_ros()
+    #     self.send_task_to_ros()
 
-    def send_task_to_ros(self):
-        # Connect Ros Bridge through WebSocket
-        ws = create_connection("ws://192.168.0.85:9090")
-        
-        # JSON 메시지 생성
-        order_message = json.dumps({
-            "op": "publish",
-            "topic": "/order",
-            "msg": {"data": json.dumps(self.orders)}
-        })
-        
-        # 메시지 전송
-        ws.send(order_message)
-        ws.close()
+    # def send_task_to_ros(self):
+    #     try:
+    #         ws = create_connection("ws://192.168.0.85:9090")
+    #         # JSON 메시지 생성
+    #         order_message = json.dumps({
+    #             "op": "publish",
+    #             "topic": "/order",
+    #             "msg": {"data": json.dumps(self.orders)}
+    #         })
+    #         ws.send(order_message)  # 실제로 보내고자 하는 메시지로 수정
+    #         ws.close()
+    #     except OSError as e:
+    #         QMessageBox.warning(self, "WebSocket Error", f"Failed to connect to WebSocket: {str(e)}")
+    #     except Exception as e:
+    #         QMessageBox.warning(self, "Error", f"An error occurred: {str(e)}")
+       
 
     def get_product_id(self, product_name):
         product_ids = {"cola": 1, "water": 2, "ramen": 3}
@@ -129,9 +149,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.select.addItem("")
         self.select.setObjectName(u"select")
         self.select.setGeometry(QRect(210, 134, 441, 31))
-        self.select.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
-"\n"
-"")
+        self.select.setStyleSheet(u"background-color: rgb(255, 255, 255);\n""\n""")
         self.select.clear()  # 기존 항목 제거
         
         self.num = QLineEdit(self.centralwidget)
@@ -139,6 +157,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.num.setGeometry(QRect(480, 180, 61, 25))
         self.num.setStyleSheet(u"background-color: rgb(255, 255, 255);")
         self.num.setAlignment(Qt.AlignCenter)
+        
         self.minus = QPushButton(self.centralwidget)
         self.minus.setObjectName(u"minus")
         self.minus.setGeometry(QRect(430, 180, 41, 25))
@@ -147,70 +166,68 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         font.setBold(True)
         font.setWeight(75)
         self.minus.setFont(font)
-        self.minus.setStyleSheet(u"\n"
-"	border:none;\n"
-"")
+        self.minus.setStyleSheet(u"\n""	border:none;\n""")
+        
         self.plus = QPushButton(self.centralwidget)
         self.plus.setObjectName(u"plus")
         self.plus.setGeometry(QRect(550, 180, 41, 25))
         self.plus.setFont(font)
-        self.plus.setStyleSheet(u"\n"
-"	border:none;\n"
-"")
+        self.plus.setStyleSheet(u"\n""	border:none;\n""")
+        
         self.buy_btn = QPushButton(self.centralwidget)
         self.buy_btn.setObjectName(u"buy_btn")
         self.buy_btn.setGeometry(QRect(560, 410, 89, 51))
-        self.buy_btn.setStyleSheet(u"\n"
-"	color:#000;\n"
-"	border:none;\n"
-"")
+        self.buy_btn.setStyleSheet(u"\n""	color:#000;\n""	border:none;\n""")
         icon = QIcon()
         icon.addFile(u"gui/image/buy.png", QSize(), QIcon.Normal, QIcon.Off)
         self.buy_btn.setIcon(icon)
         self.buy_btn.setIconSize(QSize(80, 80))
+        
         self.listView = QListView(self.centralwidget)
         self.listView.setObjectName(u"listView")
         self.listView.setGeometry(QRect(210, 230, 441, 171))
         self.listView.setStyleSheet(u"background-color: rgb(255, 255, 255);")
+        
         self.Wmenu = QWidget(self.centralwidget)
         self.Wmenu.setObjectName(u"Wmenu")
         self.Wmenu.setGeometry(QRect(0, 0, 81, 601))
         self.Wmenu.setStyleSheet(u"background-color: rgb(212,212,212);")
+        
         self.home = QPushButton(self.Wmenu)
         self.home.setObjectName(u"home")
         self.home.setGeometry(QRect(10, 100, 61, 61))
-        self.home.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
-"border-radius: 30px")
+        self.home.setStyleSheet(u"background-color: rgb(255, 255, 255);\n""border-radius: 30px")
         icon1 = QIcon()
         icon1.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
         self.home.setIcon(icon1)
         self.home.setIconSize(QSize(25, 25))
+        
         self.order = QPushButton(self.Wmenu)
         self.order.setObjectName(u"order")
         self.order.setGeometry(QRect(10, 220, 61, 61))
-        self.order.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
-"border-radius: 30px")
+        self.order.setStyleSheet(u"background-color: rgb(255, 255, 255);\n""border-radius: 30px")
         icon2 = QIcon()
         icon2.addFile(u"gui/image/order.png", QSize(), QIcon.Normal, QIcon.Off)
         self.order.setIcon(icon2)
         self.order.setIconSize(QSize(30, 30))
+        
         self.chart = QPushButton(self.Wmenu)
         self.chart.setObjectName(u"chart")
         self.chart.setGeometry(QRect(10, 350, 61, 61))
-        self.chart.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
-"border-radius: 30px")
+        self.chart.setStyleSheet(u"background-color: rgb(255, 255, 255);\n""border-radius: 30px")
         icon3 = QIcon()
         icon3.addFile(u"gui/image/bar_chart.png", QSize(), QIcon.Normal, QIcon.Off)
         self.chart.setIcon(icon3)
         self.chart.setIconSize(QSize(30, 30))
+        
         self.label = QLabel(self.Wmenu)
         self.label.setObjectName(u"label")
         self.label.setGeometry(QRect(20, 20, 41, 17))
+        
         self.user = QPushButton(self.Wmenu)
         self.user.setObjectName(u"user")
         self.user.setGeometry(QRect(10, 480, 61, 61))
-        self.user.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
-"border-radius: 30px")
+        self.user.setStyleSheet(u"background-color: rgb(255, 255, 255);\n""border-radius: 30px")
         icon4 = QIcon()
         icon4.addFile(u"gui/image/user.png", QSize(), QIcon.Normal, QIcon.Off)
         self.user.setIcon(icon4)
@@ -225,6 +242,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         icon5.addFile(u"gui/image/cart.png", QSize(), QIcon.Normal, QIcon.Off)
         self.add_btn.setIcon(icon5)
         self.add_btn.setIconSize(QSize(35, 35))
+        
         self.delete_btn = QPushButton(self.centralwidget)
         self.delete_btn.setObjectName(u"delete_btn")
         self.delete_btn.setGeometry(QRect(210, 420, 41, 25))
@@ -234,7 +252,6 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.delete_btn.setIcon(icon6)
         self.delete_btn.setIconSize(QSize(25, 26))
         MainWindow.setCentralWidget(self.centralwidget)
-        # self.select.addItems(["cola", "water", "ramen"])
 
         self.retranslateUi(MainWindow)
 
@@ -261,12 +278,8 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    db_connection = mysql.connector.connect(
-        host='localhost',
-        user='root',
-        password='0000',
-        database='amrcenter'
-    )
-    order_window = Ui_OrderWindow(db_connection)
+    db_manager = DatabaseManager(host='localhost')
+    db_manager.connect_database()
+    order_window = Ui_OrderWindow(db_manager)
     order_window.show()
     sys.exit(app.exec_())
