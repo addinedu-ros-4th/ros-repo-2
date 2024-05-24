@@ -1,0 +1,8 @@
+string task_id
+string task_type
+int32 priority
+string location
+string item
+int32 quantity
+---
+bool success
