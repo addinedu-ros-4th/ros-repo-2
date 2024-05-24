@@ -1,37 +1,25 @@
-# -*- coding: utf-8 -*-
-
-################################################################################
-## Form generated from reading UI file 'order.ui'
-##
-## Created by: Qt User Interface Compiler version 5.15.3
-##
-## WARNING! All changes made in this file will be lost when recompiling UI file!
-################################################################################
-
 import sys
-sys.path.append('./db/src')
+sys.path.append('/home/addinedu/testdb')  # DatabaseManager.py 파일의 경로를 추가
 
-import json
-import mysql.connector
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
 from datetime import datetime
-# from websocket import create_connection
 from DatabaseManager import DatabaseManager
+from websocket import create_connection
 
 from_orderpage_class = uic.loadUiType("gui/ui/order.ui")[0]
 
 class Ui_OrderWindow(QMainWindow, from_orderpage_class):
     def __init__(self, db_manager):
         super().__init__()
-        self.db_manager = db_manager
+        self.db_manager = db_manager  # db_manager 객체를 인스턴스 변수로 저장
         self.setupUi(self)
-        self.setWindowTitle("Consumer Order Page")
+        self.setWindowTitle("Order Page")
 
         self.num_value = 0  # 숫자 값을 저장하는 변수
-        self.user_id = 0  # 유저 아이디를 저장하는 변수
+        self.user_id = 0  # 유저 아이디를 저장하는 변수, 초기값 0
         self.num.setText(str(self.num_value))  # 초기값 설정
         self.num.setReadOnly(True)  # QLineEdit을 읽기 전용으로 설정
         
@@ -73,10 +61,10 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         
         # 마지막 주문을 orders 리스트에 추가
         new_order = {
-            "user_id": str(self.user_id),
+            "user_id": self.user_id,
             "items": [],
             "quantities": [],
-            "order_time": current_time
+            "timestamp": current_time
         }
 
         for row in range(self.model.rowCount()):
@@ -92,15 +80,26 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
 
         for item, quantity in zip(last_order["items"], last_order["quantities"]):
             product_id = self.db_manager.get_product_id(item)
-           
+            stock = self.db_manager.get_stock(product_id)
+            if stock is None:
+                QMessageBox.warning(self, "Error", f"Product ID {product_id} not found.")
+                return
+            if stock < quantity:
+                QMessageBox.warning(self, "Stock Error", f"{item}은(는) 품절입니다.\n재고: {stock}")
+                return
+
             data = {
                 "user_id": last_order["user_id"],
-                "order_time": last_order["order_time"],
+                "order_time": last_order["timestamp"],
                 "item_id": product_id,
                 "items": item,
-                "quantities": quantity,
+                "quantities": quantity
             }
             self.db_manager.save_data("ProductOrder", data)
+            self.db_manager.update_stock(product_id, quantity)
+
+            # 재고 현황 프린트
+            print(f"Product: {item}, Stock after order: {stock - quantity}")
 
         QMessageBox.information(self, "Saved", "결제완료")
 
@@ -111,29 +110,19 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.model.clear()
         self.num_value = 0
         self.num.setText(str(self.num_value))
-        
-    #     self.send_task_to_ros()
 
-    # def send_task_to_ros(self):
-    #     try:
-    #         ws = create_connection("ws://192.168.0.85:9090")
-    #         # JSON 메시지 생성
-    #         order_message = json.dumps({
-    #             "op": "publish",
-    #             "topic": "/order",
-    #             "msg": {"data": json.dumps(self.orders)}
-    #         })
-    #         ws.send(order_message)  # 실제로 보내고자 하는 메시지로 수정
-    #         ws.close()
-    #     except OSError as e:
-    #         QMessageBox.warning(self, "WebSocket Error", f"Failed to connect to WebSocket: {str(e)}")
-    #     except Exception as e:
-    #         QMessageBox.warning(self, "Error", f"An error occurred: {str(e)}")
-       
+        # 웹소켓 연결 시도
+        self.send_task_to_ros()
 
-    def get_product_id(self, product_name):
-        product_ids = {"cola": 1, "water": 2, "ramen": 3}
-        return product_ids.get(product_name.lower(), None)
+    def send_task_to_ros(self):
+        try:
+            ws = create_connection("ws://192.168.0.85:9090")
+            ws.send("Task message")  # 실제로 보내고자 하는 메시지로 수정
+            ws.close()
+        except OSError as e:
+            QMessageBox.warning(self, "WebSocket Error", f"Failed to connect to WebSocket: {str(e)}")
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"An error occurred: {str(e)}")
 
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
@@ -257,7 +246,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
 
         QMetaObject.connectSlotsByName(MainWindow)
     # setupUi
-
+    
     def retranslateUi(self, OrderWindow):
         OrderWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Order Page", None))
         self.select.addItem(QCoreApplication.translate("OrderWindow", u"선택해주세요", None))
@@ -275,11 +264,13 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.user.setText("")
         self.num.setText(QCoreApplication.translate("MainWindow", u"0", None))
         self.add_btn.setText("")
-
+        
+        
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     db_manager = DatabaseManager(host='localhost')
     db_manager.connect_database()
+    db_manager.create_table()
     order_window = Ui_OrderWindow(db_manager)
     order_window.show()
     sys.exit(app.exec_())
