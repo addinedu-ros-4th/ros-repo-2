@@ -25,7 +25,8 @@ setup(
     entry_points={
         'console_scripts': [
             'aruco_detection = robot_aruco.aruco_detection:main',
-            'robot_cam = robot_aruco.robot_cam:main'
+            'robot_cam = robot_aruco.robot_cam:main',
+            'step_control = robot_aruco.step_control:main'
         ],
     },
 )
