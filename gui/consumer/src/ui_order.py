@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/home/addinedu/testdb')  # DatabaseManager.py 파일의 경로를 추가
+sys.path.append('./db/src')  # DatabaseManager.py 파일의 경로를 추가
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -19,7 +19,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.setWindowTitle("Order Page")
 
         self.num_value = 0  # 숫자 값을 저장하는 변수
-        self.user_id = 0  # 유저 아이디를 저장하는 변수, 초기값 0
+        self.user_id = self.db_manager.get_last_user_id() + 1  # 마지막 user_id에서 이어서 시작
         self.num.setText(str(self.num_value))  # 초기값 설정
         self.num.setReadOnly(True)  # QLineEdit을 읽기 전용으로 설정
         
@@ -77,6 +77,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         
         # orders 리스트의 마지막 주문만 데이터베이스에 저장
         last_order = self.orders[-1]
+
 
         for item, quantity in zip(last_order["items"], last_order["quantities"]):
             product_id = self.db_manager.get_product_id(item)
@@ -268,7 +269,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    db_manager = DatabaseManager(host='localhost')
+    db_manager = DatabaseManager('/home/addinedu/testdb/config.ini')
     db_manager.connect_database()
     db_manager.create_table()
     order_window = Ui_OrderWindow(db_manager)
