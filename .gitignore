@@ -1,5 +1,5 @@
-/install/
-/log/
-/build/
+/server/install/
+/server/log/
+/server/build/
 /.vscode/
 /db/config/config.ini
