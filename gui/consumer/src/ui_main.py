@@ -8,7 +8,7 @@ from PyQt5 import uic
 from DatabaseManager import DatabaseManager
 from ui_order import Ui_OrderWindow
 
-from_mainpage_class = uic.loadUiType("gui/consumer/ui/main.ui")[0]
+from_mainpage_class = uic.loadUiType("gui/ui/main.ui")[0]
 
 class Ui_MainWindow(QMainWindow, from_mainpage_class):
     def __init__(self):
@@ -44,7 +44,7 @@ class Ui_MainWindow(QMainWindow, from_mainpage_class):
         self.home.setGeometry(QRect(10, 100, 61, 61))
         self.home.setStyleSheet(u"background-color: rgb(255, 255, 255);\n""border-radius: 30px")
         icon = QIcon()
-        icon.addFile(u"gui/consumer/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
         self.home.setIcon(icon)
         self.home.setIconSize(QSize(25, 25))
         
@@ -53,7 +53,7 @@ class Ui_MainWindow(QMainWindow, from_mainpage_class):
         self.order.setGeometry(QRect(10, 220, 61, 61))
         self.order.setStyleSheet(u"background-color: rgb(255, 255, 255);\n""border-radius: 30px")
         icon1 = QIcon()
-        icon1.addFile(u"gui/consumer/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon1.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
         self.order.setIcon(icon1)
         self.order.setIconSize(QSize(30, 30))
         
@@ -62,7 +62,7 @@ class Ui_MainWindow(QMainWindow, from_mainpage_class):
         self.chart.setGeometry(QRect(10, 350, 61, 61))
         self.chart.setStyleSheet(u"background-color: rgb(255, 255, 255);\n""border-radius: 30px")
         icon2 = QIcon()
-        icon2.addFile(u"gui/consumer/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon2.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
         self.chart.setIcon(icon2)
         self.chart.setIconSize(QSize(30, 30))
         
@@ -75,7 +75,7 @@ class Ui_MainWindow(QMainWindow, from_mainpage_class):
         self.user.setGeometry(QRect(10, 480, 61, 61))
         self.user.setStyleSheet(u"background-color: rgb(255, 255, 255);\n""border-radius: 30px")
         icon3 = QIcon()
-        icon3.addFile(u"gui/consumer/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon3.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
         self.user.setIcon(icon3)
         self.user.setIconSize(QSize(30, 30))
         
