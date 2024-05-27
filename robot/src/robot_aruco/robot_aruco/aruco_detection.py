@@ -38,56 +38,6 @@ class ArduinoController:
             self.ser.close()
 
 
-class RasGPIOController:
-    def __init__(self, step_pins):
-        # pin 번호 설정
-        self.step_pins = step_pins
-        
-        # GPIO 설정
-        GPIO.setwarnings(False)
-        GPIO.setmode(GPIO.BCM)
-
-        for pin in self.step_pins:
-            GPIO.setup(pin, GPIO.OUT)
-            GPIO.output(pin, False)
-
-        # floor 설정 
-        self.current_step = 0
-        self.stepfloors = {"1place": 0, "1lift": -3000, "2place": -6000, "2lift": -7000}
-
-    def step_controll(self, floor):
-        desired_step  = self.stepfloors[floor]
-        step_diff = desired_step - self.current_step 
-         
-        StepCount = 4
-
-        Seq = [[1, 0, 0, 0],
-               [0, 1, 0, 0],
-               [0, 0, 1, 0],
-               [0, 0, 0, 1]]
-        
-        StepCounter = 0
-        direction = 1 if step_diff > 0 else -1
-        step_diff = abs(step_diff)
-        WaitTime = 0.002
-
-        for _ in range(step_diff):
-            for pin in range(0, 4):
-                xpin = self.step_pins[pin]
-                if Seq[StepCounter][pin] != 0:
-                    GPIO.output(xpin, True)
-                else:
-                    GPIO.output(xpin, False)
-            StepCounter += direction
-            if StepCounter >= StepCount:
-                StepCounter = 0
-            if StepCounter < 0:
-                StepCounter = StepCount - 1
-            time.sleep(WaitTime)
-        
-        self.current_step = desired_step
-
-
 class RobotAruco(Node):
     def __init__(self):
         super().__init__('image_converter')
@@ -95,10 +45,11 @@ class RobotAruco(Node):
         self.bridge = CvBridge()
         self.image_sub = self.create_subscription(Image, '/camera', self.aruco_callback, 10)
         self.server = self.create_service(ArucoCommand, '/aruco_control', self.handle_aruco_control)
+        
         # Initialize ArduinoController & RasController
         self.arduino = ArduinoController()
         self.arduino.send_initial_commands()
-        self.rascontroller = RasGPIOController([17, 18, 22, 23])
+        
     
         self.left_wheel_speed = 0
         self.right_wheel_speed = 0
@@ -145,11 +96,10 @@ class RobotAruco(Node):
         self.floor = request.floor
         self.aruco_toggle = True 
         self.get_logger().info(f"start picking place & floor {request.task_type}, {request.location}, {request.floor}")
-        # time.sleep(0.2)
 
         response.success = True
         return response
-
+    
 
     def motor_control(self):
         self.distance = self.tvec[0][0][2]
@@ -160,14 +110,12 @@ class RobotAruco(Node):
             self.arduino.update_command(detected=False, left_wheel_speed=0, right_wheel_speed=0)
             self.get_logger().info("Marker within stopping distance, robot stopped.")
             time.sleep(0.2)
-            self.rascontroller.step_controll("1lift")
             self.aruco_toggle = False
             
-        
         else:
             if -0.15 < self.x_offset < 0.15:
                 if -0.05 < self.x_offset < 0.05:
-                    # self.get_logger().info("Marker directly in front, moving straight.")
+                    self.get_logger().info("Marker directly in front, moving straight.")
                     self.left_wheel_speed = 254
                     self.right_wheel_speed = 2
                 elif self.x_offset > 0.05:
@@ -193,7 +141,6 @@ class RobotAruco(Node):
 
     
     def aruco_callback(self, data):
-
         cv_image = self.bridge.imgmsg_to_cv2(data, desired_encoding='bgr8')
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         parameters = aruco.DetectorParameters()
