@@ -91,11 +91,10 @@ class RobotAruco(Node):
 
 
     def handle_aruco_control(self, request, response):
-        self.task_type = request.task_type
         self.location = request.location
-        self.floor = request.floor
+        self.direction = request.direction
         self.aruco_toggle = True 
-        self.get_logger().info(f"start picking place & floor {request.task_type}, {request.location}, {request.floor}")
+        self.get_logger().info(f"start picking place & floor {request.location}, {request.direction}")
 
         response.success = True
         return response
@@ -103,39 +102,54 @@ class RobotAruco(Node):
 
     def motor_control(self):
         self.distance = self.tvec[0][0][2]
-        self.x_offset = self.tvec[0][0][0]
-        
-        self.get_logger().info(f"{self.distance}")
-        if self.distance <= 0.105:
-            self.arduino.update_command(detected=False, left_wheel_speed=0, right_wheel_speed=0)
-            self.get_logger().info("Marker within stopping distance, robot stopped.")
-            time.sleep(0.2)
-            self.aruco_toggle = False
-            
-        else:
-            if -0.15 < self.x_offset < 0.15:
-                if -0.05 < self.x_offset < 0.05:
-                    self.get_logger().info("Marker directly in front, moving straight.")
-                    self.left_wheel_speed = 254
-                    self.right_wheel_speed = 2
-                elif self.x_offset > 0.05:
-                    self.get_logger().info("Marker slightly to the right, slight left adjustment.")
-                    self.left_wheel_speed = 253
-                    self.right_wheel_speed = 2
-                elif self.x_offset < -0.05:
-                    self.get_logger().info("Marker slightly to the left, slight right adjustment.")
-                    self.left_wheel_speed = 254
-                    self.right_wheel_speed = 3
-            else:
-                if self.x_offset > 0.15:
-                    self.get_logger().info("Marker to the right, turning left.")
-                    self.left_wheel_speed = 253 
-                    self.right_wheel_speed = 0
-                elif self.x_offset < -0.15:
-                    self.get_logger().info("Marker to the left, turning right.")
-                    self.left_wheel_speed = 0 
-                    self.right_wheel_speed = 3
+        self.x_offset = self.tvec[0][0][0]   
 
+        self.get_logger().info(f"{self.distance}")
+        
+        if self.direction == 'forward':
+            if self.distance <= 0.105:
+                self.arduino.update_command(detected=False, left_wheel_speed=0, right_wheel_speed=0)
+                self.get_logger().info("Marker within stopping distance, robot stopped.")
+                self.aruco_toggle = False
+                
+            else:
+                if -0.15 < self.x_offset < 0.15:
+                    if -0.05 < self.x_offset < 0.05:
+                        self.get_logger().info("Marker directly in front, moving straight.")
+                        self.left_wheel_speed = 254
+                        self.right_wheel_speed = 2
+                    elif self.x_offset > 0.05:
+                        self.get_logger().info("Marker slightly to the right, slight left adjustment.")
+                        self.left_wheel_speed = 253
+                        self.right_wheel_speed = 2
+                    elif self.x_offset < -0.05:
+                        self.get_logger().info("Marker slightly to the left, slight right adjustment.")
+                        self.left_wheel_speed = 254
+                        self.right_wheel_speed = 3
+                else:
+                    if self.x_offset > 0.15:
+                        self.get_logger().info("Marker to the right, turning left.")
+                        self.left_wheel_speed = 253 
+                        self.right_wheel_speed = 0
+                    elif self.x_offset < -0.15:
+                        self.get_logger().info("Marker to the left, turning right.")
+                        self.left_wheel_speed = 0 
+                        self.right_wheel_speed = 3
+
+                self.arduino.update_command(detected=True, left_wheel_speed=self.left_wheel_speed, right_wheel_speed=self.right_wheel_speed)
+
+
+        elif self.direction == 'backward':
+            if self.distance >= 0.16:
+                self.arduino.update_command(detected=False, left_wheel_speed=0, right_wheel_speed=0)
+                self.get_logger().info("robot stopped.")
+                self.aruco_toggle = False
+                
+            else:
+                self.get_logger().info("Marker directly in front, moving backward.")
+                self.left_wheel_speed = 2
+                self.right_wheel_speed = 254
+            
             self.arduino.update_command(detected=True, left_wheel_speed=self.left_wheel_speed, right_wheel_speed=self.right_wheel_speed)
 
 
