@@ -1,0 +1,37 @@
+# Name of the domain bridge, used for node naming and logging
+# robot_1_ID: 213
+name: domain_bridge
+
+topics:
+  amcl_pose:
+    type: geometry_msgs/msg/PoseWithCovarianceStamped
+    from_domain: 213
+    to_domain: 212
+    remap: amcl_pose_1
+  amcl_pose:
+    type: geometry_msgs/msg/PoseWithCovarianceStamped
+    from_domain: 214
+    to_domain: 212
+    remap: amcl_pose_2
+  amcl_pose:
+    type: geometry_msgs/msg/PoseWithCovarianceStamped
+    from_domain: 215
+    to_domain: 212
+    remap: amcl_pose_3
+
+
+  task_213:
+    type: task_msgs/srv/AllocateTask
+    from_domain: 213
+    to_domain: 212
+
+  task_214:
+    type: task_msgs/srv/AllocateTask
+    from_domain: 214
+    to_domain: 212
+
+  task_215:
+    type: task_msgs/srv/AllocateTask
+    from_domain: 215
+    to_domain: 212
+    

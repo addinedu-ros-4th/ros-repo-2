@@ -1,0 +1,6 @@
+string location
+# I1, I2, O1 ...
+string direction
+# forward, backward
+---
+bool success
