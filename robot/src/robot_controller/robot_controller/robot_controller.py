@@ -11,13 +11,15 @@ from rclpy.duration import Duration
 from nav2_simple_commander.robot_navigator import TaskResult
 from geometry_msgs.msg import PoseStamped
 ID = os.getenv('ROS_DOMAIN_ID', 'Not set')
-class TaskSubScriber(Node) : 
+class RobotController(Node) : 
     def __init__(self) : 
-        super().__init__("task_subscriber")
-        self.get_logger().info("start task_subscriber")
+        super().__init__("robot_controller")
+        self.get_logger().info("start robot_controller")
         self.nav = BasicNavigator()
+        
         self.tasking = False
-        # self.nav.waitUntilNav2Active()
+        self.task_status = None
+
         self.server = self.create_service(AllocateTask, f"/task_{ID}", self.task_callback)
         self.publisher = self.create_publisher(
             Bool,
@@ -28,6 +30,15 @@ class TaskSubScriber(Node) :
             Float32,
             "/feedback",
             10
+        )
+        self.wait_client = self.create_client(
+
+        )
+        self.lift_client = self.create_client(
+
+        )
+        self.arucomarker_client = self.create_client(
+
         )
 
         # pose x, y, z, rad x, y, z, w 
@@ -54,12 +65,12 @@ class TaskSubScriber(Node) :
     def task_callback(self, req, res) :
         self.get_logger().info("task_list:" + req.task_list)
         if not self.tasking:
-            res.task_success = self.move_pose(req.task_list)
+            res.task_success = self.planning_path(req.task_list)
             self.tasking = True
         
         return res
 
-    def nav_distance_feedback(self):
+    def nav_distance_feedback(self) :
         i = 0
         send_data = Float32()
         while not self.nav.isTaskComplete():
@@ -70,61 +81,83 @@ class TaskSubScriber(Node) :
                 send_data.data = feedback.distance_remaining
                 self.feedback_publisher.publish(send_data)
 
-                if feedback.distance_remaining <= 0.05 or Duration.from_msg(feedback.navigation_time) > Duration(seconds=40.0):
+                if feedback.distance_remaining <= 0.05 or Duration.from_msg(feedback.navigation_time) > Duration(seconds=40.0) :
                     self.nav.cancelTask()
                     self.get_logger().info("cancel Task")
                     return
-    
-
-
-    def move_pose(self, task):
+                
+                
+    def planning_path(self, task) :
         pose_list = task.split("#")
+
         try:
-            self.get_logger().info("move start")
-            if "A" in pose_list[0]: # 수거
-                pass
-            if "O" in pose_list[0]: # 출고
-                pass
-            if "I" in pose_list[0]: # 입고
-                pass
+            self.get_logger().info("path_planning start")
+            if "A" in pose_list[0] : # 수거
+                self.task_status = "RETURN"
+
+            if "O" in pose_list[0] : # 출고
+                self.task_status = "OUT"
+
+            if "I" in pose_list[0] : # 입고
+                self.task_status = "IN"
 
             for pose_name in pose_list:
                 
                 target_pose = self.POSE_DICT[pose_name]
                 
-                # self.get_logger().info("test_msg")
-                goal_pose = PoseStamped()
                 
-                goal_pose.header.frame_id = 'map'
-                goal_pose.header.stamp = self.nav.get_clock().now().to_msg()
-                goal_pose.pose.position.x = target_pose[0]
-                goal_pose.pose.position.y = target_pose[1]
-                goal_pose.pose.position.z = target_pose[2]
-                goal_pose.pose.orientation.x = target_pose[3]
-                goal_pose.pose.orientation.y = target_pose[4]
-                goal_pose.pose.orientation.z = target_pose[5]
-                goal_pose.pose.orientation.w = target_pose[6]
+                self.move_pose(target_pose)
 
-                self.nav.goToPose(goal_pose)
+                if pose_name == pose_list[0] : # 첫 장소 리프트 업
+                    self.get_logger().info("lift up")
+                    self.lift_up(pose_name)
 
-                self.nav_distance_feedback()
-
+                elif pose_name == pose_list[-1] : # 마지막 장소 리프트 다운
+                    self.get_logger().info("lift down")
+                    self.lift_down()
+                
 
                 self.tasking = False
                 self.get_logger().info("move end")
-                return True
+
+            return True
             
         except Exception as e:
-            self.get_logger().error(f"{e} in move pose")
+            self.get_logger().error(f"{e} in planning_path")
             self.tasking = False
             return False
+
+    def lift_up(self, pose_name) :
+        pass
+
+    def lift_down(self):
+        pass
+
+    def move_pose(self, target_pose) :
+                
+        # self.get_logger().info("test_msg")
+        goal_pose = PoseStamped()
+        
+        goal_pose.header.frame_id = 'map'
+        goal_pose.header.stamp = self.nav.get_clock().now().to_msg()
+        goal_pose.pose.position.x = target_pose[0]
+        goal_pose.pose.position.y = target_pose[1]
+        goal_pose.pose.position.z = target_pose[2]
+        goal_pose.pose.orientation.x = target_pose[3]
+        goal_pose.pose.orientation.y = target_pose[4]
+        goal_pose.pose.orientation.z = target_pose[5]
+        goal_pose.pose.orientation.w = target_pose[6]
+
+        self.nav.goToPose(goal_pose)
+
+        self.nav_distance_feedback()
 
 
 
 def main(args = None) : 
     rp.init(args=args)
     
-    task_subscriber = TaskSubScriber()
+    task_subscriber = RobotController()
     rp.spin(task_subscriber) # while 1 :
     
     task_subscriber.destroy_node()
