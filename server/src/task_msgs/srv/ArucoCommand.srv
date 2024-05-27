@@ -1,0 +1,5 @@
+string task_type
+string location
+int32 floor
+---
+bool success
