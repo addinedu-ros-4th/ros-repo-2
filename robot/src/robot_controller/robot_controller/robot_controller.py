@@ -2,6 +2,7 @@ import rclpy as rp
 import os
 from rclpy.node import Node
 from task_msgs.srv import AllocateTask
+from task_msgs.srv import ArucoCommand
 from std_msgs.msg import Bool
 from std_msgs.msg import Float32
 
@@ -38,7 +39,7 @@ class RobotController(Node) :
 
         )
         self.arucomarker_client = self.create_client(
-
+            ArucoCommand, "/aruco_control"
         )
 
         # pose x, y, z, rad x, y, z, w 
@@ -85,7 +86,11 @@ class RobotController(Node) :
                     self.nav.cancelTask()
                     self.get_logger().info("cancel Task")
                     return
-                
+    
+    def service_call_marker(self, location=None ,direction=None):
+        self.arucomarker_client.location = location
+        self.arucomarker_client.direction = direction
+        self.arucomarker_client.call()
                 
     def planning_path(self, task) :
         pose_list = task.split("#")
@@ -110,11 +115,12 @@ class RobotController(Node) :
 
                 if pose_name == pose_list[0] : # 첫 장소 리프트 업
                     self.get_logger().info("lift up")
-                    self.lift_up(pose_name)
+                    self.service_call_marker(pose_name, "forward")
+                    self.service_call_lift_up(pose_name)
 
                 elif pose_name == pose_list[-1] : # 마지막 장소 리프트 다운
                     self.get_logger().info("lift down")
-                    self.lift_down()
+                    self.service_call_lift_down()
                 
 
                 self.tasking = False
@@ -127,10 +133,10 @@ class RobotController(Node) :
             self.tasking = False
             return False
 
-    def lift_up(self, pose_name) :
+    def service_call_lift_up(self, pose_name) :
         pass
 
-    def lift_down(self):
+    def service_call_lift_down(self):
         pass
 
     def move_pose(self, target_pose) :

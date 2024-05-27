@@ -1,5 +1,6 @@
-string task_type
 string location
-int32 floor
+# I1, I2, O1 ...
+string direction
+# forward, backward
 ---
 bool success
