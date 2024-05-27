@@ -79,7 +79,7 @@ class DatabaseManager:
         return last_id
 
     def get_product_id(self, product_name):
-        product_ids = {"cola": 1, "water": 2, "ramen": 3}
+        product_ids = {"cola": 1, "water": 2, "ramen": 3, "radio": 4, "tv": 5}
         return product_ids.get(product_name.lower(), None)
 
     def get_stock(self, item_id):
@@ -98,7 +98,9 @@ class DatabaseManager:
         inventory_data = [
             (1, "cola", 100),
             (2, "water", 100),
-            (3, "ramen", 100)
+            (3, "ramen", 100),
+            (4, "raido", 100),
+            (5, "tv", 100)
         ]
         for item_id, item_name, stock in inventory_data:
             self.cur.execute("INSERT IGNORE INTO ProductInventory (item_id, item_name, stock) VALUES (%s, %s, %s)", (item_id, item_name, stock))
