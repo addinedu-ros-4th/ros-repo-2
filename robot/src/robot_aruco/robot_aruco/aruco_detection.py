@@ -9,6 +9,7 @@ import serial
 import RPi.GPIO as GPIO
 import time
 from task_msgs.srv import ArucoCommand
+from geometry_msgs.msg import Twist
 
 
 class ArduinoController:
@@ -45,17 +46,12 @@ class RobotAruco(Node):
         self.bridge = CvBridge()
         self.image_sub = self.create_subscription(Image, '/camera', self.aruco_callback, 10)
         self.server = self.create_service(ArucoCommand, '/aruco_control', self.handle_aruco_control)
-        
-        # Initialize ArduinoController & RasController
-        self.arduino = ArduinoController()
-        self.arduino.send_initial_commands()
-        
-    
-        self.left_wheel_speed = 0
-        self.right_wheel_speed = 0
+        self.cmd_pub = self.create_publisher(Twist, '/base_controller/cmd_vel_unstamped', 10)
+
+        self.twist = Twist()
+
         self.marker_name = None
         self.location = None
-        self.floor = None
         self.distance = None
         self.x_offset = None
         self.tvec = None
@@ -73,7 +69,6 @@ class RobotAruco(Node):
         # Declare parameters
         self.declare_parameter('width', 640)
         self.declare_parameter('height', 480)
-        # self.declare_parameter("marker_id", "O1")
         self.declare_parameter("marker_shape", "DICT_4X4_50")
         self.declare_parameter('cam_matrix', [299.26361032, 0.0, 324.93723462, 0.0, 303.22330886, 177.3524136, 0.0, 0.0, 1.0])
         self.declare_parameter('dist_coeff', [0.11564661, -0.05059582, 0.00192533, -0.01093668, -0.03163341])
@@ -81,7 +76,6 @@ class RobotAruco(Node):
         # Define parameters
         self.width = self.get_parameter('width').value
         self.height = self.get_parameter('height').value
-        # self.marker_id = self.get_parameter('marker_id').value
         self.marker_shape = self.get_parameter('marker_shape').value
         self.matrix_coefficients = np.array(self.get_parameter('cam_matrix').get_parameter_value().double_array_value).reshape((3, 3))
         self.distortion_coefficients = np.array(self.get_parameter('dist_coeff').get_parameter_value().double_array_value)
@@ -108,52 +102,54 @@ class RobotAruco(Node):
         
         if self.direction == 'forward':
             if self.distance <= 0.105:
-                self.arduino.update_command(detected=False, left_wheel_speed=0, right_wheel_speed=0)
                 self.get_logger().info("Marker within stopping distance, robot stopped.")
+                self.twist.linear.x = 0.0
+                self.twist.angular.z = 0.0
+                self.cmd_pub.publish(self.twist)
+                
                 self.aruco_toggle = False
                 
             else:
                 if -0.15 < self.x_offset < 0.15:
                     if -0.05 < self.x_offset < 0.05:
-                        self.get_logger().info("Marker directly in front, moving straight.")
-                        self.left_wheel_speed = 254
-                        self.right_wheel_speed = 2
+                        self.get_logger().info("moving straight.")
+                        self.twist.linear.x = 0.05  # Move forward
+                        self.twist.angular.z = -0.1 * self.x_offset  # Adjust direction based on x_offset
                     elif self.x_offset > 0.05:
-                        self.get_logger().info("Marker slightly to the right, slight left adjustment.")
-                        self.left_wheel_speed = 253
-                        self.right_wheel_speed = 2
+                        self.get_logger().info("turning left.")
+                        self.twist.linear.x = 0.02  # Stop forward movement
+                        self.twist.angular.z = -0.15  # Turn left
                     elif self.x_offset < -0.05:
-                        self.get_logger().info("Marker slightly to the left, slight right adjustment.")
-                        self.left_wheel_speed = 254
-                        self.right_wheel_speed = 3
+                        self.get_logger().info("turning right.")
+                        self.twist.linear.x = 0.02  # Stop forward movement
+                        self.twist.angular.z = 0.15  # Turn right
                 else:
                     if self.x_offset > 0.15:
-                        self.get_logger().info("Marker to the right, turning left.")
-                        self.left_wheel_speed = 253 
-                        self.right_wheel_speed = 0
+                        self.get_logger().info("turning left.")
+                        self.twist.linear.x = 0.0  # Stop forward movement
+                        self.twist.angular.z = -0.15  # Turn left
                     elif self.x_offset < -0.15:
-                        self.get_logger().info("Marker to the left, turning right.")
-                        self.left_wheel_speed = 0 
-                        self.right_wheel_speed = 3
-
-                self.arduino.update_command(detected=True, left_wheel_speed=self.left_wheel_speed, right_wheel_speed=self.right_wheel_speed)
+                        self.get_logger().info("turning right.")
+                        self.twist.linear.x = 0.0  # Stop forward movement
+                        self.twist.angular.z = 0.15  # Turn right
+            
+                self.cmd_pub.publish(self.twist)
 
 
         elif self.direction == 'backward':
             if self.distance >= 0.16:
-                self.arduino.update_command(detected=False, left_wheel_speed=0, right_wheel_speed=0)
-                self.get_logger().info("robot stopped.")
+                self.twist.linear.x = 0.0
+                self.twist.angular.z = 0.0
+                self.cmd_pub.publish(self.twist)
                 self.aruco_toggle = False
                 
             else:
                 self.get_logger().info("Marker directly in front, moving backward.")
-                self.left_wheel_speed = 2
-                self.right_wheel_speed = 254
+                self.twist.linear.x = -0.05
+                self.twist.angular.z = 0.0
+                self.cmd_pub.publish(self.twist)
             
-            self.arduino.update_command(detected=True, left_wheel_speed=self.left_wheel_speed, right_wheel_speed=self.right_wheel_speed)
 
-
-    
     def aruco_callback(self, data):
         cv_image = self.bridge.imgmsg_to_cv2(data, desired_encoding='bgr8')
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
@@ -173,7 +169,9 @@ class RobotAruco(Node):
                     self.motor_control()
                 
         else:
-            self.arduino.update_command(detected=False, left_wheel_speed=0, right_wheel_speed=0)
+            self.twist.linear.x = 0.0
+            self.twist.angular.z = 0.0
+            self.cmd_pub.publish(self.twist)
                 
 
 

@@ -56,6 +56,7 @@ class RasGPIOController:
 
 class RobotStepControl(Node):
     def __init__(self):
+        super().__init__('robot_step_control')  # 노드 이름 지정
         self.rascontroller = RasGPIOController([17, 18, 22, 23])
         self.server = self.create_service(StepControl, '/step_control', self.handle_forkarm)
     
@@ -77,3 +78,17 @@ class RobotStepControl(Node):
             return response
 
         return response
+    
+
+def main(args=None):
+    rclpy.init(args=args)
+    ic = RobotStepControl()
+    try:
+        rclpy.spin(ic)
+    except KeyboardInterrupt:
+        ic.get_logger().info('Shutting down')
+    ic.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
