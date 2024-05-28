@@ -8,6 +8,7 @@ from PyQt5 import uic
 from datetime import datetime
 from DatabaseManager import DatabaseManager
 from websocket import create_connection
+import json
 
 from_orderpage_class = uic.loadUiType("gui/consumer/ui/order.ui")[0]
 
@@ -34,14 +35,17 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.model = QStandardItemModel(self.listView)  # QStandardItemModel 생성
         self.listView.setModel(self.model)  # QListView에 모델 설정
 
+
     def increase_num(self):
         self.num_value += 1
         self.num.setText(str(self.num_value))
+        
         
     def decrease_num(self):
         if self.num_value > 0:
             self.num_value -= 1
         self.num.setText(str(self.num_value))
+
 
     def add_to_list(self):
         product_name = self.select.currentText()  # 선택된 상품명 가져오기
@@ -49,11 +53,13 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         list_item = QStandardItem(f"{product_name}: {quantity}")
         self.model.appendRow(list_item)  # 모델에 항목 추가
 
+
     def delete_from_list(self):
         selected_index = self.listView.selectedIndexes()
         if selected_index:
             index = selected_index[0]
             self.model.removeRow(index.row())
+
 
     def save_to_database(self):
         # 현재 시각을 가져오기
@@ -61,7 +67,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         
         # 마지막 주문을 orders 리스트에 추가
         new_order = {
-            "user_id": self.user_id,
+            "bundle_id": self.user_id,
             "item_name": [],
             "quantities": [],
             "timestamp": current_time
@@ -90,7 +96,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
                 return
 
             data = {
-                "user_id": last_order["user_id"],
+                "user_id": last_order["bundle_id"],
                 "order_time": last_order["timestamp"],
                 "item_id": product_id,
                 "item_name": item,
@@ -104,27 +110,40 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
 
         QMessageBox.information(self, "Saved", "결제완료")
 
-        # user_id 증가
+        # Increment user_id
         self.user_id += 1
 
-        # 리스트 뷰 초기화
+        # Clear the list view
         self.model.clear()
         self.num_value = 0
         self.num.setText(str(self.num_value))
 
-        # 웹소켓 연결 시도
+        # Attempt to connect to WebSocket and send task
         self.send_task_to_ros()
+
 
     def send_task_to_ros(self):
         try:
-            ws = create_connection("ws://192.168.0.85:9090")
-            ws.send("Task message")  # 실제로 보내고자 하는 메시지로 수정
+            ws = create_connection("ws://172.20.10.3:9090")
+            
+            # JSON 메시지 생성
+            order_message = json.dumps({
+            "op": "publish",
+            "topic": "/order",
+            "msg": {"data": json.dumps(self.orders)}
+            })
+            
+            ws.send(order_message)
+            print(order_message)
             ws.close()
+            
+            
         except OSError as e:
             QMessageBox.warning(self, "WebSocket Error", f"Failed to connect to WebSocket: {str(e)}")
         except Exception as e:
             QMessageBox.warning(self, "Error", f"An error occurred: {str(e)}")
-
+    
+    
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
@@ -271,7 +290,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    db_manager = DatabaseManager('/home/addinedu/testdb/config.ini')
+    db_manager = DatabaseManager('gui/consumer/config/config.ini')
     db_manager.connect_database()
     db_manager.create_table()
     order_window = Ui_OrderWindow(db_manager)
