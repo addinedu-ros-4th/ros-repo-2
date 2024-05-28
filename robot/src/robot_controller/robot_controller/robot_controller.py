@@ -36,7 +36,7 @@ class RobotController(Node) :
             "/feedback",
             10
         )
-        self.subcription_amclpose = self.create_subscriber(
+        self.subcription_amclpose = self.create_subscription(
             PoseWithCovarianceStamped,
             "/amcl_pose",
             self.current_pose,
@@ -61,6 +61,9 @@ class RobotController(Node) :
             "I1" : [2.4367, -0.5634, 0.0], "I2" : [2.0961, -0.5972, 0.0], "I3" : [1.7499, -0.6143, 0.0],
             "O1" : [0.1658, 0.8952, 0.0], "O2" : [0.4006, 0.8573, 0.0], "O3" : [0.7368, 0.9275, 0.0],
             "P1" : [0.2368, -0.6169, 0.0], "P2" : [0.5033, -0.6484, 0.0], "P3" : [0.7635, -0.6800, 0.0],
+            "A1" : [0.2791, 0.8958, 0.0], "A2" : [-0.0731, 0.8900, 0.0],
+            "B1" : [0.2791, 0.8958, 0.0], "B2" : [-0.0731, 0.8900, 0.0],
+            "C1" : [0.2791, 0.8958, 0.0], "C2" : [-0.0731, 0.8900, 0.0],
             "R1" : [2.2625, 0.8958, 0.0], "R2" : [2.027, 0.8900, 0.0]
             }
         
@@ -69,8 +72,8 @@ class RobotController(Node) :
 
 
 
-        self.MAIN_PATH_POSE_X_LIST = [0.2728, 0.9087, 1.6455, 2.3300]
-        self.MAIN_PATH_POSE_Y_LIST = [0.3542, -0.5813]
+        self.MAIN_PATH_POSE_X_LIST = [2.1847, 1.7469, 1.0359, 0.2836]
+        self.MAIN_PATH_POSE_Y_LIST = [0.7748761285693545, -0.5813]
         
         # self.subscription
         
@@ -87,8 +90,8 @@ class RobotController(Node) :
 
 
     def current_pose(self, data):
-        self.my_pose[0] = data.pose.position.x
-        self.my_pose[1] = data.pose.position.y
+        self.my_pose[0] = data.pose.pose.position.x
+        self.my_pose[1] = data.pose.pose.position.y
         
 
     def planning_stopover(self, target):
@@ -139,10 +142,17 @@ class RobotController(Node) :
     def task_callback(self, req, res) :
         self.get_logger().info("task_list:" + req.location)
         if not self.tasking:
-            pose_list = self.encoding_path(req.location)
-            res.success = self.follow_path(pose_list)
-            self.tasking = True
-        
+            try:
+                self.tasking = True
+                pose_list = self.encoding_path(req.location)
+                res.success = self.follow_path(pose_list)
+                self.tasking = False
+            except:
+                self.tasking = False
+                
+        else:
+            res.success = False
+
         return res
 
     def nav_distance_feedback(self) :
@@ -172,6 +182,7 @@ class RobotController(Node) :
 
     def encoding_path(self, task) :
         pose_list = task.split("#")
+        self.get_logger().info(f"task_list is : {pose_list}")
         if "A" in pose_list[0] : # 수거
             self.task_status = "RETURN"
 
@@ -181,7 +192,7 @@ class RobotController(Node) :
         elif "I" in pose_list[0] : # 입고
             self.task_status = "IN"
         else :
-            return
+            self.task_status = None
         
         return pose_list
 
@@ -192,39 +203,41 @@ class RobotController(Node) :
 
 
     def follow_path(self, pose_list) :
-        try:
-            self.get_logger().info("path_planning start")
+        # try:
+        self.get_logger().info("path_planning start")
+        
 
-            for pose_name in pose_list:
-                target_pose = self.POSE_DICT[pose_name]
-                path_poses = self.planning_stopover(target_pose)
-                
-                for pose in path_poses: # stopover (경유지 이동)
-                    self.get_logger().info(f"goto stopover")
-                    self.move_pose(pose)
-                
-                self.get_logger().info(f"goto{pose_name}")
-                self.move_pose(target_pose)
-
-                if pose_name == pose_list[0] : # lift up first place (첫 장소 리프트 업)
-                    self.get_logger().info("lift up")
-                    self.service_call_marker(pose_name, "forward")
-                    self.service_call_lift_up(pose_name)
-
-                elif pose_name == pose_list[-1] : # lift down last place(마지막 장소 리프트 다운)
-                    self.get_logger().info("lift down")
-                    self.service_call_lift_down()
-                
-
-                self.tasking = False
-                self.get_logger().info("move end")
-
-            return True
+        for pose_name in pose_list:
+            target_pose = self.POSE_DICT[pose_name]
+            path_poses = self.planning_stopover(target_pose)
             
-        except Exception as e:
-            self.get_logger().error(f"{e} in planning_path")
+            for pose in path_poses: # stopover (경유지 이동)
+                self.get_logger().info("goto stopover")
+                self.move_pose(pose, 0.0)
+            
+            self.get_logger().info(f"goto{pose_name}")
+            self.move_pose(target_pose, 0.0)
+
+            if pose_name == pose_list[0] : # lift up first place (첫 장소 리프트 업)
+                self.get_logger().info("lift up")
+                # self.service_call_marker(pose_name, "forward")
+                self.service_call_lift_up(pose_name)
+
+            elif pose_name == pose_list[-1] : # lift down last place(마지막 장소 리프트 다운)
+                self.get_logger().info("lift down")
+                # self.service_call_marker(pose_name, "backward")
+                self.service_call_lift_down()
+            
+
             self.tasking = False
-            return False
+            self.get_logger().info("move end")
+
+        return True
+            
+        # except Exception as e:
+        #     self.get_logger().error(f"{e} in follow_path")
+        #     self.tasking = False
+        #     return False
 
     def service_call_lift_up(self, pose_name) :
         pass
@@ -232,8 +245,8 @@ class RobotController(Node) :
     def service_call_lift_down(self):
         pass
 
-    def move_pose(self, target_pose) :
-                
+    def move_pose(self, target_pose, roll) :
+        q = self.euler_to_quaternion(roll=roll)
         # self.get_logger().info("test_msg")
         goal_pose = PoseStamped()
         
@@ -242,10 +255,10 @@ class RobotController(Node) :
         goal_pose.pose.position.x = target_pose[0]
         goal_pose.pose.position.y = target_pose[1]
         goal_pose.pose.position.z = target_pose[2]
-        goal_pose.pose.orientation.x = target_pose[3]
-        goal_pose.pose.orientation.y = target_pose[4]
-        goal_pose.pose.orientation.z = target_pose[5]
-        goal_pose.pose.orientation.w = target_pose[6]
+        goal_pose.pose.orientation.x = q[0]
+        goal_pose.pose.orientation.y = q[1]
+        goal_pose.pose.orientation.z = q[2]
+        goal_pose.pose.orientation.w = q[3]
 
         self.nav.goToPose(goal_pose)
 
