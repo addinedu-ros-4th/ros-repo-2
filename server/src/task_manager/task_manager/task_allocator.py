@@ -96,6 +96,7 @@ class TaskAllocator(Node):
             elif task_type == "IB":
                 self.robot_status[robot_id] = "BIB"
             
+            self.robot_status[robot_id] = "busy"
             self.assign_tasks_to_robot(tasks, robot_id)
             
 
