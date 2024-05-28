@@ -78,12 +78,15 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         # orders 리스트의 마지막 주문만 데이터베이스에 저장
         last_order = self.orders[-1]
 
-
         for item, quantity in zip(last_order["item_name"], last_order["quantities"]):
             product_id = self.db_manager.get_product_id(item)
+            # print(f"save_to_database: item={item}, product_id={product_id}")  # 디버깅 정보 출력
+            if product_id is None:
+                QMessageBox.warning(self, "Error", f"Product ID for item '{item}' not found.")
+                return
             stock = self.db_manager.get_stock(product_id)
             if stock is None:
-                QMessageBox.warning(self, "Error", f"Product ID {product_id} not found.")
+                QMessageBox.warning(self, "Error", f"Stock for product ID {product_id} not found.")
                 return
             if stock < quantity:
                 QMessageBox.warning(self, "Stock Error", f"{item}은(는) 품절입니다.\n재고: {stock}")
@@ -114,6 +117,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
 
         # 웹소켓 연결 시도
         self.send_task_to_ros()
+
 
     def send_task_to_ros(self):
         try:
@@ -252,8 +256,13 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         OrderWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Order Page", None))
         self.select.addItem(QCoreApplication.translate("OrderWindow", u"선택해주세요", None))
         self.select.addItem(QCoreApplication.translate("OrderWindow", u"cola", None))
+        self.select.addItem(QCoreApplication.translate("OrderWindow", u"cider", None))
+        self.select.addItem(QCoreApplication.translate("OrderWindow", u"coffee", None))
         self.select.addItem(QCoreApplication.translate("OrderWindow", u"water", None))
-        self.select.addItem(QCoreApplication.translate("OrderWindow", u"ramen", None))
+        self.select.addItem(QCoreApplication.translate("OrderWindow", u"Jin_ramen", None))
+        self.select.addItem(QCoreApplication.translate("OrderWindow", u"Chapagetti", None))
+        self.select.addItem(QCoreApplication.translate("OrderWindow", u"Bibimmyeon", None))
+        self.select.addItem(QCoreApplication.translate("OrderWindow", u"robot_cleaner", None))
         self.select.addItem(QCoreApplication.translate("OrderWindow", u"radio", None))
         self.select.addItem(QCoreApplication.translate("OrderWindow", u"tv", None))
         
@@ -271,7 +280,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    db_manager = DatabaseManager('/home/addinedu/testdb/config.ini')
+    db_manager = DatabaseManager('db/config/config.ini')
     db_manager.connect_database()
     db_manager.create_table()
     order_window = Ui_OrderWindow(db_manager)

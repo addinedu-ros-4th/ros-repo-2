@@ -105,7 +105,7 @@ class Ui_MainWindow(QMainWindow, from_mainpage_class):
         self.chart.setText("")
         self.label.setText(QCoreApplication.translate("MainWindow", u"menu", None))
         self.user.setText("")
-        self.go_order.setText(QCoreApplication.translate("MainWindow", u"\uc8fc\ubb38\ud558\uae30", None))
+        self.go_order.setText(QCoreApplication.translate("MainWindow", u"주문하기", None))
     # retranslateUi
     
 if __name__ == "__main__":
