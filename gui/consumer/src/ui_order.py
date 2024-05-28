@@ -9,7 +9,7 @@ from datetime import datetime
 from DatabaseManager import DatabaseManager
 from websocket import create_connection
 
-from_orderpage_class = uic.loadUiType("gui/ui/order.ui")[0]
+from_orderpage_class = uic.loadUiType("gui/consumer/ui/order.ui")[0]
 
 class Ui_OrderWindow(QMainWindow, from_orderpage_class):
     def __init__(self, db_manager):
@@ -169,7 +169,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.buy_btn.setGeometry(QRect(560, 410, 89, 51))
         self.buy_btn.setStyleSheet(u"\n""	color:#000;\n""	border:none;\n""")
         icon = QIcon()
-        icon.addFile(u"gui/image/buy.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u"gui/consumer/image/buy.png", QSize(), QIcon.Normal, QIcon.Off)
         self.buy_btn.setIcon(icon)
         self.buy_btn.setIconSize(QSize(80, 80))
         
@@ -188,7 +188,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.home.setGeometry(QRect(10, 100, 61, 61))
         self.home.setStyleSheet(u"background-color: rgb(255, 255, 255);\n""border-radius: 30px")
         icon1 = QIcon()
-        icon1.addFile(u"gui/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon1.addFile(u"gui/consumer/image/home.png", QSize(), QIcon.Normal, QIcon.Off)
         self.home.setIcon(icon1)
         self.home.setIconSize(QSize(25, 25))
         
@@ -197,7 +197,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.order.setGeometry(QRect(10, 220, 61, 61))
         self.order.setStyleSheet(u"background-color: rgb(255, 255, 255);\n""border-radius: 30px")
         icon2 = QIcon()
-        icon2.addFile(u"gui/image/order.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon2.addFile(u"gui/consumer/image/order.png", QSize(), QIcon.Normal, QIcon.Off)
         self.order.setIcon(icon2)
         self.order.setIconSize(QSize(30, 30))
         
@@ -206,7 +206,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.chart.setGeometry(QRect(10, 350, 61, 61))
         self.chart.setStyleSheet(u"background-color: rgb(255, 255, 255);\n""border-radius: 30px")
         icon3 = QIcon()
-        icon3.addFile(u"gui/image/bar_chart.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon3.addFile(u"gui/consumer/image/bar_chart.png", QSize(), QIcon.Normal, QIcon.Off)
         self.chart.setIcon(icon3)
         self.chart.setIconSize(QSize(30, 30))
         
@@ -219,7 +219,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.user.setGeometry(QRect(10, 480, 61, 61))
         self.user.setStyleSheet(u"background-color: rgb(255, 255, 255);\n""border-radius: 30px")
         icon4 = QIcon()
-        icon4.addFile(u"gui/image/user.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon4.addFile(u"gui/consumer/image/user.png", QSize(), QIcon.Normal, QIcon.Off)
         self.user.setIcon(icon4)
         self.user.setIconSize(QSize(30, 30))
         
@@ -229,7 +229,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.add_btn.setStyleSheet(u"border:none;")
         
         icon5 = QIcon()
-        icon5.addFile(u"gui/image/cart.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon5.addFile(u"gui/consumer/image/cart.png", QSize(), QIcon.Normal, QIcon.Off)
         self.add_btn.setIcon(icon5)
         self.add_btn.setIconSize(QSize(35, 35))
         
@@ -238,7 +238,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.delete_btn.setGeometry(QRect(210, 420, 41, 25))
         self.delete_btn.setStyleSheet(u"border:none;")
         icon6 = QIcon()
-        icon6.addFile(u"gui/image/delete.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon6.addFile(u"gui/consumer/image/delete.png", QSize(), QIcon.Normal, QIcon.Off)
         self.delete_btn.setIcon(icon6)
         self.delete_btn.setIconSize(QSize(25, 26))
         MainWindow.setCentralWidget(self.centralwidget)
@@ -254,6 +254,8 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.select.addItem(QCoreApplication.translate("OrderWindow", u"cola", None))
         self.select.addItem(QCoreApplication.translate("OrderWindow", u"water", None))
         self.select.addItem(QCoreApplication.translate("OrderWindow", u"ramen", None))
+        self.select.addItem(QCoreApplication.translate("OrderWindow", u"radio", None))
+        self.select.addItem(QCoreApplication.translate("OrderWindow", u"tv", None))
         
         self.minus.setText(QCoreApplication.translate("MainWindow", u"-", None))
         self.plus.setText(QCoreApplication.translate("MainWindow", u"+", None))
