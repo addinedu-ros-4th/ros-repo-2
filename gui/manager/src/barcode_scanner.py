@@ -12,6 +12,7 @@ class BarcodeScanner:
         self.db_manager = DatabaseManager(host='localhost')
         self.db_manager.connect_database()
         self.db_manager.create_table()
+        self.db_manager.insert_initial_data()
 
     def save_to_json(self, data, filename='gui/manager/data/barcode_data.json'):
         with open(filename, 'w', encoding='utf-8') as json_file:

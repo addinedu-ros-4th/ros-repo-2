@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS ProductInfo (
     item_name VARCHAR(16) NOT NUlL,
     item_tag VARCHAR(100) NOT NULL,
     item_weight FLOAT NOT NULL,
-    category VARCHAR(255)
+    item_category VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Inbound ( 

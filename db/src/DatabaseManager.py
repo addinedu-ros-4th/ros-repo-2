@@ -53,7 +53,8 @@ class DatabaseManager:
     
     def create_table(self):
         self.execute_sql_file("db/query/create_table.sql")
-        
+
+
     def insert_initial_data(self):
 
         # Insert initial Item Info
@@ -67,7 +68,7 @@ class DatabaseManager:
         ]
         
         self.cur.executemany(
-            """ INSERT IGNORE INTO  ProductInfo (barcode_id, item_name, item_location, item_weight, item_category)
+            """ INSERT IGNORE INTO  ProductInfo (barcode_id, item_name, item_tag, item_weight, item_category)
             VALUES (%s, %s, %s, %s, %s)""", initial_data)
         
         self.conn.commit()
@@ -111,7 +112,7 @@ class DatabaseManager:
         return product_ids.get(product_name.lower(), None)
     
     def get_product_info(self, barcode_id):
-        query = "SELECT item_id, item_name FROM ProductInfo WHERE barcode_id = %s"
+        query = "SELECT item_id, item_name FROM ProductInfo WHERE item_tag = %s"
         self.cur.execute(query, (barcode_id,))
         result = self.cur.fetchone()
         return result
@@ -164,6 +165,7 @@ if __name__ == '__main__':
     db_manager = DatabaseManager(host='localhost')
     
     db_manager.connect_database()
+    db_manager.drop_table()  # Drop the table if it exists
     db_manager.create_table()
     db_manager.insert_initial_data()
     db_manager.initialize_inventory()
