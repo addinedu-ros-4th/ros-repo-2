@@ -6,7 +6,7 @@ from task_msgs.srv import ArucoCommand
 from task_msgs.srv import StepControl
 from std_msgs.msg import Bool
 from std_msgs.msg import Float32
-
+from rclpy.executors import MultiThreadedExecutor
 
 from nav2_simple_commander.robot_navigator import BasicNavigator
 import numpy as np
@@ -14,6 +14,23 @@ from rclpy.duration import Duration
 from nav2_simple_commander.robot_navigator import TaskResult
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseWithCovarianceStamped
+
+class My_Location(Node) : 
+    def __init__(self, controller):
+        super().__init__("robot_subscriber")
+        self.controller = controller
+        self.subcription_amclpose = self.create_subscription(
+            PoseWithCovarianceStamped,
+            "/amcl_pose",
+            self.current_pose,
+            10
+        )
+        
+
+    def current_pose(self, data):
+        self.controller.my_pose[0] = data.pose.pose.position.x
+        self.controller.my_pose[1] = data.pose.pose.position.y
+
 ID = os.getenv('ROS_DOMAIN_ID', 'Not set')
 class RobotController(Node) : 
     def __init__(self) : 
@@ -36,12 +53,12 @@ class RobotController(Node) :
             "/feedback",
             10
         )
-        self.subcription_amclpose = self.create_subscription(
-            PoseWithCovarianceStamped,
-            "/amcl_pose",
-            self.current_pose,
-            10
-        )
+        # self.subcription_amclpose = self.create_subscription(
+        #     PoseWithCovarianceStamped,
+        #     "/amcl_pose",
+        #     self.current_pose,
+        #     10
+        # )
 
         # self.wait_client = self.create_client(
 
@@ -67,13 +84,13 @@ class RobotController(Node) :
             "R1" : [2.2625, 0.8958, 0.0], "R2" : [2.027, 0.8900, 0.0]
             }
         
-        self.SUB_PATH_POSE_X_LIST = [0.2728, 0.9087, 1.6455, 2.3300]
-        self.SUB_PATH_POSE_Y_LIST = [0.2791, -0.0731]
+        self.SUB_PATH_POSE_X_LIST = [2.3, 1.7, 1.0, 0.3]
+        self.SUB_PATH_POSE_Y_LIST = [0.3, 0.0]
 
 
 
-        self.MAIN_PATH_POSE_X_LIST = [2.1847, 1.7469, 1.0359, 0.2836]
-        self.MAIN_PATH_POSE_Y_LIST = [0.7748761285693545, -0.5813]
+        self.MAIN_PATH_POSE_X_LIST = [2.3, 1.7, 1.0, 0.3]
+        self.MAIN_PATH_POSE_Y_LIST = [0.7, -0.5]
         
         # self.subscription
         
@@ -89,9 +106,9 @@ class RobotController(Node) :
         return [qx, qy, qz, qw]
 
 
-    def current_pose(self, data):
-        self.my_pose[0] = data.pose.pose.position.x
-        self.my_pose[1] = data.pose.pose.position.y
+    # def current_pose(self, data):
+    #     self.my_pose[0] = data.pose.pose.position.x
+    #     self.my_pose[1] = data.pose.pose.position.y
         
 
     def planning_stopover(self, target):
@@ -123,19 +140,15 @@ class RobotController(Node) :
                 target_x_min_index = i
     
         path_poses = [
-            [self.MAIN_PATH_POSE_Y_LIST[y_min_index],
-             self.MAIN_PATH_POSE_X_LIST[x_min_index],
+            [self.MAIN_PATH_POSE_X_LIST[x_min_index],
+             self.MAIN_PATH_POSE_Y_LIST[y_min_index],
              0.0],
-             [self.MAIN_PATH_POSE_Y_LIST[y_min_index],
-              self.MAIN_PATH_POSE_X_LIST[target_x_min_index],
+             [self.MAIN_PATH_POSE_X_LIST[target_x_min_index],
+              self.MAIN_PATH_POSE_Y_LIST[y_min_index],
               0.0]
              ]
         
         return path_poses
-
-        
-
-        
 
         
 
@@ -154,6 +167,7 @@ class RobotController(Node) :
             res.success = False
 
         return res
+    
 
     def nav_distance_feedback(self) :
         i = 0
@@ -166,7 +180,7 @@ class RobotController(Node) :
                 send_data.data = feedback.distance_remaining
                 self.feedback_publisher.publish(send_data)
 
-                if feedback.distance_remaining <= 0.05 or Duration.from_msg(feedback.navigation_time) > Duration(seconds=40.0) :
+                if (feedback.distance_remaining <= 0.35 and feedback.distance_remaining != 0.0) or Duration.from_msg(feedback.navigation_time) > Duration(seconds=40.0) :
                     self.nav.cancelTask()
                     self.get_logger().info("cancel Task")
                     return
@@ -247,7 +261,7 @@ class RobotController(Node) :
 
     def move_pose(self, target_pose, roll) :
         q = self.euler_to_quaternion(roll=roll)
-        # self.get_logger().info("test_msg")
+        self.get_logger().info(f"pose : {target_pose} roll : {roll}")
         goal_pose = PoseStamped()
         
         goal_pose.header.frame_id = 'map'
@@ -269,11 +283,29 @@ class RobotController(Node) :
 def main(args = None) : 
     rp.init(args=args)
     
-    task_subscriber = RobotController()
-    rp.spin(task_subscriber) # while 1 :
+    con = RobotController()
+    sub = My_Location(controller = con)
+
+
+    excutor = MultiThreadedExecutor()
+
+    excutor.add_node(con)
+    excutor.add_node(sub)
     
-    task_subscriber.destroy_node()
-    rp.shutdown()
+    try : 
+        excutor.spin()
+    finally : 
+        excutor.shutdown()
+        sub.destroy_node()
+        con.destroy_node()
+        rp.shutdown()
+
+
+    # task_subscriber = RobotController()
+    # rp.spin(task_subscriber) # while 1 :
+    
+    # task_subscriber.destroy_node()
+    # rp.shutdown()
     
 
 
