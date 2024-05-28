@@ -7,7 +7,7 @@ package_name = 'task_manager'
 setup(
     name=package_name,
     version='0.0.0',
-    packages=find_packages(exclude=['test']),
+    packages=find_packages(include=[package_name, f'{package_name}.*']),
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -15,7 +15,6 @@ setup(
         (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
         (os.path.join('share', package_name, 'param'), glob('param/*.yaml')),
     ],
-
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='addinedu',
