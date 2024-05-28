@@ -79,9 +79,13 @@ class DatabaseManager:
         return last_id
 
     def get_product_id(self, product_name):
-        product_ids = {"cola": 1, "water": 2, "ramen": 3, "radio": 4, "tv": 5}
-        return product_ids.get(product_name.lower(), None)
-
+        query = "SELECT item_id FROM ProductInventory WHERE item_name = %s"
+        self.cur.execute(query, (product_name,))
+        result = self.cur.fetchone()
+        self.cur.fetchall()  # 이전 쿼리의 결과를 모두 읽음
+        print(f"get_product_id: product_name={product_name}, product_id={result[0] if result else None}")  # 디버깅 정보 출력
+        return result[0] if result else None
+ 
     def get_stock(self, item_id):
         query = "SELECT stock FROM ProductInventory WHERE item_id = %s"
         self.cur.execute(query, (item_id,))
@@ -96,15 +100,22 @@ class DatabaseManager:
 
     def initialize_inventory(self):
         inventory_data = [
-            (1, "cola", 100),
-            (2, "water", 100),
-            (3, "ramen", 100),
-            (4, "raido", 100),
-            (5, "tv", 100)
+            (1, "cola", 10),
+            (2, "cider", 10),
+            (3, "coffee", 10),
+            (4, "water", 10),
+            (5, "Jin_ramen", 10),
+            (6, "Chapagetti", 10),
+            (7, "Bibimmyeon", 10),
+            (8, "robot_cleaner", 10),
+            (9, "radio", 10), 
+            (10, "tv", 10)
         ]
         for item_id, item_name, stock in inventory_data:
             self.cur.execute("INSERT IGNORE INTO ProductInventory (item_id, item_name, stock) VALUES (%s, %s, %s)", (item_id, item_name, stock))
+            print(f"Inserted {item_name} with item_id={item_id} and stock={stock}")  # 디버깅 정보 출력
         self.conn.commit()
+
 
     def close_connection(self):
         if self.cur:
