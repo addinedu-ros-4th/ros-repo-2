@@ -25,7 +25,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'multi = minibot_multi.topic_to_action:main'
+            'robot_controller = robot_controller.robot_controller:main'
         ],
     },
 )

@@ -3,14 +3,17 @@ import os
 from rclpy.node import Node
 from task_msgs.srv import AllocateTask
 from task_msgs.srv import ArucoCommand
+from task_msgs.srv import StepControl
 from std_msgs.msg import Bool
 from std_msgs.msg import Float32
 
+
 from nav2_simple_commander.robot_navigator import BasicNavigator
-import rclpy
+import numpy as np
 from rclpy.duration import Duration
 from nav2_simple_commander.robot_navigator import TaskResult
 from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped
 ID = os.getenv('ROS_DOMAIN_ID', 'Not set')
 class RobotController(Node) : 
     def __init__(self) : 
@@ -20,24 +23,34 @@ class RobotController(Node) :
         
         self.tasking = False
         self.task_status = None
-
+        self.my_pose = [0.0, 0.0, 0.0]
         self.server = self.create_service(AllocateTask, f"/task_{ID}", self.task_callback)
         self.publisher = self.create_publisher(
             Bool,
             "/task_success",
             10
         )
+
         self.feedback_publisher = self.create_publisher(
             Float32,
             "/feedback",
             10
         )
-        self.wait_client = self.create_client(
-
+        self.subcription_amclpose = self.create_subscriber(
+            PoseWithCovarianceStamped,
+            "/amcl_pose",
+            self.current_pose,
+            10
         )
+
+        # self.wait_client = self.create_client(
+
+        # )
+
         self.lift_client = self.create_client(
-
+            StepControl, "/step_control"
         )
+
         self.arucomarker_client = self.create_client(
             ArucoCommand, "/aruco_control"
         )
@@ -45,28 +58,89 @@ class RobotController(Node) :
         # pose x, y, z, rad x, y, z, w 
         # 추후 json으로 변경 필요
         self.POSE_DICT = {
-            "I1" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "I2" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "I3" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            "O1" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "O2" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "O3" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            "P1" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "P2" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "P3" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            "A1" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "A2" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "A3" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            "A4" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "A5" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "A6" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            "R1" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "R2" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            "I1" : [2.4367, -0.5634, 0.0], "I2" : [2.0961, -0.5972, 0.0], "I3" : [1.7499, -0.6143, 0.0],
+            "O1" : [0.1658, 0.8952, 0.0], "O2" : [0.4006, 0.8573, 0.0], "O3" : [0.7368, 0.9275, 0.0],
+            "P1" : [0.2368, -0.6169, 0.0], "P2" : [0.5033, -0.6484, 0.0], "P3" : [0.7635, -0.6800, 0.0],
+            "R1" : [2.2625, 0.8958, 0.0], "R2" : [2.027, 0.8900, 0.0]
             }
-        # 추후 추가예정
-        self.PATH_DICT = {
-            
-        }
+        
+        self.SUB_PATH_POSE_X_LIST = [0.2728, 0.9087, 1.6455, 2.3300]
+        self.SUB_PATH_POSE_Y_LIST = [0.2791, -0.0731]
+
+
+
+        self.MAIN_PATH_POSE_X_LIST = [0.2728, 0.9087, 1.6455, 2.3300]
+        self.MAIN_PATH_POSE_Y_LIST = [0.3542, -0.5813]
+        
         # self.subscription
         
 
         self.get_logger().info("waiting client")
 
+
+    def euler_to_quaternion(self, yaw=0, pitch=0, roll=0):
+        qx = np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) - np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
+        qy = np.cos(roll/2) * np.sin(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.cos(pitch/2) * np.sin(yaw/2)
+        qz = np.cos(roll/2) * np.cos(pitch/2) * np.sin(yaw/2) - np.sin(roll/2) * np.sin(pitch/2) * np.cos(yaw/2)
+        qw = np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
+        return [qx, qy, qz, qw]
+
+
+    def current_pose(self, data):
+        self.my_pose[0] = data.pose.position.x
+        self.my_pose[1] = data.pose.position.y
+        
+
+    def planning_stopover(self, target):
+        y_min_vel = 999
+        y_min_index = 0
+
+        for i, Y in enumerate(self.MAIN_PATH_POSE_Y_LIST):
+            y_vel = abs(self.my_pose[1] - Y)
+            
+            if y_vel < y_min_vel:
+                y_min_vel = y_vel
+                y_min_index = i
+
+        x_min_vel = 999
+        x_min_index = 0
+        target_x_min_vel = 999
+        target_x_min_index = 0
+
+        for i, X in enumerate(self.MAIN_PATH_POSE_X_LIST):
+            x_vel = abs(self.my_pose[0] - X)
+            target_x_vel = abs(target[0] - X)
+
+            if x_vel < x_min_vel:
+                x_min_vel = x_vel
+                x_min_index = i
+
+            if target_x_vel < target_x_min_vel:
+                target_x_min_vel = x_vel
+                target_x_min_index = i
+    
+        path_poses = [
+            [self.MAIN_PATH_POSE_Y_LIST[y_min_index],
+             self.MAIN_PATH_POSE_X_LIST[x_min_index],
+             0.0],
+             [self.MAIN_PATH_POSE_Y_LIST[y_min_index],
+              self.MAIN_PATH_POSE_X_LIST[target_x_min_index],
+              0.0]
+             ]
+        
+        return path_poses
+
+        
+
+        
+
         
 
     def task_callback(self, req, res) :
-        self.get_logger().info("task_list:" + req.task_list)
+        self.get_logger().info("task_list:" + req.location)
         if not self.tasking:
-            res.task_success = self.planning_path(req.task_list)
+            pose_list = self.encoding_path(req.location)
+            res.success = self.follow_path(pose_list)
             self.tasking = True
         
         return res
@@ -86,39 +160,58 @@ class RobotController(Node) :
                     self.nav.cancelTask()
                     self.get_logger().info("cancel Task")
                     return
+
+
     
     def service_call_marker(self, location=None ,direction=None):
-        self.arucomarker_client.location = location
-        self.arucomarker_client.direction = direction
-        self.arucomarker_client.call()
-                
-    def planning_path(self, task) :
-        pose_list = task.split("#")
+        req = ArucoCommand.Request()
+        req.location = location
+        req.direction = direction
+        res = self.arucomarker_client.call(req)
+    
 
+    def encoding_path(self, task) :
+        pose_list = task.split("#")
+        if "A" in pose_list[0] : # 수거
+            self.task_status = "RETURN"
+
+        elif "O" in pose_list[0] : # 출고
+            self.task_status = "OUT"
+
+        elif "I" in pose_list[0] : # 입고
+            self.task_status = "IN"
+        else :
+            return
+        
+        return pose_list
+
+
+        # 
+        
+
+
+
+    def follow_path(self, pose_list) :
         try:
             self.get_logger().info("path_planning start")
-            if "A" in pose_list[0] : # 수거
-                self.task_status = "RETURN"
-
-            if "O" in pose_list[0] : # 출고
-                self.task_status = "OUT"
-
-            if "I" in pose_list[0] : # 입고
-                self.task_status = "IN"
 
             for pose_name in pose_list:
-                
                 target_pose = self.POSE_DICT[pose_name]
+                path_poses = self.planning_stopover(target_pose)
                 
+                for pose in path_poses: # stopover (경유지 이동)
+                    self.get_logger().info(f"goto stopover")
+                    self.move_pose(pose)
                 
+                self.get_logger().info(f"goto{pose_name}")
                 self.move_pose(target_pose)
 
-                if pose_name == pose_list[0] : # 첫 장소 리프트 업
+                if pose_name == pose_list[0] : # lift up first place (첫 장소 리프트 업)
                     self.get_logger().info("lift up")
                     self.service_call_marker(pose_name, "forward")
                     self.service_call_lift_up(pose_name)
 
-                elif pose_name == pose_list[-1] : # 마지막 장소 리프트 다운
+                elif pose_name == pose_list[-1] : # lift down last place(마지막 장소 리프트 다운)
                     self.get_logger().info("lift down")
                     self.service_call_lift_down()
                 
