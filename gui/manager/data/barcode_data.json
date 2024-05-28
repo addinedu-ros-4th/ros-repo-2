@@ -1,43 +1,151 @@
 [
     {
-        "time": "2024-05-28 16:06:57",
-        "barcode_id": "C2.04.I3",
-        "inbound_location": "I3",
+        "time": "2024-05-28 20:30:02",
+        "barcode_id": "A1.04.I1",
+        "inbound_location": "I1",
         "quantity": "04"
     },
     {
-        "time": "2024-05-28 16:07:01",
+        "time": "2024-05-28 20:30:04",
+        "barcode_id": "A1.04.I1",
+        "inbound_location": "I1",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:30:05",
+        "barcode_id": "A2.04.I1",
+        "inbound_location": "I1",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:30:07",
+        "barcode_id": "A2.04.I1",
+        "inbound_location": "I1",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:30:08",
+        "barcode_id": "A2.04.I1",
+        "inbound_location": "I1",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:30:10",
         "barcode_id": "B2.04.I2",
         "inbound_location": "I2",
         "quantity": "04"
     },
     {
-        "time": "2024-05-28 16:07:05",
+        "time": "2024-05-28 20:30:12",
         "barcode_id": "C1.04.I3",
         "inbound_location": "I3",
         "quantity": "04"
     },
     {
-        "time": "2024-05-28 16:07:09",
-        "barcode_id": "A2.04.I1",
-        "inbound_location": "I1",
-        "quantity": "04"
-    },
-    {
-        "time": "2024-05-28 16:07:11",
-        "barcode_id": "A2.04.I1",
-        "inbound_location": "I1",
-        "quantity": "04"
-    },
-    {
-        "time": "2024-05-28 16:07:12",
-        "barcode_id": "B2.04.I2",
+        "time": "2024-05-28 20:30:14",
+        "barcode_id": "B1.04.I2",
         "inbound_location": "I2",
         "quantity": "04"
     },
     {
-        "time": "2024-05-28 16:07:14",
+        "time": "2024-05-28 20:30:15",
+        "barcode_id": "B1.04.I2",
+        "inbound_location": "I2",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:30:17",
+        "barcode_id": "C1.04.I3",
+        "inbound_location": "I3",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:30:19",
+        "barcode_id": "C2.04.I3",
+        "inbound_location": "I3",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:30:20",
+        "barcode_id": "C2.04.I3",
+        "inbound_location": "I3",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:30:22",
         "barcode_id": "A1.04.I1",
+        "inbound_location": "I1",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:30:24",
+        "barcode_id": "C1.04.I3",
+        "inbound_location": "I3",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:30:25",
+        "barcode_id": "C2.04.I3",
+        "inbound_location": "I3",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:30:27",
+        "barcode_id": "B1.04.I2",
+        "inbound_location": "I2",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:30:30",
+        "barcode_id": "B1.04.I2",
+        "inbound_location": "I2",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:30:52",
+        "barcode_id": "A1.04.I1",
+        "inbound_location": "I1",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:30:53",
+        "barcode_id": "C2.04.I3",
+        "inbound_location": "I3",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:30:55",
+        "barcode_id": "C2.04.I3",
+        "inbound_location": "I3",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:30:57",
+        "barcode_id": "B1.04.I2",
+        "inbound_location": "I2",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:30:59",
+        "barcode_id": "C1.04.I3",
+        "inbound_location": "I3",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:31:01",
+        "barcode_id": "C1.04.I3",
+        "inbound_location": "I3",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:31:03",
+        "barcode_id": "A2.04.I1",
+        "inbound_location": "I1",
+        "quantity": "04"
+    },
+    {
+        "time": "2024-05-28 20:31:05",
+        "barcode_id": "A2.04.I1",
         "inbound_location": "I1",
         "quantity": "04"
     }

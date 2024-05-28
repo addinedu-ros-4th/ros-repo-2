@@ -61,16 +61,14 @@ class DatabaseManager:
         initial_data = [
             ("A1.04.I1", "Coke", "A1", 1.25, "Drink"),
             ("A2.04.I1", "Sprite", "A2", 1.25, "Drink"),
-            ("B1.04.I2", "짜파게티", "B1", 0.5, "Food"),
-            ("B2.04.I2", "불닭볶음면", "B2", 0.5, "Food"),
-            ("C1.04.I3", "로봇청소기", "C1", 3.0, "Appliance"),
-            ("C2.04.I3", "커피포트", "C2", 1.0, "Appliance")
+            ("B1.04.I2", "Chapagetti", "B1", 0.5, "Food"),
+            ("B2.04.I2", "Buldak", "B2", 0.5, "Food"),
+            ("C1.04.I3", "Robot Vacuum", "C1", 3.0, "Appliance"),
+            ("C2.04.I3", "Coffee Pot", "C2", 1.0, "Appliance")
         ]
-        
         self.cur.executemany(
             """ INSERT IGNORE INTO  ProductInfo (barcode_id, item_name, item_tag, item_weight, item_category)
             VALUES (%s, %s, %s, %s, %s)""", initial_data)
-        
         self.conn.commit()
 
     def execute_sql_file(self, file_path):
@@ -125,16 +123,24 @@ class DatabaseManager:
         self.cur.fetchall()  # 이전 쿼리의 결과를 모두 읽음
         return result[0] if result else None
 
-    def update_stock(self, item_id, quantity):
+    def remove_from_stock(self, item_id, quantity):
         query = "UPDATE ProductInventory SET stock = stock - %s WHERE item_id = %s"
+        self.cur.execute(query, (quantity, item_id))
+        self.conn.commit()
+
+    def add_to_stock(self, item_id, quantity):
+        query = "UPDATE ProductInventory SET stock = stock + %s WHERE item_id = %s"
         self.cur.execute(query, (quantity, item_id))
         self.conn.commit()
 
     def initialize_inventory(self):
         inventory_data = [
-            (1, "cola", 100),
-            (2, "water", 100),
-            (3, "ramen", 100)
+            (1, "Coke", 0),
+            (2, "Sprite", 0),
+            (3, "Chapagetti", 0),
+            (4, "Buldak", 0),
+            (5, "Robot Vacuum", 0),
+            (6, "Coffee Pot", 0)
         ]
         for item_id, item_name, stock in inventory_data:
             self.cur.execute("INSERT IGNORE INTO ProductInventory (item_id, item_name, stock) VALUES (%s, %s, %s)", (item_id, item_name, stock))
@@ -160,12 +166,12 @@ class DatabaseManager:
         self.cur.fetchall()  # 이전 쿼리의 결과를 모두 읽음
         return result[0] if result[0] is not None else 0
 
+    
 
 if __name__ == '__main__':
     db_manager = DatabaseManager(host='localhost')
     
     db_manager.connect_database()
-    db_manager.drop_table()  # Drop the table if it exists
     db_manager.create_table()
     db_manager.insert_initial_data()
     db_manager.initialize_inventory()

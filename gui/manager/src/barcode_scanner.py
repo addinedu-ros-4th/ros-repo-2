@@ -13,6 +13,7 @@ class BarcodeScanner:
         self.db_manager.connect_database()
         self.db_manager.create_table()
         self.db_manager.insert_initial_data()
+        self.db_manager.initialize_inventory()
 
     def save_to_json(self, data, filename='gui/manager/data/barcode_data.json'):
         with open(filename, 'w', encoding='utf-8') as json_file:
@@ -62,7 +63,7 @@ class BarcodeScanner:
                 self.db_manager.save_data("Inbound", inbound_data)
                 
                 # ProductInventory 테이블의 재고 업데이트
-                self.db_manager.update_stock(item_id, quantity)
+                self.db_manager.add_to_stock(item_id, quantity)
             else:
                 print(f"Item {item_tag} not found in database.")
 
