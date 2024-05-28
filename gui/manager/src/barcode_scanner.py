@@ -1,14 +1,15 @@
 import sys
 import os
+sys.path.append('./db/src')
+
 import json
-from db.src.DatabaseManager import DatabaseManager
+from DatabaseManager import DatabaseManager
 from datetime import datetime
 
 
 class BarcodeScanner:
     def __init__(self):
         self.db_manager = DatabaseManager(host='localhost')
-        self.db_manager.create_database("amr")
         self.db_manager.connect_database()
         self.db_manager.create_table()
 
@@ -32,7 +33,7 @@ class BarcodeScanner:
                 print("Incorrect format. Expected format: A1.04.I1")
                 continue
 
-            item_location, quantity, inbound_location = split_data
+            item_tag, quantity, inbound_location = split_data
 
             # Saving Barcode and Time in Dictionary
             barcode_entry = {
@@ -43,20 +44,26 @@ class BarcodeScanner:
             }
 
             barcodes.append(barcode_entry)
-            
-            # Saving Data in Database
-            product_info = self.db_manager.get_product_info(item_location)
-            if product_info:
-                self.db_manager.save_data("inbound", {
-                    "inbound_id": None,
-                    "inbound_location": inbound_location,
-                    "inbound_time": barcode_entry["time"],
-                    "quantity": quantity,
-                    "barcode_id": barcode_data,
-                })
 
+            # Saving Data in Database
+            product_info = self.db_manager.get_product_info(item_tag)
+            if product_info:
+                item_id, item_name = product_info
+                
+                # Inbound 테이블에 데이터 저장
+                inbound_data = {
+                    "item_name": item_name,
+                    "quantity": quantity,
+                    "inbound_zone": inbound_location,
+                    "arrival_date": barcode_entry["time"],
+                    "current_status": 'waiting'
+                }
+                self.db_manager.save_data("Inbound", inbound_data)
+                
+                # ProductInventory 테이블의 재고 업데이트
+                self.db_manager.update_stock(item_id, quantity)
             else:
-                print(f"Item Location {item_location} not found in database.")
+                print(f"Item {item_tag} not found in database.")
 
             self.save_to_json(barcodes)
             print(f"Barcode {barcode_data} saved.")

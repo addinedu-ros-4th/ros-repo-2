@@ -1,5 +1,6 @@
 import mysql.connector
-import pandas as pd
+import os
+import configparser
 
 class DatabaseManager:
     def __init__(self, host):
@@ -8,7 +9,13 @@ class DatabaseManager:
         self.db_name = "amr"
         self.cur = None
         self.conn = None
-        self.password = "1234"
+        self.password = self.get_password_from_config()
+
+
+    def get_password_from_config(self):
+        config = configparser.ConfigParser()
+        config.read('db/config/config.ini')
+        return config['database']['password']
     
     def connect_database(self, db_name=None):
         if db_name is None:
@@ -20,7 +27,6 @@ class DatabaseManager:
                 database=db_name,
                 password=self.password
             )
-            
         except mysql.connector.Error as err:
             if err.errno == mysql.connector.errorcode.ER_BAD_DB_ERROR:
                 self.conn = mysql.connector.connect(
@@ -52,17 +58,17 @@ class DatabaseManager:
 
         # Insert initial Item Info
         initial_data = [
-            ("A1.04.I1", "콜라", "A1", 1.25, "음료"),
-            ("A2.04.I1", "사이다", "A2", 1.25, "음료"),
-            ("B1.04.I2", "짜파게티", "B1", 0.5, "라면"),
-            ("B2.04.I2", "불닭볶음면", "B2", 0.5, "라면"),
-            ("C1.04.I3", "로봇청소기", "C1", 3.0, "가전"),
-            ("C2.04.I3", "커피포트", "C2", 1.0, "가전")
+            ("A1.04.I1", "Coke", "A1", 1.25, "Drink"),
+            ("A2.04.I1", "Sprite", "A2", 1.25, "Drink"),
+            ("B1.04.I2", "짜파게티", "B1", 0.5, "Food"),
+            ("B2.04.I2", "불닭볶음면", "B2", 0.5, "Food"),
+            ("C1.04.I3", "로봇청소기", "C1", 3.0, "Appliance"),
+            ("C2.04.I3", "커피포트", "C2", 1.0, "Appliance")
         ]
         
         self.cur.executemany(
             """ INSERT IGNORE INTO  ProductInfo (barcode_id, item_name, item_location, item_weight, item_category)
-            VALUES (?, ?, ?, ?)""", initial_data)
+            VALUES (%s, %s, %s, %s, %s)""", initial_data)
         
         self.conn.commit()
 
@@ -103,6 +109,13 @@ class DatabaseManager:
     def get_product_id(self, product_name):
         product_ids = {"cola": 1, "water": 2, "ramen": 3}
         return product_ids.get(product_name.lower(), None)
+    
+    def get_product_info(self, barcode_id):
+        query = "SELECT item_id, item_name FROM ProductInfo WHERE barcode_id = %s"
+        self.cur.execute(query, (barcode_id,))
+        result = self.cur.fetchone()
+        return result
+
 
     def get_stock(self, item_id):
         query = "SELECT stock FROM ProductInventory WHERE item_id = %s"
@@ -149,15 +162,9 @@ class DatabaseManager:
 
 if __name__ == '__main__':
     db_manager = DatabaseManager(host='localhost')
-
-    inbound_data = {
-        'item_name': 'Cola',
-        'quantity': 4,
-        'inbound_zone': 'I1',
-        'scan_time': '2024-05-20 12:16:57',
-        'status': 'wait'
-    }
     
     db_manager.connect_database()
     db_manager.create_table()
+    db_manager.insert_initial_data()
+    db_manager.initialize_inventory()
     db_manager.close_connection()
