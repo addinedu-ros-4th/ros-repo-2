@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS ProductInventory (
     item_id INT NOT NULL PRIMARY KEY,
     item_name VARCHAR(16) NOT NULL,
-    stock INT NOT NULL DEFAULT 8
+    stock INT NOT NULL DEFAULT 10
 );
 
 CREATE TABLE IF NOT EXISTS ProductOrder (
