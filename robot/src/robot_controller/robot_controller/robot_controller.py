@@ -1,5 +1,7 @@
 import rclpy as rp
 import os
+import time
+import math
 from rclpy.node import Node
 from task_msgs.srv import AllocateTask
 from task_msgs.srv import ArucoCommand
@@ -77,7 +79,17 @@ class RobotController(Node) :
             "B1" : [1.64, -0.08, 0.0], "B2" : [1.64, 0.33, 0.0],
             "C1" : [2.37, -0.06, 0.0], "C2" : [2.37, 0.32, 0.0],
             "R1" : [2.2625, 0.8958, 0.0], "R2" : [2.027, 0.8900, 0.0]
-            }
+        }
+
+        self.ROLL_DICT = {
+            "I1" : 4.71, "I2" : 4.71, "I3" : 4.71,
+            "O1" : 1.57, "O2" : 1.57, "O3" : 1.5707,
+            "P1" : 4.71, "P2" : 4.71, "P3" : 4.71,
+            "A1" : 3.14, "A2" : 3.14,
+            "B1" : 3.14, "B2" : 3.14,
+            "C1" : 3.14, "C2" : 3.14,
+            "R1" : 1.57, "R2" : 1.57
+        }
         
         self.SUB_PATH_POSE_X_LIST = [2.3, 1.7, 0.7, 0.2]
         self.SUB_PATH_POSE_Y_LIST = [0.7, 0.3, 0.0, -0.5]
@@ -90,7 +102,7 @@ class RobotController(Node) :
         # self.subscription
         
 
-        self.get_logger().info("waiting client")
+        self.get_logger().info("controller is ready")
 
 
     def euler_to_quaternion(self, yaw=0, pitch=0, roll=0):
@@ -118,49 +130,11 @@ class RobotController(Node) :
         
 
     def planning_stopover(self, target):
-        y_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_Y_LIST, self.my_pose[1])
-        last_y_min_index = self.find_approximation_to_pose_list(self.SUB_PATH_POSE_Y_LIST, target[1])
         x_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_X_LIST, self.my_pose[0])
+        y_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_Y_LIST, self.my_pose[1])
         target_x_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_X_LIST, target[0])
-        # y_min_vel = 999
-        # y_min_index = 0
+        last_y_min_index = self.find_approximation_to_pose_list(self.SUB_PATH_POSE_Y_LIST, target[1])
         
-
-        # for i, Y in enumerate(self.MAIN_PATH_POSE_Y_LIST):
-        #     y_vel = abs(self.my_pose[1] - Y)
-        
-        #     if y_vel < y_min_vel:
-        #         y_min_vel = y_vel
-        #         y_min_index = i
-
-            
-
-        # last_y_min_vel = 999
-        # last_y_min_index = 0
-
-        # for i, Y in enumerate(self.SUB_PATH_POSE_Y_LIST):
-        #     last_y_vel = abs(target[1] - Y)
-
-        #     if last_y_vel < last_y_min_vel:
-        #         last_y_min_vel = last_y_vel
-        #         last_y_min_index = i
-
-        # x_min_vel = 999
-        # x_min_index = 0
-        # target_x_min_vel = 999
-        # target_x_min_index = 0
-
-        # for i, X in enumerate(self.MAIN_PATH_POSE_X_LIST):
-        #     x_vel = abs(self.my_pose[0] - X)
-        #     target_x_vel = abs(target[0] - X)
-
-        #     if x_vel < x_min_vel:
-        #         x_min_vel = x_vel
-        #         x_min_index = i
-
-        #     if target_x_vel < target_x_min_vel:
-        #         target_x_min_vel = target_x_vel
-        #         target_x_min_index = i
     
         path_poses = [
             [self.MAIN_PATH_POSE_X_LIST[x_min_index],
@@ -186,7 +160,8 @@ class RobotController(Node) :
                 pose_list = self.encoding_path(req.location)
                 res.success = self.follow_path(pose_list)
                 self.tasking = False
-            except:
+            except Exception as e:
+                self.get_logger().error(f"{e}")
                 self.tasking = False
                 
         else:
@@ -208,6 +183,7 @@ class RobotController(Node) :
 
                 if (feedback.distance_remaining <= 0.35 and feedback.distance_remaining != 0.0) or Duration.from_msg(feedback.navigation_time) > Duration(seconds=40.0) :
                     self.nav.cancelTask()
+                    time.sleep(1) # 목표지점 인접시 1초후 다음테스크
                     self.get_logger().info("cancel Task")
                     return
 
@@ -236,10 +212,13 @@ class RobotController(Node) :
         
         return pose_list
 
-
-        # 
         
 
+    def point_to_roll(self, start_pose, target):
+        x = target[0] - start_pose[0]
+        y = target[1] - start_pose[1]
+        rad = math.atan2(y, x)
+        return rad
 
 
     def follow_path(self, pose_list) :
@@ -249,15 +228,26 @@ class RobotController(Node) :
 
         for pose_name in pose_list:
             target_pose = self.POSE_DICT[pose_name]
-            path_poses = self.planning_stopover(target_pose)
+            target_roll = self.ROLL_DICT[pose_name]
+            stopover = self.planning_stopover(target_pose)
+            path_pose = []
+            path_pose = path_pose + stopover
+            path_pose = path_pose + [target_pose]
+            
+            
             self.get_logger().info(f"my_pose : {self.my_pose}")
-            self.get_logger().info(f"stopover : {path_poses}")
-            for pose in path_poses: # stopover (경유지 이동)
+            self.get_logger().info(f"stopover : {stopover}")
+            self.get_logger().info(f"path_pose : {path_pose}")
+
+            for i, pose in enumerate(stopover): # stopover (경유지 이동)
                 self.get_logger().info("goto stopover")
-                self.move_pose(pose, 0.0)
+                self.get_logger().info(f"path_pose[i+1] : {path_pose[i+1]}")
+                roll = self.point_to_roll(pose, path_pose[i+1])
+                self.get_logger().info(f"roll : {roll}")
+                self.move_pose(pose, roll)
             
             self.get_logger().info(f"goto{pose_name}")
-            self.move_pose(target_pose, 0.0)
+            self.move_pose(target_pose, target_roll)
 
             if pose_name == pose_list[0] : # lift up first place (첫 장소 리프트 업)
                 self.get_logger().info("lift up")
