@@ -169,10 +169,10 @@ class RobotAruco(Node):
                     self.motor_control()
                 
         else:
-            self.twist.linear.x = 0.0
-            self.twist.angular.z = 0.0
-            self.cmd_pub.publish(self.twist)
-                
+            # self.twist.linear.x = 0.0
+            # self.twist.angular.z = 0.0
+            # self.cmd_pub.publish(self.twist)      
+            pass     
 
 
 def main(args=None):

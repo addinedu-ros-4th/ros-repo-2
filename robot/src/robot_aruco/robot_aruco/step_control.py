@@ -68,16 +68,18 @@ class RobotStepControl(Node):
         if self.direction == 'up':
             self.rascontroller.step_control(f'{self.floor}lift')
             response = True
+            return response
 
         elif self.direction == 'down':
             self.rascontroller.step_control(f'{self.floor}place')
             response = True
-
+            return response
+        
         else: 
             response = False
             return response
 
-        return response
+
     
 
 def main(args=None):
