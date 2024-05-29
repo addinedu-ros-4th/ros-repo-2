@@ -113,7 +113,7 @@ class DatabaseManager:
         ]
         for item_id, item_name, stock in inventory_data:
             self.cur.execute("INSERT IGNORE INTO ProductInventory (item_id, item_name, stock) VALUES (%s, %s, %s)", (item_id, item_name, stock))
-            print(f"Inserted {item_name} with item_id={item_id} and stock={stock}")  # 디버깅 정보 출력
+            # print(f"Inserted {item_name} with item_id={item_id} and stock={stock}")  # 디버깅 정보 출력
         self.conn.commit()
 
 
@@ -138,7 +138,13 @@ class DatabaseManager:
         self.cur.fetchall()  # 이전 쿼리의 결과를 모두 읽음
         return result[0] if result[0] is not None else 0
 
-
+    def fetch_all_product_orders(self):
+        query = "SELECT * FROM ProductOrder"
+        self.cur.execute(query)
+        result = self.cur.fetchall()
+        self.cur.fetchall()  # 이전 쿼리의 결과를 모두 읽음
+        return result
+    
 if __name__ == '__main__':
     db_manager = DatabaseManager(host='localhost')
     db_manager.connect_database()
