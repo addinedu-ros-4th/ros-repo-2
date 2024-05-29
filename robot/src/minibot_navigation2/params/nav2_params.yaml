@@ -192,8 +192,13 @@ local_costmap:
       plugins: ["voxel_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
+<<<<<<< HEAD
         cost_scaling_factor: 1.0
         inflation_radius: 0.15
+=======
+        cost_scaling_factor: 3.0
+        inflation_radius: 0.025
+>>>>>>> 7c7adfd5679863abe9043ce88819d051ce24aca1
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: True
@@ -251,7 +256,11 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
+<<<<<<< HEAD
         inflation_radius: 0.15
+=======
+        inflation_radius: 0.03
+>>>>>>> 7c7adfd5679863abe9043ce88819d051ce24aca1
       always_send_full_costmap: True
 
 map_server:
