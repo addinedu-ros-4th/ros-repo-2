@@ -57,18 +57,20 @@ class TaskFactory:
 
 
     @staticmethod
-    def create_inbound_tasks(self, tasks):
+    def create_inbound_tasks(task, initial_location):
         # Create tasks for an inbound transaction
         storage_task = TaskFactory.create_task(
-            task_id=f'{tasks.task_id}_storage',
-            task_type='inbound',
-            priority=tasks.priority,
-            bundle_id=tasks.bundle_id,
-            item=tasks.item,
-            quantity=tasks.quantity,
-            location=tasks.location
+            task_id=f'{task.task_id}_storage',
+            task_type='IB',
+            priority=task.priority,
+            bundle_id=task.bundle_id,
+            item=task.item,
+            quantity=task.quantity,
+            location=task.location
         )
-        return TaskFactory.add_initial_task([storage_task], initial_location)
+        tasks = [storage_task]
+        tasks = TaskFactory.add_initial_task(tasks, initial_location)
+        return tasks
 
     
     @staticmethod
@@ -77,8 +79,8 @@ class TaskFactory:
         delivery_task = TaskFactory.create_task(
             task_id=f'{task.task_id}_delivery',
             task_type='OB',
-            priority=tasks[0].priority,
-            bundle_id=tasks[0].bundle_id,
+            priority=task.priority,
+            bundle_id=task.bundle_id,
             item=task.item,
             quantity=task.quantity,
             location=task.location
@@ -88,25 +90,3 @@ class TaskFactory:
         tasks = TaskFactory.add_final_task(tasks, 'O1')
         return tasks
     
-    
-    # Add task location in transaction
-    def add_collection_tasks(self, tasks):
-        initial_task = Task(
-            task_id=f'{tasks[0].task_id}_initial',
-            task_type='OB',
-            priority=tasks[0].priority,
-            bundle_id=tasks[0].bundle_id,
-            item='',
-            quantity=0,
-            location='O1'
-        )
-        final_task = Task(
-            task_id=f'{tasks[0].task_id}_final',
-            task_type='OB',
-            priority=tasks[0].priority,
-            bundle_id=tasks[0].bundle_id,
-            item='',
-            quantity=0,
-            location='O1'
-        )
-        return [initial_task] + tasks + [final_task]

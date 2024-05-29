@@ -109,7 +109,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
             self.db_manager.update_stock(product_id, quantity)
 
             # 재고 현황 프린트
-            print(f"Product: {item}, Stock after order: {stock - quantity}")
+            print(f"Product: {item}, Stock after order: {stock - quantity}\n")
 
         QMessageBox.information(self, "Saved", "결제완료")
 
@@ -129,6 +129,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
     def send_task_to_ros(self):
         try:
             ws = create_connection("ws://192.168.0.85:9090")
+            # ws = create_connection("ws://172.20.10.3:9090")
             
             # JSON 메시지 생성
             order_message = json.dumps({
