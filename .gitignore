@@ -6,3 +6,4 @@
 /robot/build/
 /.vscode/
 /db/config/config.ini
+/gui/consumer/src/__pycache__/

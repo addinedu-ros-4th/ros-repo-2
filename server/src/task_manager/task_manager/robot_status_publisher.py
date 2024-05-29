@@ -8,7 +8,7 @@ class RobotStatusPublisher(Node):
         super().__init__('robot_status_publisher_' + robot_id)
         self.robot_id = robot_id
         self.publisher_ = self.create_publisher(RobotStatus, '/robot_status', 10)
-        self.timer = self.create_timer(20.0, self.timer_callback)  # Published status every 2 seconds
+        # self.timer = self.create_timer(20.0, self.timer_callback)  # Published status every 2 seconds
         self.robot_status = 'available'
 
     def timer_callback(self):

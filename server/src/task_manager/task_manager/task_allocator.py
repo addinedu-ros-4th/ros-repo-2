@@ -96,6 +96,7 @@ class TaskAllocator(Node):
             elif task_type == "IB":
                 self.robot_status[robot_id] = "BIB"
             
+            # Immediately change status to prevent reallocation
             self.robot_status[robot_id] = "busy"
             self.assign_tasks_to_robot(tasks, robot_id)
             
@@ -140,26 +141,44 @@ class TaskAllocator(Node):
             response = future.result()
             if response.success:
                 self.get_logger().info(f'Task allocation successful for task {task.task_id}')
-                self.robot_status[robot_id] = "busy"
+                self.tasks_assigned[task.task_id] = True    # Each task's success status update
+            
+                if all(self.tasks_assigned.values()):
+                    self.get_logger().info(f'All tasks in transaction {transaction_id} assigned successfully')
             else:
                 self.get_logger().warn(f'Task allocation failed for task {task.task_id}: {response.message}')
                 self.requeue_task(task)
+                self.robot_status[robot_id] = "available"
                 
         except Exception as e:
             self.get_logger().error(f'Task allocation service call failed for task {task.task_id}: {e}')
             self.requeue_task(task)
+            # Failed task allocation
+            self.robot_status[robot_id] = "available"
             
             
     def task_completion_callback(self, msg):
-        transaction_id = f'{msg.user_id}_{msg.robot_id}'
+        transaction_id = f'{msg.taks_id}_{msg.robot_id}'
         
         if transaction_id in self.tasks_in_progress:
+            tasks, robot_id = self.tasks_in_progress[transaction_id]
+            
             if not msg.success:
                 self.reassign_task(transaction_id)
             else:
-                del self.tasks_in_progress[transaction_id]
-                self.robot_status[msg.robot_id] = "available"
-                self.allocate_tasks()
+                self.tasks_assigned[msg.task_id] = False
+                
+            # Next task start
+            next_task_index = next((i for i, t in enumerate(tasks) if not self.tasks_assigned[t.task_id]), None)
+            if next_task_index is not None:
+                next_task = tasks[next_task_index]
+                self.assign_specific_task_to_robot(next_task, robot_id, transaction_id)
+            # Confirm transaction's all task success
+            if all(not v for v in self.tasks_assigned.values()):
+                del self.tasks_in_progress[transaction_id]              # Delete in progress list
+                self.robot_status[robot_id] = "available"               # Robot status update
+                self.get_logger().info(f'Transaction {transaction_id} completed successfully')
+                self.allocate_tasks()                                   # Allocate start
     
     
     # Requeue a task that failed to be allocated     
