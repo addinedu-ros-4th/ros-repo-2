@@ -53,12 +53,7 @@ class RobotController(Node) :
             "/feedback",
             10
         )
-        # self.subcription_amclpose = self.create_subscription(
-        #     PoseWithCovarianceStamped,
-        #     "/amcl_pose",
-        #     self.current_pose,
-        #     10
-        # )
+        
 
         # self.wait_client = self.create_client(
 
@@ -78,14 +73,14 @@ class RobotController(Node) :
             "I1" : [2.4367, -0.5634, 0.0], "I2" : [2.0961, -0.5972, 0.0], "I3" : [1.7499, -0.6143, 0.0],
             "O1" : [0.1658, 0.8952, 0.0], "O2" : [0.4006, 0.8573, 0.0], "O3" : [0.7368, 0.9275, 0.0],
             "P1" : [0.2368, -0.6169, 0.0], "P2" : [0.5033, -0.6484, 0.0], "P3" : [0.7635, -0.6800, 0.0],
-            "A1" : [0.2791, 0.8958, 0.0], "A2" : [-0.0731, 0.8900, 0.0],
-            "B1" : [0.2791, 0.8958, 0.0], "B2" : [-0.0731, 0.8900, 0.0],
-            "C1" : [0.2791, 0.8958, 0.0], "C2" : [-0.0731, 0.8900, 0.0],
+            "A1" : [0.91, -0.12, 0.0], "A2" : [0.91, 0.27, 0.0],
+            "B1" : [1.64, -0.08, 0.0], "B2" : [1.64, 0.33, 0.0],
+            "C1" : [2.37, -0.06, 0.0], "C2" : [2.37, 0.32, 0.0],
             "R1" : [2.2625, 0.8958, 0.0], "R2" : [2.027, 0.8900, 0.0]
             }
         
         self.SUB_PATH_POSE_X_LIST = [2.3, 1.7, 0.7, 0.2]
-        self.SUB_PATH_POSE_Y_LIST = [0.3, 0.0]
+        self.SUB_PATH_POSE_Y_LIST = [0.7, 0.3, 0.0, -0.5]
 
 
 
@@ -106,44 +101,66 @@ class RobotController(Node) :
         return [qx, qy, qz, qw]
 
 
-    # def current_pose(self, data):
-    #     self.my_pose[0] = data.pose.pose.position.x
-    #     self.my_pose[1] = data.pose.pose.position.y
+    
+        
+    def find_approximation_to_pose_list(self, pose_list, target_vel):
+        min_vel = 999
+        min_index = 0
+
+        for i, X in enumerate(pose_list):
+            vel = abs(target_vel - X)
+        
+            if vel < min_vel:
+                min_vel = vel
+                min_index = i
+
+        return min_index
         
 
     def planning_stopover(self, target):
-        y_min_vel = 999
-        y_min_index = 0
-        target_y_min_vel = 999
-        target_y_min_index = 0
+        y_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_Y_LIST, self.my_pose[1])
+        last_y_min_index = self.find_approximation_to_pose_list(self.SUB_PATH_POSE_Y_LIST, target[1])
+        x_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_X_LIST, self.my_pose[0])
+        target_x_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_X_LIST, target[0])
+        # y_min_vel = 999
+        # y_min_index = 0
+        
 
-        for i, Y in enumerate(self.MAIN_PATH_POSE_Y_LIST):
-            y_vel = abs(self.my_pose[1] - Y)
-            target_y_vel = abs(target[1] - Y)
-            if y_vel < y_min_vel:
-                y_min_vel = y_vel
-                y_min_index = i
+        # for i, Y in enumerate(self.MAIN_PATH_POSE_Y_LIST):
+        #     y_vel = abs(self.my_pose[1] - Y)
+        
+        #     if y_vel < y_min_vel:
+        #         y_min_vel = y_vel
+        #         y_min_index = i
 
-            if target_y_vel < target_y_min_vel:
-                target_y_min_vel = target_y_vel
-                target_y_min_index = i
+            
 
-        x_min_vel = 999
-        x_min_index = 0
-        target_x_min_vel = 999
-        target_x_min_index = 0
+        # last_y_min_vel = 999
+        # last_y_min_index = 0
 
-        for i, X in enumerate(self.MAIN_PATH_POSE_X_LIST):
-            x_vel = abs(self.my_pose[0] - X)
-            target_x_vel = abs(target[0] - X)
+        # for i, Y in enumerate(self.SUB_PATH_POSE_Y_LIST):
+        #     last_y_vel = abs(target[1] - Y)
 
-            if x_vel < x_min_vel:
-                x_min_vel = x_vel
-                x_min_index = i
+        #     if last_y_vel < last_y_min_vel:
+        #         last_y_min_vel = last_y_vel
+        #         last_y_min_index = i
 
-            if target_x_vel < target_x_min_vel:
-                target_x_min_vel = target_x_vel
-                target_x_min_index = i
+        # x_min_vel = 999
+        # x_min_index = 0
+        # target_x_min_vel = 999
+        # target_x_min_index = 0
+
+        # for i, X in enumerate(self.MAIN_PATH_POSE_X_LIST):
+        #     x_vel = abs(self.my_pose[0] - X)
+        #     target_x_vel = abs(target[0] - X)
+
+        #     if x_vel < x_min_vel:
+        #         x_min_vel = x_vel
+        #         x_min_index = i
+
+        #     if target_x_vel < target_x_min_vel:
+        #         target_x_min_vel = target_x_vel
+        #         target_x_min_index = i
     
         path_poses = [
             [self.MAIN_PATH_POSE_X_LIST[x_min_index],
@@ -153,7 +170,7 @@ class RobotController(Node) :
               self.MAIN_PATH_POSE_Y_LIST[y_min_index],
               0.0],
               [self.MAIN_PATH_POSE_X_LIST[target_x_min_index],
-              self.MAIN_PATH_POSE_Y_LIST[target_y_min_index],
+              self.SUB_PATH_POSE_Y_LIST[last_y_min_index],
               0.0]
              ]
         
@@ -253,8 +270,8 @@ class RobotController(Node) :
                 self.service_call_lift_down()
             
 
-            self.tasking = False
-            self.get_logger().info("move end")
+        self.tasking = False
+        self.get_logger().info("move end")
 
         return True
             
