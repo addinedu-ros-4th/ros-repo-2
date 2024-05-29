@@ -113,6 +113,7 @@ class DatabaseManager:
         query = "SELECT item_id, item_name FROM ProductInfo WHERE item_tag = %s"
         self.cur.execute(query, (barcode_id,))
         result = self.cur.fetchone()
+        self.cur.fetchall() 
         return result
 
 
@@ -144,6 +145,11 @@ class DatabaseManager:
         ]
         for item_id, item_name, stock in inventory_data:
             self.cur.execute("INSERT IGNORE INTO ProductInventory (item_id, item_name, stock) VALUES (%s, %s, %s)", (item_id, item_name, stock))
+        self.conn.commit()
+
+    def clear_inventory(self):
+        query = "DELETE FROM ProductInventory"
+        self.cur.execute(query)
         self.conn.commit()
 
     def close_connection(self):
