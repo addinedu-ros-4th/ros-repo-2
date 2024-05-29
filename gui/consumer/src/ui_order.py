@@ -125,7 +125,6 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         self.send_task_to_ros()
 
 
-
     def send_task_to_ros(self):
         try:
             ws = create_connection("ws://192.168.0.85:9090")

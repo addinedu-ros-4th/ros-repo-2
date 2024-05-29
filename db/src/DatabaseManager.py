@@ -17,7 +17,6 @@ class DatabaseManager:
         config.read('db/config/config.ini')
         return config['database']['password']
     
-    
     def connect_database(self, db_name=None):
         if db_name is None:
             db_name = self.db_name

@@ -522,12 +522,11 @@ class Ui_MainWindow(QMainWindow, from_class):
                 self.tableWidget.setItem(row.Index, col_index, item)
 
 
-
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     
     # config 파일에서 host 정보를 읽어옴
-    config_path = '/home/addinedu/Desktop/db/config/config.ini'
+    config_path = 'db/config/config.ini'
     config = ConfigParser()
     config.read(config_path)
     

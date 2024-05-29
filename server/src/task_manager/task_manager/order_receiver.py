@@ -36,7 +36,7 @@ class OrderReceiver(Node):
 
     def process_single_order(self, single_order):
         try:
-            bundle_id = single_order['bundle_id']
+            bundle_id = single_order['user_id']
             items = single_order['item_name']
             quantities = single_order['quantities']
 
