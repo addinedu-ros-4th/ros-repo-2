@@ -7,7 +7,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 
 def generate_launch_description():
-    robot_id = '212'  # Robot ID 
+    robot_id = '213'  # Robot ID 
 
     return LaunchDescription([
         Node(
@@ -19,11 +19,5 @@ def generate_launch_description():
             package='task_manager',
             executable='task_allocator',
             name='task_allocator'
-        ),
-        Node(
-            package='task_manager',
-            executable='robot_status_publisher',
-            name='robot_status_publisher',
-            parameters=[{'robot_id': robot_id}]
         )
     ])
