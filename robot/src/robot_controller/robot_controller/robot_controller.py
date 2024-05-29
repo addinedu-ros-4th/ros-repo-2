@@ -6,6 +6,8 @@ from rclpy.node import Node
 from task_msgs.srv import AllocateTask
 from task_msgs.srv import ArucoCommand
 from task_msgs.srv import StepControl
+from task_msgs.msg import TaskCompletion
+from task_msgs.msg import RobotStatus
 from std_msgs.msg import Bool
 from std_msgs.msg import Float32
 from rclpy.executors import MultiThreadedExecutor
@@ -44,11 +46,24 @@ class RobotController(Node) :
         
         self.tasking = False
         self.task_status = None
+        self.task_id = ""
         self.my_pose = [0.0, 0.0, 0.0]
-        self.server = self.create_service(AllocateTask, f"/task_{ID}", self.task_callback)
-        self.publisher = self.create_publisher(
-            Bool,
-            "/task_success",
+
+        self.server = self.create_service(
+            AllocateTask, 
+            f"/task_{ID}", 
+            self.task_callback
+        )
+        
+        self.task_completion_publisher = self.create_publisher(
+            TaskCompletion,
+            "/task_completion",
+            10
+        )
+
+        self.robot_status_publisher = self.create_publisher(
+            RobotStatus,
+            "/robot_status",
             10
         )
 
@@ -113,71 +128,26 @@ class RobotController(Node) :
         self.get_logger().info("controller is ready")
 
 
+    def send_robot_status_topics(self):
+        msg = TaskCompletion
 
+        msg.success = True
+        msg.robot_id = ID
+        msg.task_id = self.task_id
 
-    def euler_to_quaternion(self, yaw=0, pitch=0, roll=0):
-        qx = np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) - np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
-        qy = np.cos(roll/2) * np.sin(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.cos(pitch/2) * np.sin(yaw/2)
-        qz = np.cos(roll/2) * np.cos(pitch/2) * np.sin(yaw/2) - np.sin(roll/2) * np.sin(pitch/2) * np.cos(yaw/2)
-        qw = np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
-        
-        return [qx, qy, qz, qw]
-
-
-    
-        
-    def find_approximation_to_pose_list(self, pose_list, target_vel):
-        min_vel = 999
-        min_index = 0
-
-        for i, X in enumerate(pose_list):
-            vel = abs(target_vel - X)
-        
-            if vel < min_vel:
-                min_vel = vel
-                min_index = i
-
-        return min_index
-        
-
-
-    def planning_stopover(self, target):
-        x_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_X_LIST, self.my_pose[0])
-        y_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_Y_LIST, self.my_pose[1])
-        target_x_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_X_LIST, target[0])
-        last_y_min_index = self.find_approximation_to_pose_list(self.SUB_PATH_POSE_Y_LIST, target[1])
-        
-    
-        path_poses = [
-                [
-                    self.MAIN_PATH_POSE_X_LIST[x_min_index],
-                    self.MAIN_PATH_POSE_Y_LIST[y_min_index],
-                    0.0
-                ],
-                [
-                    self.MAIN_PATH_POSE_X_LIST[target_x_min_index],
-                    self.MAIN_PATH_POSE_Y_LIST[y_min_index],
-                    0.0
-                ],
-                [
-                    self.MAIN_PATH_POSE_X_LIST[target_x_min_index],
-                    self.SUB_PATH_POSE_Y_LIST[last_y_min_index],
-                    0.0
-                ]
-            ]
-        
-        return path_poses
-
-        
+        for i in range(5):
+            self.robot_status_publisher.publish(msg)
 
     def task_callback(self, req, res) :
         self.get_logger().info("task_list:" + req.location)
         if not self.tasking:
             try:
                 self.tasking = True
+                self.task_id = req.task_id
                 pose_list = self.encoding_path(req.location)
                 res.success = self.follow_path(pose_list)
                 self.tasking = False
+                self.send_complete_task_topics()
 
             except Exception as e:
                 self.get_logger().error(f"{e}")
@@ -188,58 +158,17 @@ class RobotController(Node) :
 
         return res
     
-
-
-    def nav_distance_feedback(self) :
-        i = 0
-        send_data = Float32()
-        while not self.nav.isTaskComplete():
-            i = i + 1
-            feedback = self.nav.getFeedback()
-
-            if feedback and i % 5 == 0 :
-                self.get_logger().info("distance remaining: " + "{:.2f}".format(feedback.distance_remaining) + " meters.")
-                send_data.data = feedback.distance_remaining
-                self.feedback_publisher.publish(send_data)
-
-                if (feedback.distance_remaining <= 0.35 and feedback.distance_remaining != 0.0) or Duration.from_msg(feedback.navigation_time) > Duration(seconds=40.0) :
-                    self.nav.cancelTask()
-                    time.sleep(2) # 목표지점 인접시 2초후 다음목적지
-                    self.get_logger().info("cancel nav Task")
-
-                    return
-
-
     
-    
+    def send_complete_task_topics(self):
+        msg = TaskCompletion
 
-    def encoding_path(self, task) :
-        pose_list = task.split("#")
-        self.get_logger().info(f"task_list is : {pose_list}")
-        
-        if "A" in pose_list[0] : # 수거
-            self.task_status = "RETURN"
+        msg.success = True
+        msg.robot_id = ID
+        msg.task_id = self.task_id
 
-        elif "O" in pose_list[0] : # 출고
-            self.task_status = "OUT"
+        for i in range(5):
+            self.task_completion_publisher.publish(msg)
 
-
-        elif "I" in pose_list[0] : # 입고
-            self.task_status = "IN"
-
-        else :
-            self.task_status = None
-        
-        return pose_list
-
-        
-
-    def point_to_yaw(self, start_pose, target):
-        x = target[0] - start_pose[0]
-        y = target[1] - start_pose[1]
-        rad = math.atan2(y, x)
-
-        return rad
 
 
     def follow_path(self, pose_list) :
@@ -284,6 +213,76 @@ class RobotController(Node) :
 
         return True
             
+
+    def planning_stopover(self, target):
+        x_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_X_LIST, self.my_pose[0])
+        y_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_Y_LIST, self.my_pose[1])
+        target_x_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_X_LIST, target[0])
+        last_y_min_index = self.find_approximation_to_pose_list(self.SUB_PATH_POSE_Y_LIST, target[1])
+        
+    
+        path_poses = [
+                [
+                    self.MAIN_PATH_POSE_X_LIST[x_min_index],
+                    self.MAIN_PATH_POSE_Y_LIST[y_min_index],
+                    0.0
+                ],
+                [
+                    self.MAIN_PATH_POSE_X_LIST[target_x_min_index],
+                    self.MAIN_PATH_POSE_Y_LIST[y_min_index],
+                    0.0
+                ],
+                [
+                    self.MAIN_PATH_POSE_X_LIST[target_x_min_index],
+                    self.SUB_PATH_POSE_Y_LIST[last_y_min_index],
+                    0.0
+                ]
+            ]
+        
+        return path_poses
+
+    def find_approximation_to_pose_list(self, pose_list, target_vel):
+        min_vel = 999
+        min_index = 0
+
+        for i, X in enumerate(pose_list):
+            vel = abs(target_vel - X)
+        
+            if vel < min_vel:
+                min_vel = vel
+                min_index = i
+
+        return min_index
+
+
+
+    def encoding_path(self, task) :
+        pose_list = task.split("#")
+        self.get_logger().info(f"task_list is : {pose_list}")
+        
+        if "A" in pose_list[0] : # 수거
+            self.task_status = "RETURN"
+
+        elif "O" in pose_list[0] : # 출고
+            self.task_status = "OUT"
+
+
+        elif "I" in pose_list[0] : # 입고
+            self.task_status = "IN"
+
+        else :
+            self.task_status = None
+        
+        return pose_list
+
+        
+    def point_to_yaw(self, start_pose, target):
+        x = target[0] - start_pose[0]
+        y = target[1] - start_pose[1]
+        rad = math.atan2(y, x)
+
+        return rad
+    
         
     def service_call_lift(self, pose_name, direction) :
         if "_" in pose_name:
@@ -298,6 +297,7 @@ class RobotController(Node) :
 
         res = self.lift_client.call(req)
 
+
     def service_call_marker(self, location=None ,direction=None):
         if "_" in location:
             location = location.split("_")[0]
@@ -307,6 +307,7 @@ class RobotController(Node) :
         req.direction = direction
 
         res = self.arucomarker_client.call(req)
+
 
 
     def move_pose(self, target_pose, yaw) :
@@ -330,6 +331,34 @@ class RobotController(Node) :
 
         self.nav_distance_feedback()
 
+
+    def euler_to_quaternion(self, yaw=0, pitch=0, roll=0):
+        qx = np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) - np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
+        qy = np.cos(roll/2) * np.sin(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.cos(pitch/2) * np.sin(yaw/2)
+        qz = np.cos(roll/2) * np.cos(pitch/2) * np.sin(yaw/2) - np.sin(roll/2) * np.sin(pitch/2) * np.cos(yaw/2)
+        qw = np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
+        
+        return [qx, qy, qz, qw]
+    
+
+    def nav_distance_feedback(self) :
+        i = 0
+        send_data = Float32()
+        while not self.nav.isTaskComplete():
+            i = i + 1
+            feedback = self.nav.getFeedback()
+
+            if feedback and i % 5 == 0 :
+                self.get_logger().info("distance remaining: " + "{:.2f}".format(feedback.distance_remaining) + " meters.")
+                send_data.data = feedback.distance_remaining
+                self.feedback_publisher.publish(send_data)
+
+                if (feedback.distance_remaining <= 0.35 and feedback.distance_remaining != 0.0) or Duration.from_msg(feedback.navigation_time) > Duration(seconds=40.0) :
+                    self.nav.cancelTask()
+                    time.sleep(2) # 목표지점 인접시 2초후 다음목적지
+                    self.get_logger().info("cancel nav Task")
+
+                    return
 
 
 def main(args = None) : 
