@@ -84,12 +84,12 @@ class RobotController(Node) :
             "R1" : [2.2625, 0.8958, 0.0], "R2" : [2.027, 0.8900, 0.0]
             }
         
-        self.SUB_PATH_POSE_X_LIST = [2.3, 1.7, 1.0, 0.3]
+        self.SUB_PATH_POSE_X_LIST = [2.3, 1.7, 0.7, 0.2]
         self.SUB_PATH_POSE_Y_LIST = [0.3, 0.0]
 
 
 
-        self.MAIN_PATH_POSE_X_LIST = [2.3, 1.7, 1.0, 0.3]
+        self.MAIN_PATH_POSE_X_LIST = [2.3, 1.7, 0.7, 0.2]
         self.MAIN_PATH_POSE_Y_LIST = [0.7, -0.5]
         
         # self.subscription
@@ -114,13 +114,19 @@ class RobotController(Node) :
     def planning_stopover(self, target):
         y_min_vel = 999
         y_min_index = 0
+        target_y_min_vel = 999
+        target_y_min_index = 0
 
         for i, Y in enumerate(self.MAIN_PATH_POSE_Y_LIST):
             y_vel = abs(self.my_pose[1] - Y)
-            
+            target_y_vel = abs(target[1] - Y)
             if y_vel < y_min_vel:
                 y_min_vel = y_vel
                 y_min_index = i
+
+            if target_y_vel < target_y_min_vel:
+                target_y_min_vel = target_y_vel
+                target_y_min_index = i
 
         x_min_vel = 999
         x_min_index = 0
@@ -136,7 +142,7 @@ class RobotController(Node) :
                 x_min_index = i
 
             if target_x_vel < target_x_min_vel:
-                target_x_min_vel = x_vel
+                target_x_min_vel = target_x_vel
                 target_x_min_index = i
     
         path_poses = [
@@ -145,6 +151,9 @@ class RobotController(Node) :
              0.0],
              [self.MAIN_PATH_POSE_X_LIST[target_x_min_index],
               self.MAIN_PATH_POSE_Y_LIST[y_min_index],
+              0.0],
+              [self.MAIN_PATH_POSE_X_LIST[target_x_min_index],
+              self.MAIN_PATH_POSE_Y_LIST[target_y_min_index],
               0.0]
              ]
         
@@ -224,7 +233,8 @@ class RobotController(Node) :
         for pose_name in pose_list:
             target_pose = self.POSE_DICT[pose_name]
             path_poses = self.planning_stopover(target_pose)
-            
+            self.get_logger().info(f"my_pose : {self.my_pose}")
+            self.get_logger().info(f"stopover : {path_poses}")
             for pose in path_poses: # stopover (경유지 이동)
                 self.get_logger().info("goto stopover")
                 self.move_pose(pose, 0.0)
