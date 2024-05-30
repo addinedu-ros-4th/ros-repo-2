@@ -31,19 +31,21 @@ class Ui_MainWindow(QMainWindow):
         self.init_inbound_order_control_page()
 
         # Connect buttons to switch pages
-        self.home.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.MainPage))
-        self.robot.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.RobotControlPage))
-        self.list.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.InboundOrderPage))
+        self.home.clicked.connect(lambda: self.switch_page(0))
+        self.robot.clicked.connect(lambda: self.switch_page(1))
+        self.list.clicked.connect(lambda: self.switch_page(2))
 
-        self.home_2.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.MainPage))
-        self.robot_2.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.RobotControlPage))
-        self.list_2.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.InboundOrderPage))
+        self.home_2.clicked.connect(lambda: self.switch_page(0))
+        self.robot_2.clicked.connect(lambda: self.switch_page(1))
+        self.list_2.clicked.connect(lambda: self.switch_page(2))
 
-        self.home_3.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.MainPage))
-        self.robot_3.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.RobotControlPage))
-        self.list_3.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.InboundOrderPage))
-
+        self.home_3.clicked.connect(lambda: self.switch_page(0))
+        self.robot_3.clicked.connect(lambda: self.switch_page(1))
+        self.list_3.clicked.connect(lambda: self.switch_page(2))
        
+    def switch_page(self, page_index):
+        self.stackedWidget.setCurrentIndex(page_index)
+        
     def init_main_page(self):
         # Main Page: Real-time location of robots, Task list, Current Stock info
         self.MainPage = QWidget()
