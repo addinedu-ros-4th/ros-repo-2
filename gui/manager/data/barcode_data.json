@@ -1,38 +1,206 @@
 [
     {
-        "time": "2024-05-29 15:01:30",
+        "time": "2024-05-29 18:11:42",
         "barcode_id": "A1.04.I1",
         "inbound_location": "I1",
         "quantity": 4
     },
     {
-        "time": "2024-05-29 15:01:32",
+        "time": "2024-05-29 18:11:44",
         "barcode_id": "A1.04.I1",
         "inbound_location": "I1",
         "quantity": 4
     },
     {
-        "time": "2024-05-29 15:01:33",
+        "time": "2024-05-29 18:11:47",
         "barcode_id": "A1.04.I1",
         "inbound_location": "I1",
         "quantity": 4
     },
     {
-        "time": "2024-05-29 15:01:35",
-        "barcode_id": "A1.04.I1",
+        "time": "2024-05-29 18:11:50",
+        "barcode_id": "A2.04.I1",
         "inbound_location": "I1",
         "quantity": 4
     },
     {
-        "time": "2024-05-29 15:01:37",
-        "barcode_id": "A1.04.I1",
+        "time": "2024-05-29 18:11:51",
+        "barcode_id": "A2.04.I1",
         "inbound_location": "I1",
         "quantity": 4
     },
     {
-        "time": "2024-05-29 15:01:38",
-        "barcode_id": "A1.04.I1",
+        "time": "2024-05-29 18:11:53",
+        "barcode_id": "A2.04.I1",
         "inbound_location": "I1",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:11:55",
+        "barcode_id": "B1.04.I2",
+        "inbound_location": "I2",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:11:57",
+        "barcode_id": "B1.04.I2",
+        "inbound_location": "I2",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:12:03",
+        "barcode_id": "B1.04.I2",
+        "inbound_location": "I2",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:12:05",
+        "barcode_id": "B1.04.I2",
+        "inbound_location": "I2",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:12:07",
+        "barcode_id": "B1.04.I2",
+        "inbound_location": "I2",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:12:09",
+        "barcode_id": "B1.04.I2",
+        "inbound_location": "I2",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:12:10",
+        "barcode_id": "B1.04.I2",
+        "inbound_location": "I2",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:12:12",
+        "barcode_id": "C1.04.I3",
+        "inbound_location": "I3",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:12:13",
+        "barcode_id": "C1.04.I3",
+        "inbound_location": "I3",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:06",
+        "barcode_id": "A2.04.I1",
+        "inbound_location": "I1",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:07",
+        "barcode_id": "A2.04.I1",
+        "inbound_location": "I1",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:09",
+        "barcode_id": "A2.04.I1",
+        "inbound_location": "I1",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:10",
+        "barcode_id": "A2.04.I1",
+        "inbound_location": "I1",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:12",
+        "barcode_id": "A2.04.I1",
+        "inbound_location": "I1",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:14",
+        "barcode_id": "A2.04.I1",
+        "inbound_location": "I1",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:17",
+        "barcode_id": "B1.04.I2",
+        "inbound_location": "I2",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:20",
+        "barcode_id": "B2.04.I2",
+        "inbound_location": "I2",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:23",
+        "barcode_id": "C1.04.I3",
+        "inbound_location": "I3",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:26",
+        "barcode_id": "C2.04.I3",
+        "inbound_location": "I3",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:27",
+        "barcode_id": "C1.04.I3",
+        "inbound_location": "I3",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:29",
+        "barcode_id": "C2.04.I3",
+        "inbound_location": "I3",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:31",
+        "barcode_id": "C1.04.I3",
+        "inbound_location": "I3",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:32",
+        "barcode_id": "C2.04.I3",
+        "inbound_location": "I3",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:34",
+        "barcode_id": "C2.04.I3",
+        "inbound_location": "I3",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:35",
+        "barcode_id": "C2.04.I3",
+        "inbound_location": "I3",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:37",
+        "barcode_id": "C1.04.I3",
+        "inbound_location": "I3",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:39",
+        "barcode_id": "C1.04.I3",
+        "inbound_location": "I3",
+        "quantity": 4
+    },
+    {
+        "time": "2024-05-29 18:18:40",
+        "barcode_id": "C2.04.I3",
+        "inbound_location": "I3",
         "quantity": 4
     }
 ]
