@@ -67,26 +67,26 @@ class RobotStepControl(Node):
         
         if self.direction == 'up':
             self.rascontroller.step_control(f'{self.floor}lift')
-            response = True
+            response.success = True
             return response
 
         elif self.direction == 'down':
             self.rascontroller.step_control(f'{self.floor}place')
-            response = True
+            response.success = True
             return response
 
         else: 
-            response = False
+            response.success = False
             return response
     
 
 def main(args=None):
     rclpy.init(args=args)
     ic = RobotStepControl()
-    try:
-        rclpy.spin(ic)
-    except KeyboardInterrupt:
-        ic.get_logger().info('Shutting down')
+    
+    rclpy.spin(ic)
+    
+        # ic.get_logger().info('Shutting down')
     ic.destroy_node()
     rclpy.shutdown()
     

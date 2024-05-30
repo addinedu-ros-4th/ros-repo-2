@@ -199,11 +199,14 @@ class RobotController(Node) :
 
             if pose_name == pose_list[0] : # lift up first place (첫 장소 리프트 업)
                 self.get_logger().info("lift up")
-                self.service_call_lift(pose_name, "up")
+                self.service_call_lift(pose_name, "down")
                 self.service_call_marker(pose_name, "forward")
+                self.service_call_lift(pose_name, "up")
+                self.service_call_marker(pose_name, "backward")
 
             elif pose_name == pose_list[-1] : # lift down last place(마지막 장소 리프트 다운)
                 self.get_logger().info("lift down")
+                self.service_call_marker(pose_name, "forward")
                 self.service_call_lift(pose_name, "down")
                 self.service_call_marker(pose_name, "backward")
             
