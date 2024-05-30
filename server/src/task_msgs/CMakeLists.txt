@@ -24,6 +24,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/TaskCompletion.msg"
   "srv/ArucoCommand.srv"
   "srv/StepControl.srv"
+  "srv/CompletePicking.srv"
 )
 
 
