@@ -41,6 +41,7 @@ class ButtonLCDControl(Node):
 
     def send_picking_request(self):
         self.req.task_done = True
+        self.get_logger().info('next button is clicked')
         self.future = self.picking_cli.call_async(self.req)
         rclpy.spin_until_future_complete(self, self.future, timeout_sec=5.0)
 

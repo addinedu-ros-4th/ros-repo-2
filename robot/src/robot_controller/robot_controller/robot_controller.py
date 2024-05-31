@@ -53,7 +53,9 @@ class My_Location(Node) :
 
     def next_out_is_clicked(self, req, res):
         self.controller.next_out = True
-
+        res.location = "test"
+        res.product = "test"
+        res.count = 0
         return res
 
     def emergency_button_is_clicked(self, data):
@@ -344,9 +346,9 @@ class RobotController(Node) :
         req = StepControl.Request()
         req.floor = floor
         req.direction = direction
-
-        res = self.lift_client.call_async(req)
-        rp.spin_until_future_complete(self, res, timeout_sec=5.0)
+        self.lift_client.call(req)
+        # res = self.lift_client.call_async(req)
+        # rp.spin_until_future_complete(self, res, timeout_sec=5.0)
         
         
 
