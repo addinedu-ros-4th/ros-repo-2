@@ -64,20 +64,18 @@ class RobotStepControl(Node):
     def handle_forkarm(self, request, response):
         self.floor = request.floor 
         self.direction = request.direction 
-        
         if self.direction == 'up':
             self.rascontroller.step_control(f'{self.floor}lift')
             response.success = True
-            return response
-
+            
         elif self.direction == 'down':
             self.rascontroller.step_control(f'{self.floor}place')
             response.success = True
-            return response
-
+            
         else: 
             response.success = False
-            return response
+            
+        return response
     
 
 def main(args=None):

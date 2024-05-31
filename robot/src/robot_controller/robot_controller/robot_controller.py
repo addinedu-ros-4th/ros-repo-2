@@ -45,7 +45,7 @@ class RobotController(Node) :
         self.nav = BasicNavigator()
         
         self.tasking = False
-        self.task_status = None
+        self.task_status = ""
         self.task_id = ""
         self.my_pose = [0.0, 0.0, 0.0]
 
@@ -89,16 +89,16 @@ class RobotController(Node) :
         # pose x, y, z
         # 추후 json or yaml로 변경 필요
         self.POSE_DICT = {
-            "I1" : [2.4367, -0.5634, 0.0], "I2" : [2.0961, -0.5972, 0.0], "I3" : [1.7499, -0.6143, 0.0],
-            "O1" : [0.1658, 0.8952, 0.0], "O2" : [0.4006, 0.8573, 0.0], "O3" : [0.7368, 0.9275, 0.0],
-            "P1" : [0.2368, -0.6169, 0.0], "P2" : [0.5033, -0.6484, 0.0], "P3" : [0.7635, -0.6800, 0.0],
+            "I1" : [ 0.3, -1.225, 0.0], "I2" : [0.3, -0.925, 0.0], "I3" : [0.3, -0.625, 0.0],
+            "O1" : [1.55, 1.06, 0.0], "O2" : [1.55, 0.76, 0.0], "O3" : [1.55, 0.46, 0.0],
+            "P1" : [0.3, 0.0, 0.0], "P2" : [0.3, 0.58, 0.0], "P3" : [0.3, 1.16, 0.0],
             "A1" : [0.91, -0.12, 0.0], "A1_2" : [0.91, -0.12, 0.0], 
             "A2" : [0.91, 0.27, 0.0], "A2_2" : [0.91, 0.27, 0.0],
             "B1" : [1.64, -0.08, 0.0], "B1_2" : [1.64, -0.08, 0.0], 
             "B2" : [1.64, 0.33, 0.0], "B2_2" : [1.64, 0.33, 0.0],
             "C1" : [2.37, -0.06, 0.0], "C1_2" : [2.37, -0.06, 0.0], 
             "C2" : [2.37, 0.32, 0.0], "C2_2" : [2.37, 0.32, 0.0],
-            "R1" : [2.2625, 0.8958, 0.0], "R2" : [2.027, 0.8900, 0.0]
+            "R1" : [1.55, -0.9, 0.0], "R2" : [1.55, -1.2, 0.0]
         }
 
         self.YAW_DICT = {
@@ -127,13 +127,17 @@ class RobotController(Node) :
 
         self.get_logger().info("controller is ready")
 
+    def check_emergency_status(self):
+        if self.task_status == "emergency":
+            pass
+
 
     def send_robot_status_topics(self):
-        msg = TaskCompletion
+        msg = RobotStatus()
 
-        msg.success = True
+        
         msg.robot_id = ID
-        msg.task_id = self.task_id
+        msg.robot_status = self.task_status
 
         for i in range(5):
             self.robot_status_publisher.publish(msg)
@@ -147,7 +151,7 @@ class RobotController(Node) :
                 pose_list = self.encoding_path(req.location)
                 res.success = self.follow_path(pose_list)
                 self.tasking = False
-                self.send_complete_task_topics()
+                # self.send_complete_task_topics()
 
             except Exception as e:
                 self.get_logger().error(f"{e}")
@@ -160,7 +164,7 @@ class RobotController(Node) :
     
     
     def send_complete_task_topics(self):
-        msg = TaskCompletion
+        msg = TaskCompletion()
 
         msg.success = True
         msg.robot_id = ID
@@ -206,6 +210,7 @@ class RobotController(Node) :
 
             elif pose_name == pose_list[-1] : # lift down last place(마지막 장소 리프트 다운)
                 self.get_logger().info("lift down")
+                self.service_call_lift(pose_name, "up")
                 self.service_call_marker(pose_name, "forward")
                 self.service_call_lift(pose_name, "down")
                 self.service_call_marker(pose_name, "backward")
@@ -289,16 +294,19 @@ class RobotController(Node) :
         
     def service_call_lift(self, pose_name, direction) :
         if "_" in pose_name:
-            floor = pose_name.split("_")[1]
+            floor = int(pose_name.split("_")[1])
 
         else :
             floor = 1
-
+        
         req = StepControl.Request()
         req.floor = floor
         req.direction = direction
 
-        res = self.lift_client.call(req)
+        res = self.lift_client.call_async(req)
+        rp.spin_until_future_complete(self, res, timeout_sec=5.0)
+        
+        
 
 
     def service_call_marker(self, location=None ,direction=None):
@@ -309,8 +317,8 @@ class RobotController(Node) :
         req.location = location
         req.direction = direction
 
-        res = self.arucomarker_client.call(req)
-
+        res = self.arucomarker_client.call_async(req) 
+        rp.spin_until_future_complete(self, res, timeout_sec=10.0)
 
 
     def move_pose(self, target_pose, yaw) :
