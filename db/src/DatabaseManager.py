@@ -54,10 +54,15 @@ class DatabaseManager:
     def create_table(self):
         self.execute_sql_file("db/query/create_table.sql")
 
-
+    # 얘는...모르겠음
     def insert_initial_data(self):
-
-        # Insert initial Item Info
+        # Check if ProductInfo table is empty before inserting initial data
+        self.cur.execute("SELECT COUNT(*) FROM ProductInfo")
+        result = self.cur.fetchone()
+        if result[0] > 0:
+            print("Initial data already exists in ProductInfo table.")
+            return
+        
         initial_data = [
             ("A1.04.I1", "Coke", "A1", 1.25, "Drink"),
             ("A2.04.I1", "Sprite", "A2", 1.25, "Drink"),
@@ -66,9 +71,9 @@ class DatabaseManager:
             ("C1.04.I3", "Robot Vacuum", "C1", 3.0, "Appliance"),
             ("C2.04.I3", "Coffee Pot", "C2", 1.0, "Appliance")
         ]
-        self.cur.executemany(
-            """ INSERT IGNORE INTO  ProductInfo (barcode_id, item_name, item_tag, item_weight, item_category)
-            VALUES (%s, %s, %s, %s, %s)""", initial_data)
+
+        for item_id, item_name, item_tag, item_weight, item_category in initial_data:
+            self.cur.execute("INSERT IGNORE INTO ProductInfo (barcode_id, item_name, item_tag, item_weight, item_category) VALUES (%s, %s, %s, %s, %s)", (item_id, item_name, item_tag, item_weight, item_category))
         self.conn.commit()
 
     def execute_sql_file(self, file_path):
@@ -104,6 +109,27 @@ class DatabaseManager:
         last_id = self.cur.fetchone()[0]
         self.cur.fetchall()  # 이전 쿼리의 결과를 모두 읽음
         return last_id
+    
+    def get_data(self, table_name, columns=None, condition=None):
+        """
+        테이블에서 데이터를 읽어오는 함수
+        :param table_name: 테이블 이름
+        :param columns: 선택적으로 읽어올 컬럼 리스트 (기본값: 모든 컬럼)
+        :param condition: 선택적으로 데이터를 필터링할 조건 (기본값: 없음)
+        :return: 조건에 맞는 데이터의 리스트
+        """
+        if columns:
+            columns_str = ', '.join(columns)
+        else:
+            columns_str = '*'
+        
+        query = f"SELECT {columns_str} FROM {table_name}"
+        if condition:
+            query += f" WHERE {condition}"
+        
+        self.cur.execute(query)
+        rows = self.cur.fetchall()
+        return rows
 
     def get_product_id(self, product_name):
         product_ids = {"cola": 1, "water": 2, "ramen": 3}
@@ -116,7 +142,6 @@ class DatabaseManager:
         self.cur.fetchall() 
         return result
 
-
     def get_stock(self, item_id):
         query = "SELECT stock FROM ProductInventory WHERE item_id = %s"
         self.cur.execute(query, (item_id,))
@@ -128,12 +153,13 @@ class DatabaseManager:
         query = "UPDATE ProductInventory SET stock = stock - %s WHERE item_id = %s"
         self.cur.execute(query, (quantity, item_id))
         self.conn.commit()
-
+    # 얘도 
     def add_to_stock(self, item_id, quantity):
         query = "UPDATE ProductInventory SET stock = stock + %s WHERE item_id = %s"
         self.cur.execute(query, (quantity, item_id))
         self.conn.commit()
 
+    # 내가 추가한거 다른데로 이동
     def initialize_inventory(self):
         inventory_data = [
             (1, "Coke", 0),
@@ -146,7 +172,7 @@ class DatabaseManager:
         for item_id, item_name, stock in inventory_data:
             self.cur.execute("INSERT IGNORE INTO ProductInventory (item_id, item_name, stock) VALUES (%s, %s, %s)", (item_id, item_name, stock))
         self.conn.commit()
-
+    # 이것도 마찬가지
     def clear_inventory(self):
         query = "DELETE FROM ProductInventory"
         self.cur.execute(query)

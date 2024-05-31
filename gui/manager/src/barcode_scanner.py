@@ -5,9 +5,13 @@ sys.path.append('./db/src')
 import json
 from DatabaseManager import DatabaseManager
 from datetime import datetime
+from PyQt5.QtCore import pyqtSignal, QObject
 
-class BarcodeScanner:
+class BarcodeScanner(QObject):
+    barcode_scanned = pyqtSignal(dict)  # Define the signal
+
     def __init__(self):
+        super().__init__()  # Initialize QObject
         self.db_manager = DatabaseManager(host='localhost')
         self.db_manager.connect_database()
         self.db_manager.create_table()
@@ -51,6 +55,7 @@ class BarcodeScanner:
                     }
                     self.db_manager.save_data("Inbound", inbound_data)
                     self.db_manager.add_to_stock(item_id, quantity)
+                    self.barcode_scanned.emit(inbound_data)  # Emit signal with inbound data
                 else:
                     print(f"Item {item_tag} not found in database.")
                 self.save_to_json(barcodes)
