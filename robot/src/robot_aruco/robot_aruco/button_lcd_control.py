@@ -4,7 +4,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Empty
 from task_msgs.srv import CompletePicking
-from lcd_display import LCDDisplay
+from robot_aruco.lcd_display import LCDDisplay
 
 
 class ButtonLCDControl(Node):
@@ -48,13 +48,13 @@ class ButtonLCDControl(Node):
 
 
     # Emergency case
-    def button1_callback(self):
+    def button1_callback(self, channel):
         self.get_logger().info('Emergency Stop button pressed!')
         self.emergency_stop_pub.publish(Empty())
 
 
     # Outbound: move to next place
-    def button3_callback(self):
+    def button3_callback(self, channel):
         response = self.send_picking_request()
         location = response.location
         product = response.product
