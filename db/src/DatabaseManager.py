@@ -1,7 +1,7 @@
 import mysql.connector
 import os
 import configparser
-import pandas as pd
+from DatabaseUtils import DatabaseUtils
 
 class DatabaseManager:
     def __init__(self, host):
@@ -11,12 +11,13 @@ class DatabaseManager:
         self.cur = None
         self.conn = None
         self.password = self.get_password_from_config()
-
+        self.utils = None 
 
     def get_password_from_config(self):
         config = configparser.ConfigParser()
         config.read('db/config/config.ini')
         return config['database']['password']
+    
     
     def connect_database(self, db_name=None):
         if db_name is None:
@@ -41,7 +42,7 @@ class DatabaseManager:
             else:
                 raise
         self.cur = self.conn.cursor()
-    
+        self.utils = DatabaseUtils(self.conn) 
     
     def create_database(self, db_name):
         try:
@@ -55,7 +56,7 @@ class DatabaseManager:
     
     def create_table(self):
         self.execute_sql_file("db/query/create_table.sql")
-        self.initialize_inventory()
+        self.utils.initialize_inventory()
     
     
     def execute_sql_file(self, file_path):
@@ -82,45 +83,7 @@ class DatabaseManager:
         self.cur.fetchall()  # 이전 쿼리의 결과를 모두 읽음
         return last_id
 
-
-    def get_product_id(self, product_name):
-        query = "SELECT item_id FROM ProductInventory WHERE item_name = %s"
-        self.cur.execute(query, (product_name,))
-        result = self.cur.fetchone()
-        self.cur.fetchall()  # 이전 쿼리의 결과를 모두 읽음
-        print(f"get_product_id: product_name={product_name}, product_id={result[0] if result else None}")  # 디버깅 정보 출력
-        return result[0] if result else None
- 
- 
-    def get_stock(self, item_id):
-        query = "SELECT stock FROM ProductInventory WHERE item_id = %s"
-        self.cur.execute(query, (item_id,))
-        result = self.cur.fetchone()
-        self.cur.fetchall()  # 이전 쿼리의 결과를 모두 읽음
-        return result[0] if result else None
-
-
-    def update_stock(self, item_id, quantity):
-        query = "UPDATE ProductInventory SET stock = stock - %s WHERE item_id = %s"
-        self.cur.execute(query, (quantity, item_id))
-        self.conn.commit()
-
-
-    def initialize_inventory(self):
-        inventory_data = [
-            (1, "Coke", 10),
-            (2, "Sprite", 10),
-            (3, "Chapagetti", 10),
-            (4, "Buldak", 10),
-            (5, "Robot Vacuum", 10),
-            (6, "Coffee Pot", 10)
-        ]
-        for item_id, item_name, stock in inventory_data:
-            self.cur.execute("INSERT IGNORE INTO ProductInventory (item_id, item_name, stock) VALUES (%s, %s, %s)", (item_id, item_name, stock))
-            # print(f"Inserted {item_name} with item_id={item_id} and stock={stock}")  # 디버깅 정보 출력
-        self.conn.commit()
-
-
+    
     def close_connection(self):
         if self.cur:
             self.cur.close()
@@ -136,28 +99,6 @@ class DatabaseManager:
         self.close_connection()
         return result
 
-
-    def get_last_user_id(self, table_name):
-        query = f"SELECT MAX(user_id) FROM {table_name}"
-        self.cur.execute(query)
-        result = self.cur.fetchone()
-        self.cur.fetchall()  # 이전 쿼리의 결과를 모두 읽음
-        return result[0] if result[0] is not None else 0
-
-
-    def fetch_all_product(self, table_name):
-        query = f"SELECT * FROM {table_name}"
-        self.cur.execute(query)
-        result = self.cur.fetchall()
-        self.cur.fetchall()  # 이전 쿼리의 결과를 모두 읽음
-        # print("fetch_all_product_orders result:", result)  
-        return result
-    
-    
-    def fetch_product_orders_dataframe(self):
-        product_orders = self.fetch_all_product("ProductOrder")
-        df = pd.DataFrame(product_orders, columns=['OrderID', 'UserID', 'ItemID', 'ProductName', 'Quantity', 'OrderTime'])
-        return df
     
     
 if __name__ == '__main__':
