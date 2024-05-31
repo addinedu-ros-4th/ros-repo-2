@@ -43,13 +43,13 @@ class TaskAllocator(Node):
             if task.task_type == 'OB':
                 if task.bundle_id not in self.outbound_to_task_map:
                     self.outbound_to_task_map[task.bundle_id] = []
-                self.outbound_to_task_map[task.bundle_id].extend(TaskFactory.create_outbound_tasks(task))
+                self.outbound_to_task_map[task.bundle_id].append(task)
                 
             elif task.task_type == 'IB':
                 if task.bundle_id not in self.inbound_to_task_map:
                     self.inbound_to_task_map[task.bundle_id] = []
-                initial_location = self.get_final_location_from_db(task)
-                self.inbound_to_task_map[task.bundle_id].extend(TaskFactory.create_inbound_tasks(task, initial_location))
+                # initial_location = self.get_final_location_from_db(task)
+                self.inbound_to_task_map[task.bundle_id].append(task)
 
             else:
                 self.get_logger().info(f'Unknown Task {task.task_type}')
@@ -62,18 +62,22 @@ class TaskAllocator(Node):
     # Bundle outbound tasks by user ID and add to priority queue
     def bundle_tasks(self):
         for bundle_id, tasks in self.outbound_to_task_map.items():
-            priority = min(task.priority for task in tasks)
-            for task in tasks:
-                heapq.heappush(self.tasks, PriorityTask(priority, tasks))
+            transaction_tasks = TaskFactory.create_outbound_tasks(bundle_id, tasks)
+            if transaction_tasks:
+                unique_tasks = list({task.task_id: task for task in transaction_tasks}.values())
+                priority = min(task.priority for task in unique_tasks)
+                heapq.heappush(self.tasks, PriorityTask(priority, unique_tasks))
         self.outbound_to_task_map.clear()
 
-        # Bundle inbound tasks by bundle ID
-        for tasks in self.inbound_to_task_map.values():
-            priority = min(task.priority for task in tasks)
-            for task in tasks:
-                heapq.heappush(self.tasks, PriorityTask(task.priority, tasks))
+        for bundle_id, tasks in self.inbound_to_task_map.items():
+            transaction_tasks = TaskFactory.create_inbound_tasks(bundle_id, tasks, self.get_final_location_from_db(tasks[0]))
+            if transaction_tasks:
+                unique_tasks = list({task.task_id: task for task in transaction_tasks}.values())
+                priority = min(task.priority for task in unique_tasks)
+                heapq.heappush(self.tasks, PriorityTask(priority, unique_tasks))
         self.inbound_to_task_map.clear()
-    
+
+
     
     # Update Robot status
     def robot_status_callback(self, msg):
@@ -111,6 +115,9 @@ class TaskAllocator(Node):
         
         first_task = tasks[0]
         
+        self.get_logger().info(f'Assigned transaction {transaction_id} with {len(tasks)} tasks to robot {robot_id}')
+        self.get_logger().info(f'Transaction tasks: {[task.task_id for task in tasks]}')
+        
         self.assign_task_to_robot(first_task, robot_id, transaction_id)
         
     
@@ -138,7 +145,6 @@ class TaskAllocator(Node):
         future.add_done_callback(lambda future: self.task_allocation_response(future, task, robot_id, transaction_id))
 
         self.robot_controller.update_robot_status(robot_id, 'busy')
-       
     
     
     # Each task process
