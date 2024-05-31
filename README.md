@@ -7,7 +7,10 @@
     ```db/config/config.ini```
 ```
 [database] 
+host = localhost
+user = root
 password = your_password
+database = your_database
 ```
 
 2. ***Install Dependencies***
@@ -18,7 +21,8 @@ pip install PyQt5 websocket-client
 3. ***Execute***
 <br>
 3-1) ros2 and websocket <br>
-3-2) Main GUI
+3-2) Main GUI <br>
+
 ```
 source .install/setup.bash
 ros2 launch rosbridge_server rosbridge_websocket_launch.xml
