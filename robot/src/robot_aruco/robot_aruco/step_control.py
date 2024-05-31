@@ -64,31 +64,30 @@ class RobotStepControl(Node):
     def handle_forkarm(self, request, response):
         self.floor = request.floor 
         self.direction = request.direction 
-        
         if self.direction == 'up':
             self.rascontroller.step_control(f'{self.floor}lift')
-            response = True
-
+            response.success = True
+            
         elif self.direction == 'down':
             self.rascontroller.step_control(f'{self.floor}place')
-            response = True
-
+            response.success = True
+            
         else: 
-            response = False
-            return response
-
+            response.success = False
+        
         return response
     
 
 def main(args=None):
     rclpy.init(args=args)
     ic = RobotStepControl()
-    try:
-        rclpy.spin(ic)
-    except KeyboardInterrupt:
-        ic.get_logger().info('Shutting down')
+    
+    rclpy.spin(ic)
+    
+        # ic.get_logger().info('Shutting down')
     ic.destroy_node()
     rclpy.shutdown()
+    
 
 if __name__ == '__main__':
     main()

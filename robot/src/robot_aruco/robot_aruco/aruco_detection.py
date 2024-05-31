@@ -11,34 +11,6 @@ import time
 from task_msgs.srv import ArucoCommand
 from geometry_msgs.msg import Twist
 
-
-class ArduinoController:
-    def __init__(self, port="/dev/ttyArduino", baudrate=1000000):
-        self.ser = serial.Serial(port, baudrate)
-        self.command = [0xfa, 0xfe, 2, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0xfa, 0xfd]
-        self.update_command(detected=0)
-
-    def send_initial_commands(self):
-        command = b"\xfa\xfe\x01\x01\x01\x03\x06\xfa\xfd"
-        self.ser.write(command)
-        print(self.read(size=20, timeout=1))
-
-    def read(self, size=1, timeout=None):
-        self.ser.timeout = timeout
-        return self.ser.read(size)
-
-    def update_command(self, detected, left_wheel_speed=0, right_wheel_speed=0):
-        self.command[3] = 1 if detected else 0
-        self.command[4] = int(left_wheel_speed)  # Cast to int
-        self.command[6] = int(right_wheel_speed)  # Cast to int
-        self.command[12] = np.uint8(sum(self.command[2:12]))
-        self.ser.write(bytes(self.command))
-
-    def __del__(self):
-        if self.ser.is_open:
-            self.ser.close()
-
-
 class RobotAruco(Node):
     def __init__(self):
         super().__init__('image_converter')
@@ -83,7 +55,6 @@ class RobotAruco(Node):
         # Initialize aruco_dict
         self.aruco_dict = aruco.getPredefinedDictionary(aruco.__getattribute__(self.marker_shape))
 
-
     def handle_aruco_control(self, request, response):
         self.location = request.location
         self.direction = request.direction
@@ -93,7 +64,6 @@ class RobotAruco(Node):
         response.success = True
         return response
     
-
     def motor_control(self):
         self.distance = self.tvec[0][0][2]
         self.x_offset = self.tvec[0][0][0]   
@@ -135,7 +105,6 @@ class RobotAruco(Node):
             
                 self.cmd_pub.publish(self.twist)
 
-
         elif self.direction == 'backward':
             if self.distance >= 0.16:
                 self.twist.linear.x = 0.0
@@ -149,7 +118,6 @@ class RobotAruco(Node):
                 self.twist.angular.z = 0.0
                 self.cmd_pub.publish(self.twist)
             
-
     def aruco_callback(self, data):
         cv_image = self.bridge.imgmsg_to_cv2(data, desired_encoding='bgr8')
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
@@ -166,15 +134,10 @@ class RobotAruco(Node):
                 cv2.drawFrameAxes(cv_image, self.matrix_coefficients, self.distortion_coefficients, self.rvec, self.tvec, 0.1)
 
                 if self.aruco_toggle and (self.location == marker_name):
-                    self.motor_control()
-                
+                    self.motor_control()      
         else:
-            self.twist.linear.x = 0.0
-            self.twist.angular.z = 0.0
-            self.cmd_pub.publish(self.twist)
+            pass
                 
-
-
 def main(args=None):
     rclpy.init(args=args)
     ic = RobotAruco()

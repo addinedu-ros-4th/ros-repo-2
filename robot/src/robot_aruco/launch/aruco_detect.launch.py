@@ -14,24 +14,31 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        # Node(
+        #     package='robot_aruco',
+        #     executable='robot_cam',
+        #     name='robot_cam',
+        #     parameters=[param_dir],
+        #     output='screen'
+        # ),
+        # Node(
+        #     package='robot_aruco',
+        #     executable='aruco_detection',
+        #     name='aruco_detection',
+        #     parameters=[param_dir],
+        #     output='screen'
+        # ),
+        # Node(
+        #     package='robot_aruco',
+        #     executable='step_control',
+        #     name='step_control',
+        #     parameters=[param_dir],
+        #     output='screen'
+        # ),
         Node(
             package='robot_aruco',
-            executable='robot_cam',
-            name='robot_cam',
-            parameters=[param_dir],
-            output='screen'
-        ),
-        Node(
-            package='robot_aruco',
-            executable='aruco_detection',
-            name='aruco_detection',
-            parameters=[param_dir],
-            output='screen'
-        ),
-        Node(
-            package='robot_aruco',
-            executable='step_control',
-            name='step_control',
+            executable='button_lcd_control',
+            name='button_lcd_control',
             parameters=[param_dir],
             output='screen'
         ),
