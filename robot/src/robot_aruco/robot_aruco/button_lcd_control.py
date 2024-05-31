@@ -4,7 +4,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Empty
 from task_msgs.srv import CompletePicking
-from lcd_display import LCDDisplay
+from robot_aruco.lcd_display import LCDDisplay
 
 
 class ButtonLCDControl(Node):
