@@ -3,12 +3,20 @@ import os
 import time
 import math
 from rclpy.node import Node
+
 from task_msgs.srv import AllocateTask
+
+from task_msgs.srv import ArucoCommandResponse
+from task_msgs.srv import StepControlResponse
+from task_msgs.srv import CompletePickingResponse
+
 from task_msgs.srv import ArucoCommand
 from task_msgs.srv import StepControl
 from task_msgs.srv import CompletePicking
+
 from task_msgs.msg import TaskCompletion
 from task_msgs.msg import RobotStatus
+from task_msgs.msg import OutTask
 from std_msgs.msg import Empty
 from std_msgs.msg import Float32
 from rclpy.executors import MultiThreadedExecutor
@@ -25,6 +33,13 @@ class My_Location(Node) :
         super().__init__("robot_sub_controller")
         self.controller = controller
         
+        self.publisher_out_task = self.create_publisher(
+            OutTask,
+            "/out_task",
+            10
+        )
+
+        # subscriber
         self.subcription_amclpose = self.create_subscription(
             PoseWithCovarianceStamped,
             "/amcl_pose",
@@ -39,13 +54,33 @@ class My_Location(Node) :
             10
         )
 
+        # server
         self.server = self.create_service(
             CompletePicking, 
             "/complete_picking", 
             self.next_out_is_clicked
         )
+
+        self.arucomarker_server = self.create_service(
+            ArucoCommandResponse, 
+            "/aruco_command_response", 
+            self.aruco_is_done
+        )
+
+        self.lift_server = self.create_service(
+            StepControlResponse, 
+            "/step_control_response", 
+            self.lift_is_done
+        )
         
         
+        
+    def renew_out_task_data(self):
+        msg = OutTask()
+        msg.location = self.controller.current_out_task
+        msg.product = ""
+        msg.count = 0
+        self.publisher_out_task.publish()
 
     def current_pose(self, data):
         self.controller.my_pose[0] = data.pose.pose.position.x
@@ -53,14 +88,20 @@ class My_Location(Node) :
 
     def next_out_is_clicked(self, req, res):
         self.controller.next_out = True
-        res.location = "test"
-        res.product = "test"
-        res.count = 0
         return res
 
     def emergency_button_is_clicked(self, data):
         self.controller.task_status = "emergency"
 
+    def aruco_is_done(self, req, res):
+        self.controller.marker_service_done = True
+        self.get_logger().info("marker end")
+        return res
+
+    def lift_is_done(self, req, res):
+        self.controller.lift_service_done = True
+        self.get_logger().info("lift end")
+        return res
 
 
 ID = os.getenv('ROS_DOMAIN_ID', 'Not set')
@@ -70,8 +111,12 @@ class RobotController(Node) :
         self.get_logger().info("start robot_controller")
         self.nav = BasicNavigator()
         
+        self.current_out_task = ""
         self.tasking = False
         self.next_out = False
+        self.lift_service_done = False
+        self.marker_service_done = False
+        
         self.task_status = ""
         self.task_id = ""
         self.my_pose = [0.0, 0.0, 0.0]
@@ -80,6 +125,8 @@ class RobotController(Node) :
             f"/task_{ID}", 
             self.task_callback
         )
+
+
         
         self.task_completion_publisher = self.create_publisher(
             TaskCompletion,
@@ -110,6 +157,10 @@ class RobotController(Node) :
 
         self.arucomarker_client = self.create_client(
             ArucoCommand, "/aruco_control"
+        )
+
+        self.complete_picking_client = self.create_client(
+            CompletePickingResponse, "/complete_picking_response"
         )
 
         # pose x, y, z
@@ -236,23 +287,24 @@ class RobotController(Node) :
             self.get_logger().info(f"goto{pose_name}")
             self.move_pose(target_pose, target_yaw)
 
-            if pose_name == pose_list[0] : # lift up first place (첫 장소 리프트 업)
+            if pose_name == pose_list[0] and self.task_status != "OUT" : # lift up first place (첫 장소 리프트 업)
                 self.get_logger().info("lift up")
-                self.service_call_lift(pose_name, "down")
-                self.service_call_marker(pose_name, "forward")
                 self.service_call_lift(pose_name, "up")
+                self.service_call_marker(pose_name, "forward")
+                self.service_call_lift(pose_name, "down")
                 self.service_call_marker(pose_name, "backward")
 
             elif pose_name == pose_list[-1] : # lift down last place(마지막 장소 리프트 다운)
                 self.get_logger().info("lift down")
-                self.service_call_lift(pose_name, "up")
-                self.service_call_marker(pose_name, "forward")
                 self.service_call_lift(pose_name, "down")
+                self.service_call_marker(pose_name, "forward")
+                self.service_call_lift(pose_name, "up")
                 self.service_call_marker(pose_name, "backward")
 
             else : # 나머지 장소
+                self.current_out_task = pose_name
                 self.checking_task_is_out() # 현재 테스크 상태가 OUT이면 대기상태 진입
-                pass
+                
 
         self.get_logger().info("move end")
 
@@ -265,6 +317,8 @@ class RobotController(Node) :
                 time.sleep(1)
                 self.get_logger().info("wait for button ...")
             self.next_out = False
+            req = CompletePickingResponse.Request()
+            self.complete_picking_client.call_async(req)
 
     def planning_stopover(self, target):
         x_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_X_LIST, self.my_pose[0])
@@ -346,12 +400,20 @@ class RobotController(Node) :
         req = StepControl.Request()
         req.floor = floor
         req.direction = direction
-        self.lift_client.call(req)
+        self.get_logger().info("before call ")
+        self.get_logger().info(f"req.floor : {req.floor}")
+        self.get_logger().info(f"req.direction : {req.direction}")
+        res = self.lift_client.call_async(req)
+        self.wait_lift_res()
+        
         # res = self.lift_client.call_async(req)
         # rp.spin_until_future_complete(self, res, timeout_sec=5.0)
         
-        
-
+    def wait_lift_res(self):
+        while not self.lift_service_done:
+            time.sleep(1)
+            # self.get_logger().info("wait lift response")
+        self.lift_service_done = False
 
     def service_call_marker(self, location=None ,direction=None):
         if "_" in location:
@@ -361,9 +423,15 @@ class RobotController(Node) :
         req.location = location
         req.direction = direction
 
-        res = self.arucomarker_client.call_async(req) 
-        rp.spin_until_future_complete(self, res, timeout_sec=10.0)
+        res = self.arucomarker_client.call_async(req)
+        self.wait_marker_res()
+        
 
+    def wait_marker_res(self):
+        while not self.marker_service_done:
+            time.sleep(1)
+            # self.get_logger().info("wait marker response")
+        self.marker_service_done = False
 
     def move_pose(self, target_pose, yaw) :
         q = self.euler_to_quaternion(yaw=yaw)

@@ -1,6 +1,2 @@
 bool task_done
-# True, False
 ---
-string location
-string product
-int32 count

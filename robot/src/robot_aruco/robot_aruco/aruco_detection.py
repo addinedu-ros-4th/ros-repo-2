@@ -9,6 +9,7 @@ import serial
 import RPi.GPIO as GPIO
 import time
 from task_msgs.srv import ArucoCommand
+from task_msgs.srv import ArucoCommandResponse
 from geometry_msgs.msg import Twist
 
 class RobotAruco(Node):
@@ -19,7 +20,9 @@ class RobotAruco(Node):
         self.image_sub = self.create_subscription(Image, '/camera', self.aruco_callback, 10)
         self.server = self.create_service(ArucoCommand, '/aruco_control', self.handle_aruco_control)
         self.cmd_pub = self.create_publisher(Twist, '/base_controller/cmd_vel_unstamped', 10)
-
+        self.marker_done_client = self.create_client(
+            ArucoCommandResponse, "/aruco_command_response"
+        )
         self.twist = Twist()
 
         self.marker_name = None
@@ -61,9 +64,14 @@ class RobotAruco(Node):
         self.aruco_toggle = True 
         self.get_logger().info(f"start picking place & floor {request.location}, {request.direction}")
 
-        response.success = True
+        
         return response
     
+    def send_response(self):
+        res = ArucoCommandResponse.Request()
+        res.success = True
+        self.marker_done_client.call_async(res)
+
     def motor_control(self):
         self.distance = self.tvec[0][0][2]
         self.x_offset = self.tvec[0][0][0]   
@@ -76,7 +84,7 @@ class RobotAruco(Node):
                 self.twist.linear.x = 0.0
                 self.twist.angular.z = 0.0
                 self.cmd_pub.publish(self.twist)
-                
+                self.send_response()
                 self.aruco_toggle = False
                 
             else:
@@ -110,6 +118,7 @@ class RobotAruco(Node):
                 self.twist.linear.x = 0.0
                 self.twist.angular.z = 0.0
                 self.cmd_pub.publish(self.twist)
+                self.send_response()
                 self.aruco_toggle = False
                 
             else:
