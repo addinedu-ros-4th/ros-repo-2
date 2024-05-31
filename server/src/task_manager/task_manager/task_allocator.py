@@ -4,6 +4,7 @@ from std_msgs.msg import String
 from task_msgs.msg import TaskList, RobotStatus, TaskCompletion
 from task_msgs.srv import AllocateTask
 from task_manager.task_factory import TaskFactory
+from data_manager.robot_controller import RobotController
 import heapq
 
 
@@ -17,12 +18,14 @@ class PriorityTask:
     
     
 class TaskAllocator(Node):
-    def __init__(self):
+    def __init__(self, robot_controller):
         super().__init__('task_allocator')
         self.task_list_sub = self.create_subscription(TaskList, '/task_list', self.task_list_callback, 10)
         self.robot_status_sub = self.create_subscription(RobotStatus, '/robot_status', self.robot_status_callback, 10)
         self.completion_sub = self.create_subscription(TaskCompletion, '/task_completion', self.transaction_completion_callback, 10)
-
+        
+        self.robot_controller = robot_controller
+        
         self.tasks = []               # Priority queue for tasks
         self.tasks_in_progress = {}   # Dictionary to keep track of tasks in progress
         self.robot_status = {}        # Dictionary to keep track of robot statuses
@@ -40,13 +43,13 @@ class TaskAllocator(Node):
             if task.task_type == 'OB':
                 if task.bundle_id not in self.outbound_to_task_map:
                     self.outbound_to_task_map[task.bundle_id] = []
-                self.outbound_to_task_map[task.bundle_id].extend(TaskFactory.create_outbound_tasks(task))
+                self.outbound_to_task_map[task.bundle_id].append(task)
                 
             elif task.task_type == 'IB':
                 if task.bundle_id not in self.inbound_to_task_map:
                     self.inbound_to_task_map[task.bundle_id] = []
-                initial_location = self.get_final_location_from_db(task)
-                self.inbound_to_task_map[task.bundle_id].extend(TaskFactory.create_inbound_tasks(task, initial_location))
+                # initial_location = self.get_final_location_from_db(task)
+                self.inbound_to_task_map[task.bundle_id].append(task)
 
             else:
                 self.get_logger().info(f'Unknown Task {task.task_type}')
@@ -59,22 +62,27 @@ class TaskAllocator(Node):
     # Bundle outbound tasks by user ID and add to priority queue
     def bundle_tasks(self):
         for bundle_id, tasks in self.outbound_to_task_map.items():
-            priority = min(task.priority for task in tasks)
-            for task in tasks:
-                heapq.heappush(self.tasks, PriorityTask(priority, tasks))
+            transaction_tasks = TaskFactory.create_outbound_tasks(bundle_id, tasks)
+            if transaction_tasks:
+                unique_tasks = list({task.task_id: task for task in transaction_tasks}.values())
+                priority = min(task.priority for task in unique_tasks)
+                heapq.heappush(self.tasks, PriorityTask(priority, unique_tasks))
         self.outbound_to_task_map.clear()
 
-        # Bundle inbound tasks by bundle ID
-        for tasks in self.inbound_to_task_map.values():
-            priority = min(task.priority for task in tasks)
-            for task in tasks:
-                heapq.heappush(self.tasks, PriorityTask(task.priority, tasks))
+        for bundle_id, tasks in self.inbound_to_task_map.items():
+            transaction_tasks = TaskFactory.create_inbound_tasks(bundle_id, tasks, self.get_final_location_from_db(tasks[0]))
+            if transaction_tasks:
+                unique_tasks = list({task.task_id: task for task in transaction_tasks}.values())
+                priority = min(task.priority for task in unique_tasks)
+                heapq.heappush(self.tasks, PriorityTask(priority, unique_tasks))
         self.inbound_to_task_map.clear()
-    
+
+
     
     # Update Robot status
     def robot_status_callback(self, msg):
         self.robot_status[msg.robot_id] = msg.robot_status
+        self.robot_controller.update_robot_status(msg.robot_id, msg.robot_status)
         self.get_logger().info(f'Received status from {msg.robot_id}: {msg.robot_status}')
         self.allocate_tasks()
             
@@ -88,10 +96,6 @@ class TaskAllocator(Node):
             tasks = priority_task.task                       # Access the list of tasks 
             task_type = tasks[0].task_type
             robot_id = available_robots.pop(0)               # Get the first available robot
-            
-            if task_type == "OB" and self.robot_status[robot_id] == "HOB":
-                available_robots.insert(0, robot_id)
-                continue
             
             if self.robot_status[robot_id] == "busy":
                 available_robots.insert(0, robot_id)
@@ -111,18 +115,20 @@ class TaskAllocator(Node):
         
         first_task = tasks[0]
         
+        self.get_logger().info(f'Assigned transaction {transaction_id} with {len(tasks)} tasks to robot {robot_id}')
+        self.get_logger().info(f'Transaction tasks: {[task.task_id for task in tasks]}')
+        
         self.assign_task_to_robot(first_task, robot_id, transaction_id)
-            
+        
     
     def assign_task_to_robot(self, task, robot_id, transaction_id=None):
-        # Send task allocation request to the robot
         if transaction_id is None:
             transaction_id = f'{task.task_id.split("_")[0]}_{robot_id}'
         if transaction_id not in self.tasks_in_progress:
             self.tasks_in_progress[transaction_id] = ([task], robot_id)
         else:
             self.tasks_in_progress[transaction_id][0].append(task)
-        
+
         request = AllocateTask.Request()
         request.task_id = task.task_id
         request.task_type = task.task_type
@@ -130,13 +136,15 @@ class TaskAllocator(Node):
         request.item = task.item
         request.quantity = task.quantity
         request.location = task.location
-        
+
         self.get_logger().info(f'Assigning task {task.task_id} to robot {robot_id}')
         service_name = f'/allocate_task_{robot_id}'
         allocate_task_client = self.create_client(AllocateTask, service_name)
-        
+
         future = allocate_task_client.call_async(request)
-        future.add_done_callback(lambda future, t=task: self.task_allocation_response(future, t, robot_id, transaction_id))
+        future.add_done_callback(lambda future: self.task_allocation_response(future, task, robot_id, transaction_id))
+
+        self.robot_controller.update_robot_status(robot_id, 'busy')
     
     
     # Each task process
@@ -147,9 +155,17 @@ class TaskAllocator(Node):
             if response.success:
                 self.get_logger().info(f'Task allocation successful for task {task.task_id}')
                 self.tasks_assigned[task.task_id] = True    # Each task's success status update
+
+                next_task_index = next((i for i, t in enumerate(self.tasks_in_progress[transaction_id][0]) if not self.tasks_assigned[t.task_id]), None)
+                if next_task_index is not None:
+                    next_task = self.tasks_in_progress[transaction_id][0][next_task_index]
+                    self.assign_task_to_robot(next_task, robot_id, transaction_id)
+                else:
+                    del self.tasks_in_progress[transaction_id]
+                    self.robot_status[robot_id] = "available"
+                    self.get_logger().info(f'Transaction {transaction_id} completed successfully')
+                    self.allocate_tasks()
             
-                if all(self.tasks_assigned.values()):
-                    self.get_logger().info(f'All tasks in transaction {transaction_id} assigned successfully')
             else:
                 self.get_logger().warn(f'Task allocation failed for task {task.task_id}: {response.message}')
                 self.requeue_task(task)
@@ -164,27 +180,31 @@ class TaskAllocator(Node):
 
     # Determine success or failure transaction
     def transaction_completion_callback(self, msg):
-        transaction_id = f'{msg.task_id}_{msg.robot_id}'
+        transaction_id = f'{msg.task_id.split("_")[0]}_{msg.robot_id}'
         
         if transaction_id in self.tasks_in_progress:
             tasks, robot_id = self.tasks_in_progress[transaction_id]
             
             if not msg.success:
+                self.get_logger().warn(f'Task {msg.task_id} failed, reassigning transaction {transaction_id}')
                 self.reassign_task(transaction_id)
             else:
-                self.tasks_assigned[msg.task_id] = False
+                self.tasks_assigned[msg.task_id] = True
+                self.get_logger().info(f'Task {msg.task_id} completed by robot {msg.robot_id}')
                 
-            # Next task start
-            next_task_index = next((i for i, t in enumerate(tasks) if not self.tasks_assigned[t.task_id]), None)
-            if next_task_index is not None:
-                next_task = tasks[next_task_index]
-                self.assign_task_to_robot(next_task, robot_id, transaction_id)
-            # Confirm transaction's all task success
-            if all(not v for v in self.tasks_assigned.values()):
-                del self.tasks_in_progress[transaction_id]              # Delete in progress list
-                self.robot_status[robot_id] = "available"               # Robot status update
-                self.get_logger().info(f'Transaction {transaction_id} completed successfully')
-                self.allocate_tasks()                                   # Allocate start
+                # 다음 작업 할당
+                next_task_index = next((i for i, t in enumerate(tasks) if not self.tasks_assigned[t.task_id]), None)
+                
+                if next_task_index is not None:
+                    next_task = tasks[next_task_index]
+                    self.get_logger().info(f'Assigning next task {next_task.task_id} to robot {robot_id} for transaction {transaction_id}')
+                    self.assign_task_to_robot(next_task, robot_id, transaction_id)
+                else:
+                    del self.tasks_in_progress[transaction_id]
+                    self.robot_status[robot_id] = "available"
+                    self.get_logger().info(f'Transaction {transaction_id} completed successfully')
+                    self.allocate_tasks()
+
     
     
     # Requeue a task that failed to be allocated     
@@ -208,7 +228,8 @@ class TaskAllocator(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    task_allocator = TaskAllocator()
+    robot_controller = RobotController(host='localhost')
+    task_allocator = TaskAllocator(robot_controller)
     rclpy.spin(task_allocator)
     task_allocator.destroy_node()
     rclpy.shutdown()

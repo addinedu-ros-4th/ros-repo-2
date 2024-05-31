@@ -129,6 +129,7 @@ class Ui_OrderWindow(QMainWindow, from_orderpage_class):
         try:
             ws = create_connection("ws://192.168.0.85:9090")
             # ws = create_connection("ws://172.20.10.3:9090")
+            # ws = create_connection("ws://192.168.219.107:9090")
             
             # JSON 메시지 생성
             order_message = json.dumps({

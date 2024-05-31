@@ -1,6 +1,6 @@
 import mysql.connector
-import os
 import configparser
+import os
 
 class DatabaseManager:
     def __init__(self, host):
@@ -9,13 +9,14 @@ class DatabaseManager:
         self.db_name = "amr"
         self.cur = None
         self.conn = None
-        self.password = self.get_password_from_config()
+        self.password = "1234"
 
 
-    def get_password_from_config(self):
-        config = configparser.ConfigParser()
-        config.read('db/config/config.ini')
-        return config['database']['password']
+    # def get_password_from_config(self):
+    #     config = configparser.ConfigParser()
+    #     config_file = os.path.join(os.path.dirname(__file__), '../config.ini')
+    #     config.read(config_file)
+    #     return config['database']['password']
     
     def connect_database(self, db_name=None):
         if db_name is None:
