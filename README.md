@@ -7,7 +7,10 @@
     ```db/config/config.ini```
 ```
 [database] 
+host = localhost
+user = root
 password = your_password
+database = your_database
 ```
 
 2. ***Install Dependencies***

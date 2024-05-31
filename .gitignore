@@ -7,3 +7,6 @@
 /.vscode/
 /db/config/config.ini
 /gui/consumer/src/__pycache__/
+/log
+/build
+/install

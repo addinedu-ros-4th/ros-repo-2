@@ -184,7 +184,7 @@ class Ui_MainWindow(QMainWindow, Ui_Setup):
         self.stackedWidget.setCurrentIndex(3)
         self.ordercheckPage()
 
-    # 통계 페이지
+
     def chartPage(self):
         df = self.db_manager.fetch_product_orders_dataframe()
         self.plot_pie_chart(df)
@@ -238,12 +238,12 @@ class Ui_MainWindow(QMainWindow, Ui_Setup):
         self.clock.setText(f"주문 많이 한 시간: {most_ordered_hour}:00")
         self.clock.setAlignment(Qt.AlignCenter)
 
-    # 주문조회 페이지 
+    # 주문조회 페이지
     def ordercheckPage(self):
         previous_user_id = self.user_id - 1
         self.userinfo.setText(f"user id : {previous_user_id}")
 
-        product_orders = self.db_manager.fetch_all_product_orders("ProductOrder")
+        product_orders = self.db_manager.fetch_all_product("ProductOrder")
 
         df = pd.DataFrame(product_orders, columns=['주문번호', '사용자', '상품번호', '상품명', '갯수', '주문시각'])
         df = df[df['사용자'] == previous_user_id]
