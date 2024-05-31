@@ -27,11 +27,11 @@ class ButtonLCDControl(Node):
         GPIO.setup(self.button3_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
         # Service Client
-        self.picking_cli = self.create_client(CompletePicking, 'complete_picking')
+        self.picking_cli = self.create_client(CompletePicking, '/complete_picking')
         self.req = CompletePicking.Request()
         
         # Publisher for emergency stop
-        self.emergency_stop_pub = self.create_publisher(Empty, 'emergency_stop', 10)
+        self.emergency_stop_pub = self.create_publisher(Empty, '/emergency_stop', 10)
         
         # Button event
         GPIO.add_event_detect(self.button1_pin, GPIO.RISING, callback=self.button1_callback, bouncetime=300)
@@ -42,7 +42,8 @@ class ButtonLCDControl(Node):
     def send_picking_request(self):
         self.req.task_done = True
         self.future = self.picking_cli.call_async(self.req)
-        rclpy.spin_until_future_complete(self, self.future)
+        rclpy.spin_until_future_complete(self, self.future, timeout_sec=5.0)
+
         return self.future.result()
 
 

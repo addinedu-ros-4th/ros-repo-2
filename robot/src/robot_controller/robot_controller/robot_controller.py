@@ -6,9 +6,10 @@ from rclpy.node import Node
 from task_msgs.srv import AllocateTask
 from task_msgs.srv import ArucoCommand
 from task_msgs.srv import StepControl
+from task_msgs.srv import CompletePicking
 from task_msgs.msg import TaskCompletion
 from task_msgs.msg import RobotStatus
-from std_msgs.msg import Bool
+from std_msgs.msg import Empty
 from std_msgs.msg import Float32
 from rclpy.executors import MultiThreadedExecutor
 
@@ -21,7 +22,7 @@ from geometry_msgs.msg import PoseWithCovarianceStamped
 
 class My_Location(Node) : 
     def __init__(self, controller):
-        super().__init__("robot_subscriber")
+        super().__init__("robot_sub_controller")
         self.controller = controller
         
         self.subcription_amclpose = self.create_subscription(
@@ -30,12 +31,35 @@ class My_Location(Node) :
             self.current_pose,
             10
         )
+
+        self.subscription_emergency_stop = self.create_subscription(
+            Empty,
+            "/emergency_stop",
+            self.emergency_button_is_clicked,
+            10
+        )
+
+        self.server = self.create_service(
+            CompletePicking, 
+            "/complete_picking", 
+            self.next_out_is_clicked
+        )
         
         
 
     def current_pose(self, data):
         self.controller.my_pose[0] = data.pose.pose.position.x
         self.controller.my_pose[1] = data.pose.pose.position.y
+
+    def next_out_is_clicked(self, req, res):
+        self.controller.next_out = True
+
+        return res
+
+    def emergency_button_is_clicked(self, data):
+        self.controller.task_status = "emergency"
+
+
 
 ID = os.getenv('ROS_DOMAIN_ID', 'Not set')
 class RobotController(Node) : 
@@ -45,10 +69,10 @@ class RobotController(Node) :
         self.nav = BasicNavigator()
         
         self.tasking = False
+        self.next_out = False
         self.task_status = ""
         self.task_id = ""
         self.my_pose = [0.0, 0.0, 0.0]
-
         self.server = self.create_service(
             AllocateTask, 
             f"/task_{ID}", 
@@ -127,9 +151,17 @@ class RobotController(Node) :
 
         self.get_logger().info("controller is ready")
 
+
+
     def check_emergency_status(self):
         if self.task_status == "emergency":
-            pass
+            try:
+                self.nav.cancelTask()
+            except:
+                pass
+            while 1:
+                self.get_logger().info("emergency!!!!!!!!!!")
+
 
 
     def send_robot_status_topics(self):
@@ -141,6 +173,7 @@ class RobotController(Node) :
 
         for i in range(5):
             self.robot_status_publisher.publish(msg)
+
 
     def task_callback(self, req, res) :
         self.get_logger().info("task_list:" + req.location)
@@ -214,13 +247,22 @@ class RobotController(Node) :
                 self.service_call_marker(pose_name, "forward")
                 self.service_call_lift(pose_name, "down")
                 self.service_call_marker(pose_name, "backward")
-            
 
-        self.tasking = False
+            else : # 나머지 장소
+                self.checking_task_is_out() # 현재 테스크 상태가 OUT이면 대기상태 진입
+                pass
+
         self.get_logger().info("move end")
 
         return True
-            
+    
+
+    def checking_task_is_out(self):
+        if self.task_status == "OUT":
+            while not self.next_out:
+                time.sleep(1)
+                self.get_logger().info("wait for button ...")
+            self.next_out = False
 
     def planning_stopover(self, target):
         x_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_X_LIST, self.my_pose[0])
@@ -356,17 +398,18 @@ class RobotController(Node) :
         i = 0
         send_data = Float32()
         while not self.nav.isTaskComplete():
+            self.check_emergency_status()
             i = i + 1
             feedback = self.nav.getFeedback()
 
             if feedback and i % 5 == 0 :
                 self.get_logger().info("distance remaining: " + "{:.2f}".format(feedback.distance_remaining) + " meters.")
                 send_data.data = feedback.distance_remaining
-                self.feedback_publisher.publish(send_data)
-
-                if (feedback.distance_remaining <= 0.35 and feedback.distance_remaining != 0.0) or Duration.from_msg(feedback.navigation_time) > Duration(seconds=40.0) :
-                    self.nav.cancelTask()
+                # self.feedback_publisher.publish(send_data)
+                # 추후 distance_remaining 0.10으로 변경할 것
+                if (feedback.distance_remaining <= 3.50 and feedback.distance_remaining != 0.0) or Duration.from_msg(feedback.navigation_time) > Duration(seconds=40.0) :
                     time.sleep(2) # 목표지점 인접시 2초후 다음목적지
+                    self.nav.cancelTask()
                     self.get_logger().info("cancel nav Task")
 
                     return

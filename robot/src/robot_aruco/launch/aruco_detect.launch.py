@@ -35,4 +35,11 @@ def generate_launch_description():
             parameters=[param_dir],
             output='screen'
         ),
+        Node(
+            package='robot_aruco',
+            executable='button_lcd_control',
+            name='button_lcd_control',
+            parameters=[param_dir],
+            output='screen'
+        ),
     ])
