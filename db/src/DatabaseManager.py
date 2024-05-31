@@ -132,16 +132,13 @@ class DatabaseManager:
         return rows
 
     def get_product_id(self, product_name):
-        product_ids = {"cola": 1, "water": 2, "ramen": 3}
-        return product_ids.get(product_name.lower(), None)
-    
-    def get_product_info(self, barcode_id):
-        query = "SELECT item_id, item_name FROM ProductInfo WHERE item_tag = %s"
-        self.cur.execute(query, (barcode_id,))
+        query = "SELECT item_id FROM ProductInventory WHERE item_name = %s"
+        self.cur.execute(query, (product_name,))
         result = self.cur.fetchone()
-        self.cur.fetchall() 
-        return result
-
+        self.cur.fetchall()  # 이전 쿼리의 결과를 모두 읽음
+        print(f"get_product_id: product_name={product_name}, product_id={result[0] if result else None}")  # 디버깅 정보 출력
+        return result[0] if result else None
+ 
     def get_stock(self, item_id):
         query = "SELECT stock FROM ProductInventory WHERE item_id = %s"
         self.cur.execute(query, (item_id,))
@@ -171,12 +168,14 @@ class DatabaseManager:
         ]
         for item_id, item_name, stock in inventory_data:
             self.cur.execute("INSERT IGNORE INTO ProductInventory (item_id, item_name, stock) VALUES (%s, %s, %s)", (item_id, item_name, stock))
+            # print(f"Inserted {item_name} with item_id={item_id} and stock={stock}")  # 디버깅 정보 출력
         self.conn.commit()
     # 이것도 마찬가지
     def clear_inventory(self):
         query = "DELETE FROM ProductInventory"
         self.cur.execute(query)
         self.conn.commit()
+
 
     def close_connection(self):
         if self.cur:
@@ -191,6 +190,7 @@ class DatabaseManager:
         self.close_connection()
         return result
 
+
     def get_last_user_id(self):
         query = "SELECT MAX(user_id) FROM ProductOrder"
         self.cur.execute(query)
@@ -200,6 +200,14 @@ class DatabaseManager:
 
     
 
+    # Update table info
+    def fetch_all_product(self, table_name):
+        query = f"SELECT * FROM {table_name}"
+        self.cur.execute(query)
+        result = self.cur.fetchall()
+        self.cur.fetchall() 
+        return result
+    
 if __name__ == '__main__':
     db_manager = DatabaseManager(host='localhost')
     

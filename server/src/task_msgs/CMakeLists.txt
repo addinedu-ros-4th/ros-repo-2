@@ -22,6 +22,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RobotStatus.msg"
   "srv/AllocateTask.srv"
   "msg/TaskCompletion.msg"
+  "srv/ArucoCommand.srv"
+  "srv/StepControl.srv"
+  "srv/CompletePicking.srv"
 )
 
 

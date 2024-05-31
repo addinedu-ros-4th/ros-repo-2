@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:macro name="insert_ros2_control" params="prefix is_sim:=^|false robot_port_name robot_baudrate">
+        <ros2_control name="${prefix}minibot_system" type="system">
+            <xacro:if value="$(arg is_sim)">
+                <hardware>
+                    <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+                </hardware>
+            </xacro:if>
+            <xacro:unless value="$(arg is_sim)">
+                <hardware>
+                    <plugin>minibot_hardware/MinibotSystemHardware</plugin>
+                    <param name="port_name">$(arg robot_port_name)</param>
+                    <param name="baudrate">$(arg robot_baudrate)</param>
+                </hardware>
+            </xacro:unless>
+
+            <joint name="${prefix}l_wheel_joint">
+                <command_interface name="velocity">
+                    <param name="min">-1.0</param>
+                    <param name="max">1.0</param>
+                </command_interface>
+
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+            </joint>
+
+            <joint name="${prefix}r_wheel_joint">
+                <command_interface name="velocity">
+                    <param name="min">-1.0</param>
+                    <param name="max">1.0</param>
+                </command_interface>
+
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+            </joint>
+
+            <gpio name="gpio">
+                <command_interface name="set_enable_motor"/>
+                <state_interface name="motor_enabled"/>
+
+                <command_interface name="set_l_lamp_command"/>
+                <command_interface name="set_r_lamp_command"/>
+                <state_interface name="l_lamp_state"/>
+                <state_interface name="r_lamp_state"/>
+                <state_interface name="range_sensor_state"/>
+            </gpio>
+        </ros2_control>
+    </xacro:macro>
+</robot>

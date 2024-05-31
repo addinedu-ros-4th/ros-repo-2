@@ -1,5 +1,12 @@
-/install/
-/log/
-/build/
+/server/install/
+/server/log/
+/server/build/
+/robot/install/
+/robot/log/
+/robot/build/
 /.vscode/
 /db/config/config.ini
+/gui/consumer/src/__pycache__/
+/log
+/build
+/install

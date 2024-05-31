@@ -1,0 +1,16 @@
+digraph G {
+"base_link" -> "l_wheel"[label=" Broadcaster: default_authority\nAverage rate: 12.727\nBuffer length: 4.4\nMost recent transform: 1716883066.280891\nOldest transform: 1716883061.880914\n"];
+"base_footprint" -> "base_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"base_link" -> "r_wheel"[label=" Broadcaster: default_authority\nAverage rate: 12.727\nBuffer length: 4.4\nMost recent transform: 1716883066.280891\nOldest transform: 1716883061.880914\n"];
+"odom" -> "base_footprint"[label=" Broadcaster: default_authority\nAverage rate: 25.245\nBuffer length: 4.12\nMost recent transform: 1716883066.280891\nOldest transform: 1716883062.161339\n"];
+"front_camera_mount" -> "camera_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"base_link" -> "front_camera_mount"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"base_link" -> "ydlidar_lidar_mount"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"ydlidar_lidar_mount" -> "laser_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"ul_sensor_mount" -> "ul_sensor_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"base_link" -> "ul_sensor_mount"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1716883066.3979974"[ shape=plaintext ] ;
+}->"odom";
+}
