@@ -108,7 +108,8 @@ class Ui_MainWindow(QMainWindow, Ui_Setup):
         
         # orders 리스트의 마지막 주문만 데이터베이스에 저장
         last_order = self.orders[-1]
-
+        out_of_stock = False
+        
         for item, quantity in zip(last_order["item_name"], last_order["quantities"]):
             product_id = self.db_manager.get_product_id(item)
             # print(f"save_to_database: item={item}, product_id={product_id}")  # 디버깅 정보 출력
@@ -121,7 +122,8 @@ class Ui_MainWindow(QMainWindow, Ui_Setup):
                 return
             if stock < quantity:
                 QMessageBox.warning(self, "Stock Error", f"{item}은(는) 품절입니다.\n재고: {stock}")
-                return
+                out_of_stock = True
+                break
 
             data = {
                 "user_id": last_order["user_id"],
@@ -135,7 +137,10 @@ class Ui_MainWindow(QMainWindow, Ui_Setup):
 
             # 재고 현황 프린트
             print(f"Product: {item}, Stock after order: {stock - quantity}")
-
+        
+        if out_of_stock:
+            return
+        
         QMessageBox.information(self, "Saved", "결제완료")
 
         self.user_id += 1
