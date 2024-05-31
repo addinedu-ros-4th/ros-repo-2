@@ -34,7 +34,7 @@ class Ui_MainWindow(QMainWindow, Ui_Setup):
     def __init__(self, db_manager):
         super().__init__()
         self.db_manager = db_manager 
-        self.user_id = self.db_manager.get_last_user_id("ProductOrder") + 1  # 마지막 user_id에서 이어서 시작
+        self.user_id = self.db_manager.utils.get_last_user_id("ProductOrder") + 1  # 마지막 user_id에서 이어서 시작
         self.setupUi(self)
         self.setWindowTitle("Main")
         
@@ -111,12 +111,12 @@ class Ui_MainWindow(QMainWindow, Ui_Setup):
         out_of_stock = False
         
         for item, quantity in zip(last_order["item_name"], last_order["quantities"]):
-            product_id = self.db_manager.get_product_id(item)
+            product_id = self.db_manager.utils.get_product_id(item)
             # print(f"save_to_database: item={item}, product_id={product_id}")  # 디버깅 정보 출력
             if product_id is None:
                 QMessageBox.warning(self, "Error", f"Product ID for item '{item}' not found.")
                 return
-            stock = self.db_manager.get_stock(product_id)
+            stock = self.db_manager.utils.get_stock(product_id)
             if stock is None:
                 QMessageBox.warning(self, "Error", f"Stock for product ID {product_id} not found.")
                 return
@@ -133,7 +133,7 @@ class Ui_MainWindow(QMainWindow, Ui_Setup):
                 "quantities": quantity
             }
             self.db_manager.save_data("ProductOrder", data)
-            self.db_manager.update_stock(product_id, quantity)
+            self.db_manager.utils.update_stock(product_id, quantity)
 
             # 재고 현황 프린트
             print(f"Product: {item}, Stock after order: {stock - quantity}")
@@ -191,7 +191,7 @@ class Ui_MainWindow(QMainWindow, Ui_Setup):
 
 
     def chartPage(self):
-        df = self.db_manager.fetch_product_orders_dataframe()
+        df = self.db_manager.utils.fetch_product_orders_dataframe()
         self.plot_pie_chart(df)
         self.display_most_ordered_hour(df)
         self.plot_time_chart(df)
@@ -248,7 +248,7 @@ class Ui_MainWindow(QMainWindow, Ui_Setup):
         previous_user_id = self.user_id - 1
         self.userinfo.setText(f"user id : {previous_user_id}")
 
-        product_orders = self.db_manager.fetch_all_product("ProductOrder")
+        product_orders = self.db_manager.utils.fetch_all_product("ProductOrder")
 
         df = pd.DataFrame(product_orders, columns=['주문번호', '사용자', '상품번호', '상품명', '갯수', '주문시각'])
         df = df[df['사용자'] == previous_user_id]
