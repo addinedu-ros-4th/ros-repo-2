@@ -25,6 +25,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ArucoCommand.srv"
   "srv/StepControl.srv"
   "srv/CompletePicking.srv"
+  "srv/AddTwoInts.srv"
 )
 
 

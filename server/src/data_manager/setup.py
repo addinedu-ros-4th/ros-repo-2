@@ -20,6 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'client = data_manager.add_two_ints_clients:main',
+            'server = data_manager.add_two_ints_server:main'
         ],
     },
 )
