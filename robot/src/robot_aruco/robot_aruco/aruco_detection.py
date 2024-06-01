@@ -9,6 +9,7 @@ import serial
 import RPi.GPIO as GPIO
 import time
 from task_msgs.srv import ArucoCommand
+from task_msgs.srv import ArucoCommandResponse
 from geometry_msgs.msg import Twist
 
 class RobotAruco(Node):
@@ -16,10 +17,12 @@ class RobotAruco(Node):
         super().__init__('image_converter')
 
         self.bridge = CvBridge()
-        self.image_sub = self.create_subscription(Image, '/camera', self.aruco_callback, 10)
+        self.image_sub = self.create_subscription(Image, '/camera/compressed', self.aruco_callback, 10)
         self.server = self.create_service(ArucoCommand, '/aruco_control', self.handle_aruco_control)
         self.cmd_pub = self.create_publisher(Twist, '/base_controller/cmd_vel_unstamped', 10)
-
+        self.marker_done_client = self.create_client(
+            ArucoCommandResponse, "/aruco_command_response"
+        )
         self.twist = Twist()
 
         self.marker_name = None
@@ -39,8 +42,8 @@ class RobotAruco(Node):
         }
         
         # Declare parameters
-        self.declare_parameter('width', 640)
-        self.declare_parameter('height', 480)
+        self.declare_parameter('width', 320)
+        self.declare_parameter('height', 240)
         self.declare_parameter("marker_shape", "DICT_4X4_50")
         self.declare_parameter('cam_matrix', [299.26361032, 0.0, 324.93723462, 0.0, 303.22330886, 177.3524136, 0.0, 0.0, 1.0])
         self.declare_parameter('dist_coeff', [0.11564661, -0.05059582, 0.00192533, -0.01093668, -0.03163341])
@@ -61,9 +64,14 @@ class RobotAruco(Node):
         self.aruco_toggle = True 
         self.get_logger().info(f"start picking place & floor {request.location}, {request.direction}")
 
-        response.success = True
+        
         return response
     
+    def send_response(self):
+        res = ArucoCommandResponse.Request()
+        res.success = True
+        self.marker_done_client.call_async(res)
+
     def motor_control(self):
         self.distance = self.tvec[0][0][2]
         self.x_offset = self.tvec[0][0][0]   
@@ -76,7 +84,7 @@ class RobotAruco(Node):
                 self.twist.linear.x = 0.0
                 self.twist.angular.z = 0.0
                 self.cmd_pub.publish(self.twist)
-                
+                self.send_response()
                 self.aruco_toggle = False
                 
             else:
@@ -110,6 +118,7 @@ class RobotAruco(Node):
                 self.twist.linear.x = 0.0
                 self.twist.angular.z = 0.0
                 self.cmd_pub.publish(self.twist)
+                self.send_response()
                 self.aruco_toggle = False
                 
             else:
@@ -119,7 +128,8 @@ class RobotAruco(Node):
                 self.cmd_pub.publish(self.twist)
             
     def aruco_callback(self, data):
-        cv_image = self.bridge.imgmsg_to_cv2(data, desired_encoding='bgr8')
+        np_arr = np.frombuffer(data.data, np.uint8)
+        cv_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         parameters = aruco.DetectorParameters()
         corners, ids, _ = aruco.detectMarkers(gray, self.aruco_dict, parameters=parameters)
