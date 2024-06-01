@@ -72,6 +72,8 @@ class My_Location(Node) :
             "/step_control_response", 
             self.lift_is_done
         )
+
+        self.timer = self.create_timer(1.0, self.renew_out_task_data)
         
         
         
@@ -80,7 +82,7 @@ class My_Location(Node) :
         msg.location = self.controller.current_out_task
         msg.product = ""
         msg.count = 0
-        self.publisher_out_task.publish()
+        self.publisher_out_task.publish(msg)
 
     def current_pose(self, data):
         self.controller.my_pose[0] = data.pose.pose.position.x
@@ -190,16 +192,32 @@ class RobotController(Node) :
             "C2" : 3.14, "C2_2" : 3.14, 
             "R1" : 1.57, "R2" : 1.57
         }
+        self.PATH_LIST = [
+            [[0.3, -1.1, 0.0],  [0.85, -1.1, 0.0],  [1.15, -1.1, 0.0],  [1.6, -1.1, 0.0]],
+            [[0.3, -0.75, 0.0], [0.85, -0.75, 0.0], [1.15, -0.75, 0.0], [1.6, -0.75, 0.0]],
+            [[0.3, -0.4, 0.0],  [0.85, -0.4, 0.0],  [1.15, -0.4, 0.0],  [1.6, -0.4, 0.0]],
+            [[0.3, 0.0, 0.0],   [0.85, 0.0, 0.0],   [1.15, 0.0, 0.0],   [1.6, 0.0, 0.0]],
+            [[0.3, 0.4, 0.0],   [0.85, 0.4, 0.0],   [1.15, 0.4, 0.0],   [1.6, 0.4, 0.0]],
+            [[0.3, 0.75, 0.0],  [0.85, 0.75, 0.0],  [1.15, 0.75, 0.0],  [1.6, 0.75, 0.0]],
+            [[0.3, 1.1, 0.0],   [0.85, 1.1, 0.0],   [1.15, 1.1, 0.0],   [1.6, 1.1, 0.0]]
+        ]
+        self.X_LIST = []
+        self.Y_LIST = []
+        for i in self.PATH_LIST[0]:
+            self.X_LIST.append(i[0])
+        for i in self.PATH_LIST:
+            self.Y_LIST.append(i[0][1])
+
         
-        self.SUB_PATH_POSE_X_LIST = [2.3, 1.7, 0.7, 0.2]
-        self.SUB_PATH_POSE_Y_LIST = [0.7, 0.3, 0.0, -0.5]
+        # self.SUB_PATH_POSE_X_LIST = [2.3, 1.7, 0.7, 0.2]
+        # self.SUB_PATH_POSE_Y_LIST = [0.7, 0.3, 0.0, -0.5]
 
 
 
-        self.MAIN_PATH_POSE_X_LIST = [2.3, 1.7, 0.7, 0.2]
-        self.MAIN_PATH_POSE_Y_LIST = [0.7, -0.5]
+        # self.MAIN_PATH_POSE_X_LIST = [2.3, 1.7, 0.7, 0.2]
+        # self.MAIN_PATH_POSE_Y_LIST = [0.7, -0.5]
         
-        # self.subscription
+        
         
 
         self.get_logger().info("controller is ready")
@@ -207,13 +225,13 @@ class RobotController(Node) :
 
 
     def check_emergency_status(self):
-        if self.task_status == "emergency":
+        while self.task_status == "emergency":
             try:
                 self.nav.cancelTask()
             except:
                 pass
-            while 1:
-                self.get_logger().info("emergency!!!!!!!!!!")
+            self.get_logger().info("emergency!!!!!!!!!!")
+            time.sleep(1)
 
 
 
@@ -267,22 +285,10 @@ class RobotController(Node) :
         for pose_name in pose_list:
             target_pose = self.POSE_DICT[pose_name]
             target_yaw = self.YAW_DICT[pose_name]
-            stopover = self.planning_stopover(target_pose)
-            path_pose = []
-            path_pose = path_pose + stopover
-            path_pose = path_pose + [target_pose]
             
-            
-            self.get_logger().info(f"my_pose : {self.my_pose}")
-            self.get_logger().info(f"stopover : {stopover}")
-            # self.get_logger().info(f"path_pose : {path_pose}")
 
-            for i, pose in enumerate(stopover): # stopover (경유지 이동)
-                self.get_logger().info("goto stopover")
-                # self.get_logger().info(f"path_pose[i+1] : {path_pose[i+1]}")
-                yaw = self.point_to_yaw(pose, path_pose[i+1])
-                # self.get_logger().info(f"yaw : {yaw}")
-                self.move_pose(pose, yaw)
+            self.real_time_stopover_planning(target_pose)
+
             
             self.get_logger().info(f"goto{pose_name}")
             self.move_pose(target_pose, target_yaw)
@@ -310,6 +316,8 @@ class RobotController(Node) :
 
         return True
     
+    
+
 
     def checking_task_is_out(self):
         if self.task_status == "OUT":
@@ -320,32 +328,65 @@ class RobotController(Node) :
             req = CompletePickingResponse.Request()
             self.complete_picking_client.call_async(req)
 
-    def planning_stopover(self, target):
-        x_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_X_LIST, self.my_pose[0])
-        y_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_Y_LIST, self.my_pose[1])
-        target_x_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_X_LIST, target[0])
-        last_y_min_index = self.find_approximation_to_pose_list(self.SUB_PATH_POSE_Y_LIST, target[1])
+
+
+    def real_time_stopover_planning(self, target_pose):
+        nearest_point_from_target, nearest_point_from_target_index = self.search_nearest_point(target_pose)
+        nearest_point_from_me, nearest_point_from_me_index = self.search_nearest_point(self.my_pose)
+        
+        self.move_pose(nearest_point_from_me, [0.0, 0.0, 0.0])
+
+        
+
+    def search_nearest_point(self,target_pose): # 타겟에 가장 가까운 point 찾기
+        nearest_point = [999, 999, 0.0]
+        nearest_point_index = [0, 0]
+        min_x_vel = 999
+        min_y_vel = 999
+        for index, vel in enumerate(self.X_LIST):
+            distance = abs(target_pose[0] - vel)
+            if distance < min_x_vel:
+                min_x_vel = distance
+                nearest_point[0] = vel
+                nearest_point_index[0] = index
+
+
+        for index, vel in enumerate(self.Y_LIST):
+            distance = abs(target_pose[1] - vel)
+            if distance < min_y_vel:
+                min_y_vel = distance
+                nearest_point[1] = vel
+                nearest_point_index[1] = index
+            
+        return nearest_point, nearest_point_index
+
+
+    # def planning_stopover(self, target): # for test
+    #     x_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_X_LIST, self.my_pose[0])
+    #     y_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_Y_LIST, self.my_pose[1])
+    #     target_x_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_X_LIST, target[0])
+    #     last_y_min_index = self.find_approximation_to_pose_list(self.SUB_PATH_POSE_Y_LIST, target[1])
         
     
-        path_poses = [
-                [
-                    self.MAIN_PATH_POSE_X_LIST[x_min_index],
-                    self.MAIN_PATH_POSE_Y_LIST[y_min_index],
-                    0.0
-                ],
-                [
-                    self.MAIN_PATH_POSE_X_LIST[target_x_min_index],
-                    self.MAIN_PATH_POSE_Y_LIST[y_min_index],
-                    0.0
-                ],
-                [
-                    self.MAIN_PATH_POSE_X_LIST[target_x_min_index],
-                    self.SUB_PATH_POSE_Y_LIST[last_y_min_index],
-                    0.0
-                ]
-            ]
+    #     path_poses = [
+    #             [
+    #                 self.MAIN_PATH_POSE_X_LIST[x_min_index],
+    #                 self.MAIN_PATH_POSE_Y_LIST[y_min_index],
+    #                 0.0
+    #             ],
+    #             [
+    #                 self.MAIN_PATH_POSE_X_LIST[target_x_min_index],
+    #                 self.MAIN_PATH_POSE_Y_LIST[y_min_index],
+    #                 0.0
+    #             ],
+    #             [
+    #                 self.MAIN_PATH_POSE_X_LIST[target_x_min_index],
+    #                 self.SUB_PATH_POSE_Y_LIST[last_y_min_index],
+    #                 0.0
+    #             ]
+    #         ]
         
-        return path_poses
+    #     return path_poses
 
     def find_approximation_to_pose_list(self, pose_list, target_vel):
         min_vel = 999
