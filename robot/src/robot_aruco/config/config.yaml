@@ -1,12 +1,12 @@
-RobotCam:
+robot_cam:
   ros__parameters:
-    width: 640
-    length: 480
+    width: 320
+    length: 240
 
-RobotAruco:
+aruco_detection:
   ros__parameters:
-    width: 640
-    height: 480
+    width: 320
+    height: 240
     marker_shape: "DICT_4X4_50"
-    cam_matrix: [299.26361032, 0.0, 324.93723462, 0.0, 303.22330886, 177.3524136, 0.0, 0.0, 1.0]
-    dist_coeff: [0.11564661, -0.05059582, 0.00192533, -0.01093668, -0.03163341]
+    cam_matrix: [346.50043135, 0.0, 86.28590496, 0.0, 324.69383657, 141.48920103, 0.0, 0.0, 1.0]
+    dist_coeff: [0.69270497, -0.88228091, 0.04594559, -0.13004503, 0.60997413]
