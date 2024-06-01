@@ -74,7 +74,7 @@ class LCDDisplay:
         self.write_word(self.lcd_addr, buf)
         buf = (data & 0x0F) << 4
         buf |= 0x05
-        self.lcd_write_word(self.lcd_addr, buf)
+        self.write_word(self.lcd_addr, buf)
         time.sleep(0.002)
         buf &= 0xFB
         self.write_word(self.lcd_addr, buf)

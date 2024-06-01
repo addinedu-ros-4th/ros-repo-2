@@ -17,7 +17,7 @@ class RobotAruco(Node):
         super().__init__('image_converter')
 
         self.bridge = CvBridge()
-        self.image_sub = self.create_subscription(Image, '/camera', self.aruco_callback, 10)
+        self.image_sub = self.create_subscription(Image, '/camera/compressed', self.aruco_callback, 10)
         self.server = self.create_service(ArucoCommand, '/aruco_control', self.handle_aruco_control)
         self.cmd_pub = self.create_publisher(Twist, '/base_controller/cmd_vel_unstamped', 10)
         self.marker_done_client = self.create_client(
@@ -42,8 +42,8 @@ class RobotAruco(Node):
         }
         
         # Declare parameters
-        self.declare_parameter('width', 640)
-        self.declare_parameter('height', 480)
+        self.declare_parameter('width', 320)
+        self.declare_parameter('height', 240)
         self.declare_parameter("marker_shape", "DICT_4X4_50")
         self.declare_parameter('cam_matrix', [299.26361032, 0.0, 324.93723462, 0.0, 303.22330886, 177.3524136, 0.0, 0.0, 1.0])
         self.declare_parameter('dist_coeff', [0.11564661, -0.05059582, 0.00192533, -0.01093668, -0.03163341])
@@ -128,7 +128,8 @@ class RobotAruco(Node):
                 self.cmd_pub.publish(self.twist)
             
     def aruco_callback(self, data):
-        cv_image = self.bridge.imgmsg_to_cv2(data, desired_encoding='bgr8')
+        np_arr = np.frombuffer(data.data, np.uint8)
+        cv_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         parameters = aruco.DetectorParameters()
         corners, ids, _ = aruco.detectMarkers(gray, self.aruco_dict, parameters=parameters)
