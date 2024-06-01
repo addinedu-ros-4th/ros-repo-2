@@ -82,7 +82,6 @@ class ButtonLCDControl(Node):
         self.wait_complete_picking()
 
         return self.future.result()
-
         
 
     def wait_complete_picking(self):
@@ -98,12 +97,11 @@ class ButtonLCDControl(Node):
 
     # Outbound: move to next place
     def button3_callback(self, channel):
-        response = self.send_picking_request()
-        
+        # response = self.send_picking_request()
 
         self.lcd.send_command(0x01)
-        self.lcd.write(4, 0, f"OB :  {self.location}")
-        self.lcd.write(0, 1, f"{self.product} : {self.count}")
+        self.lcd.write(4, 0, f"OB : {self.location}")
+        self.lcd.write(2, 1, f"{self.product} :{self.count} ")
 
 
 def main() :
