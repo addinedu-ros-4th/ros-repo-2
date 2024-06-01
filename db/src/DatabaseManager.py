@@ -1,6 +1,7 @@
 import mysql.connector
 import os
 import configparser
+from DatabaseUtils import DatabaseUtils
 
 class DatabaseManager:
     def __init__(self, host):
@@ -10,12 +11,13 @@ class DatabaseManager:
         self.cur = None
         self.conn = None
         self.password = self.get_password_from_config()
-
+        self.utils = None 
 
     def get_password_from_config(self):
         config = configparser.ConfigParser()
         config.read('db/config/config.ini')
         return config['database']['password']
+    
     
     def connect_database(self, db_name=None):
         if db_name is None:
@@ -40,6 +42,7 @@ class DatabaseManager:
             else:
                 raise
         self.cur = self.conn.cursor()
+        self.utils = DatabaseUtils(self.conn) 
     
     def create_database(self, db_name):
         try:
@@ -50,6 +53,7 @@ class DatabaseManager:
         print(f"Database {db_name} created successfully.")
         self.cur.execute(f"USE {db_name}")
         
+    
     
     def create_table(self):
         self.execute_sql_file("db/query/create_table.sql")
@@ -90,6 +94,7 @@ class DatabaseManager:
                 print(f"Error occurred: {err}")
         
         self.conn.commit()
+    
     
     def save_data(self, table_name, data):
         """
@@ -182,6 +187,7 @@ class DatabaseManager:
             self.cur.close()
         if self.conn:
             self.conn.close()
+    
     
     def find_elements(self, name, password):
         query = "SELECT UserId, Name, Password from Users where Name = %s and (Password) = %s;"

@@ -24,12 +24,12 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'main_executable = task_manager:main',
             'robot_controller = task_manager.robot_controller:main',
             'order_receiver = task_manager.order_receiver:main',
             'task_allocator = task_manager.task_allocator:main',
             'robot_status_publisher = task_manager.robot_status_publisher:main',
-            'test_task_allocator = task_manager.test_task_allocator:main'
+            'test_task_allocator = task_manager.test_task_allocator:main',
+            'task_server = task_manager.task_server:main'
         ],
     },
 )
