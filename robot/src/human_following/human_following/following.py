@@ -8,6 +8,8 @@ from geometry_msgs.msg import Twist
 from sensor_msgs.msg import CompressedImage
 import math
 
+from ament_index_python.packages import get_package_share_directory
+
 class PersonDetector(Node):
     def __init__(self):
         super().__init__('person_detector')
@@ -15,9 +17,12 @@ class PersonDetector(Node):
         self.cmd_vel_pub = self.create_publisher(Twist, '/base_controller/cmd_vel_unstamped', 10)
         self.img_sub = self.create_subscription(CompressedImage, '/camera/compressed', self.following_callback, 10)
         self.twist = Twist()
+
+        # Set the paths relative to the current directory
+        self.model_proto_path = os.path.join(get_package_share_directory('human_following'), 'config', 'MobileNetSSD_deploy.prototxt')
+        self.model_weights_path = os.path.join(get_package_share_directory('human_following'), 'config', 'MobileNetSSD_deploy.caffemodel')
+
         # Set parameters
-        self.model_proto_path = os.path.abspath('/home/kkyu_rasp/ros-repo-2/robot/src/human_following/config/MobileNetSSD_deploy.prototxt')
-        self.model_weights_path = os.path.abspath('/home/kkyu_rasp/ros-repo-2/robot/src/human_following/config/MobileNetSSD_deploy.caffemodel')
         self.conf_threshold = 0.5
         self.net = cv2.dnn.readNetFromCaffe(self.model_proto_path, self.model_weights_path)
         self.classNames = {15: 'person'}
@@ -37,65 +42,78 @@ class PersonDetector(Node):
 
         for i in np.arange(0, detections.shape[2]):
             confidence = detections[0, 0, i, 2]
+            
             if confidence > self.conf_threshold:
-                idx = int(detections[0, 0, i, 1])
+                idx = int(detections[0, 0, i, 1])  
+                
                 if idx in self.classNames:
                     person_detected = True
                     self.last_detection_time = time.time()
                     box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
                     (startX, startY, endX, endY) = box.astype("int")
-                    # Adjust the box size to make it a bit larger
+                    
+                    # Set box points 
                     box_margin = 10
                     startX = max(0, startX - box_margin)
                     startY = max(0, startY - box_margin)
                     endX = min(w, endX + box_margin)
                     endY = min(h, endY + box_margin)
+
+                    # Calculate Box Size
                     box_size = math.sqrt(((endX - startX)**2) + ((endY - startY)**2))
                     self.get_logger().info(f"box_size: {box_size}")
+
+                    # Show CV2 Image
                     label = f"{self.classNames[idx]}: {confidence:.2f}"
                     cv2.rectangle(image, (startX, startY), (endX, endY), (255, 0, 0), 2)
                     y = startY - 15 if startY - 15 > 15 else startY + 15
                     cv2.putText(image, label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+                    
                     # Calculate the deviation from the center
                     person_center_x = (startX + endX) // 2
                     deviation = person_center_x - center_x
-                    self.get_logger().info(f"person_center_x: {person_center_x}, center_x: {center_x}, deviation: {deviation}")
+                    self.get_logger().info(f"deviation: {deviation}")
 
                     # Determine action based on deviation
-                    if box_size > 250:
+                    if box_size > 230:
                         self.twist.linear.x = 0.0  
                         self.twist.angular.z = 0.0  
+                    
                     else:
-                        if deviation < -50:
+                        if deviation < -80:
                             # Move left
-                            self.twist.linear.x = 0.03  # Maintain forward velocity
+                            self.twist.linear.x = 0.05  # Maintain forward velocity
                             self.twist.angular.z = 0.3  # Turn left with a higher angular velocity
-                        elif deviation > 50:
+                        
+                        elif deviation > 80:
                             # Move right
-                            self.twist.linear.x = 0.03  # Maintain forward velocity
+                            self.twist.linear.x = 0.05  # Maintain forward velocity
                             self.twist.angular.z = -0.3  # Turn right with a higher angular velocity
+                        
                         else:
-                            # Move straight
-                            self.twist.linear.x = 0.08  # Maintain forward velocity
-                            self.twist.angular.z = 0.0  # No angular velocity
+                            if deviation < -40:
+                                # Move left
+                                self.twist.linear.x = 0.05  # Maintain forward velocity
+                                self.twist.angular.z = 0.15  # Turn left with a higher angular velocity
+                        
+                            elif deviation > 40:
+                                # Move right
+                                self.twist.linear.x = 0.05  # Maintain forward velocity
+                                self.twist.angular.z = -0.15  # Turn right with a higher angular velocity
+                            else:
+                                # Move forward
+                                self.twist.linear.x = 0.05  # Maintain forward velocity
+                                self.twist.angular.z = 0.0  # No angular velocity
 
                     self.get_logger().info(f"Person detected: {confidence:.2f}")
                     self.cmd_vel_pub.publish(self.twist)
 
-        if not person_detected:
-            # No person detected, stop the robot
-            self.twist.linear.x = 0.0
-            self.twist.angular.z = 0.0
-            self.cmd_vel_pub.publish(self.twist)
-
-        # # Check for time since last detection to handle detection failure
-        # if time.time() - self.last_detection_time > 2.0:  # 2 seconds threshold
-        #     self.twist.linear.x = 0.0
-        #     self.twist.angular.z = 0.0
-        #     self.cmd_vel_pub.publish(self.twist)
-
-        # cv2.imshow('following mode', image)
-        # cv2.waitKey(1)
+                if not person_detected:
+                    # No person detected, stop the robot
+                    self.get_logger().info("No person detected")
+                    self.twist.linear.x = 0.0
+                    self.twist.angular.z = 0.0
+                    self.cmd_vel_pub.publish(self.twist)
 
 def main(args=None):
     rclpy.init()
