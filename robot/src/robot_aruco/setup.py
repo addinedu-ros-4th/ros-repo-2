@@ -28,8 +28,6 @@ setup(
             'robot_cam = robot_aruco.robot_cam:main',
             'step_control = robot_aruco.step_control:main',
             'button_lcd_control = robot_aruco.button_lcd_control:main',
-            
-
         ],
     },
 )
