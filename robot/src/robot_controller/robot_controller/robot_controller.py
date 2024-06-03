@@ -15,6 +15,7 @@ from task_msgs.srv import StepControl
 from task_msgs.srv import CompletePicking
 
 from task_msgs.msg import TaskCompletion
+from task_msgs.msg import CurrentPath
 from task_msgs.msg import RobotStatus
 from task_msgs.msg import OutTask
 from std_msgs.msg import Empty
@@ -145,11 +146,13 @@ class RobotController(Node) :
             10
         )
 
-        self.feedback_publisher = self.create_publisher(
-            Float32,
-            "/feedback",
+        self.current_path_publisher = self.create_publisher(
+            CurrentPath,
+            "/current_path",
             10
         )
+        
+        self.current_path_msg = CurrentPath()
         
 
         # self.wait_client = self.create_client(
@@ -377,7 +380,11 @@ class RobotController(Node) :
                 self.get_logger().info("move stopover")
                 self.get_logger().info(f"my pose = {current_point_index}")
                 self.get_logger().info(f"go pose = {passable_path}")
-
+                self.current_path_msg.start_x = current_point_index[0]
+                self.current_path_msg.start_y = current_point_index[1]
+                self.current_path_msg.end_x = passable_path[0]
+                self.current_path_msg.end_y = passable_path[1]
+                
                 yaw = self.point_to_yaw(self.PATH_LIST[current_point_index[0]][current_point_index[1]],
                                          self.PATH_LIST[passable_path[0]][passable_path[1]])
                 self.move_pose(self.PATH_LIST[current_point_index[0]][current_point_index[1]], yaw)
@@ -526,14 +533,14 @@ class RobotController(Node) :
         q = self.euler_to_quaternion(yaw=yaw)
 
         self.get_logger().info(f"pose : {target_pose} yaw : {yaw}")
-        
+        redeem_vector = self.redeem_pose(target_pose, 0.2)
         goal_pose = PoseStamped()
         
         goal_pose.header.frame_id = 'map'
         goal_pose.header.stamp = self.nav.get_clock().now().to_msg()
-        goal_pose.pose.position.x = target_pose[0]
-        goal_pose.pose.position.y = target_pose[1]
-        goal_pose.pose.position.z = target_pose[2]
+        goal_pose.pose.position.x = target_pose[0] + redeem_vector[0]
+        goal_pose.pose.position.y = target_pose[1] + redeem_vector[1]
+        goal_pose.pose.position.z = target_pose[2] + redeem_vector[2]
         goal_pose.pose.orientation.x = q[0]
         goal_pose.pose.orientation.y = q[1]
         goal_pose.pose.orientation.z = q[2]
@@ -553,6 +560,24 @@ class RobotController(Node) :
         return [qx, qy, qz, qw]
     
 
+    def redeem_pose(self, target_pose, distance):
+        x = target_pose[0]
+        y = target_pose[1]
+        current_x = self.my_pose[0]
+        current_y = self.my_pose[1]
+
+        direction_vector = [x - current_x, y - current_y, 0.0]
+
+        magnitude = math.sqrt(direction_vector[0]**2 + direction_vector[1]**2 + direction_vector[2]**2)
+
+        if magnitude == 0:
+            raise ValueError 
+        
+        unit_vector = [direction_vector[0] / magnitude, direction_vector[1] / magnitude, direction_vector[2] / magnitude]
+        redeem_vector = [unit_vector[0] * distance, unit_vector[1] * distance, unit_vector[2] * distance]
+        return redeem_vector
+
+
     def nav_distance_feedback(self) :
         i = 0
         send_data = Float32()
@@ -560,12 +585,12 @@ class RobotController(Node) :
             self.check_emergency_status()
             i = i + 1
             feedback = self.nav.getFeedback()
-
+            self.current_path_publisher.publish(self.current_path_msg)
             if feedback and i % 30 == 0 :
                 self.get_logger().info("distance remaining: " + "{:.2f}".format(feedback.distance_remaining) + " meters.")
                 send_data.data = feedback.distance_remaining
                 # self.feedback_publisher.publish(send_data)
-                # 추후 distance_remaining 0.10으로 변경할 것
+                
                 if (feedback.distance_remaining <= 0.40 and feedback.distance_remaining != 0.0) or Duration.from_msg(feedback.navigation_time) > Duration(seconds=40.0) :
                     time.sleep(0.5) # 목표지점 인접시 0.5초후 다음목적지
                     self.nav.cancelTask()
