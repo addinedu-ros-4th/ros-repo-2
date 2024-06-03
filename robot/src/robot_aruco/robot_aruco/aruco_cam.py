@@ -69,7 +69,7 @@ class ArucoCam(Node):
     def handle_camera_control(self, request, response):
         self.cam_toggle = request.data
         response.success = True
-        response.message = 'Success' if request.data else 'Failed'
+        response.message = 'On' if request.data else 'Off'
         return response
 
 
