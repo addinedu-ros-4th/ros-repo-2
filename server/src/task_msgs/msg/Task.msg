@@ -5,3 +5,4 @@ string bundle_id        # 소비자 주문, barcode 정보
 string item
 int32 quantity
 string location
+string lift

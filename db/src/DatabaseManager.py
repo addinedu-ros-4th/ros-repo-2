@@ -54,7 +54,6 @@ class DatabaseManager:
         self.cur.execute(f"USE {db_name}")
         
     
-    
     def create_table(self):
         self.execute_sql_file("db/query/create_table.sql")
 

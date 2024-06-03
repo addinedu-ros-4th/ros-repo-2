@@ -1,7 +1,7 @@
 import heapq
 
 class Task:
-    def __init__(self, task_id, task_type, priority, bundle_id, item, quantity, location):
+    def __init__(self, task_id, task_type, priority, bundle_id, item, quantity, location, lift):
         self.task_id = task_id
         self.bundle_id = bundle_id
         self.task_type = task_type
@@ -9,6 +9,7 @@ class Task:
         self.item = item
         self.quantity = quantity
         self.location = location
+        self.lift = lift
 
 
 class TaskFactory:
@@ -19,7 +20,6 @@ class TaskFactory:
             transaction_tasks.append(task)
 
         if transaction_tasks:
-            # 한 번만 initial과 final 태스크 추가
             initial_task = Task(
                 task_id=f'{bundle_id}_initial',
                 task_type='delivery_initial',
@@ -27,7 +27,8 @@ class TaskFactory:
                 bundle_id=bundle_id,
                 item='',
                 quantity=0,
-                location='initial_location'
+                location='O1',
+                lift = 'Up'
             )
 
             final_task = Task(
@@ -37,7 +38,8 @@ class TaskFactory:
                 bundle_id=bundle_id,
                 item='',
                 quantity=0,
-                location='final_location'
+                location='O1',
+                lift = 'Down'
             )
 
             transaction_tasks.insert(0, initial_task)
@@ -52,7 +54,6 @@ class TaskFactory:
             transaction_tasks.append(task)
 
         if transaction_tasks:
-            # 한 번만 initial과 final 태스크 추가
             initial_task = Task(
                 task_id=f'{bundle_id}_initial',
                 task_type='unload_initial',
@@ -60,7 +61,8 @@ class TaskFactory:
                 bundle_id=bundle_id,
                 item='',
                 quantity=0,
-                location=initial_location
+                location=initial_location,
+                lift = 'Up'
             )
 
             final_task = Task(
@@ -70,7 +72,8 @@ class TaskFactory:
                 bundle_id=bundle_id,
                 item='',
                 quantity=0,
-                location='final_location'
+                location='final_location',
+                lift = 'Down'
             )
 
             transaction_tasks.insert(0, initial_task)
