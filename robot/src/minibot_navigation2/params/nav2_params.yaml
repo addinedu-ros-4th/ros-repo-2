@@ -193,7 +193,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 1.0
-        inflation_radius: 0.15
+        inflation_radius: 0.08
 
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
@@ -252,7 +252,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.15
+        inflation_radius: 0.05
 
 
 map_server:

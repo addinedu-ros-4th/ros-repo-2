@@ -306,7 +306,7 @@ class RobotController(Node) :
             target_yaw = self.YAW_DICT[pose_name]
             
 
-            # self.real_time_stopover_planning(target_pose)
+            self.real_time_stopover_planning(target_pose)
 
             
             self.get_logger().info(f"goto{pose_name}")
@@ -359,12 +359,27 @@ class RobotController(Node) :
         nearest_point_from_me, nearest_point_from_me_index = self.search_nearest_point(self.my_pose)
         current_point_index = nearest_point_from_me_index.copy()
 
-        self.move_pose(nearest_point_from_me, [0.0, 0.0, 0.0])
-
-        while current_point_index != nearest_point_from_target_index:
-            self.current_is_passable_list
-            pass
+        self.get_logger().info(f"start stopover : {current_point_index}")
         
+        direction_robot_to_target = [
+            1 if nearest_point_from_target_index[0] - nearest_point_from_me_index[0] > 0 else -1,
+            1 if nearest_point_from_target_index[1] - nearest_point_from_me_index[1] > 0 else -1
+        ]
+        
+        self.move_pose(nearest_point_from_me, 0.0)
+        
+        while current_point_index != nearest_point_from_target_index:
+            passable_path = self.search_passable_path(current_point_index, direction_robot_to_target, nearest_point_from_target_index)
+            if passable_path == []:
+                self.get_logger().info("wait stopover")
+            
+            else:
+                self.get_logger().info("move stopover")
+                self.get_logger().info(f"my pose = {current_point_index}")
+                self.get_logger().info(f"go pose = {passable_path}")
+                self.move_pose(self.PATH_LIST[passable_path[0]][passable_path[1]], 0.0)
+                current_point_index = passable_path.copy()
+
 
     def search_nearest_point(self,target_pose): # 타겟에 가장 가까운 point 찾기
         nearest_point = [999, 999, 0.0]
@@ -376,7 +391,7 @@ class RobotController(Node) :
             if distance < min_x_vel:
                 min_x_vel = distance
                 nearest_point[0] = vel
-                nearest_point_index[0] = index
+                nearest_point_index[1] = index
 
 
         for index, vel in enumerate(self.Y_LIST):
@@ -384,40 +399,35 @@ class RobotController(Node) :
             if distance < min_y_vel:
                 min_y_vel = distance
                 nearest_point[1] = vel
-                nearest_point_index[1] = index
+                nearest_point_index[0] = index
             
         return nearest_point, nearest_point_index
 
 
-    def is_passable(self):
-        pass
+    def search_passable_path(self, current_point_index, direction_robot_to_target, target_point_index):
+        x = current_point_index[0]
+        y = current_point_index[1]
+        target_x = target_point_index[0]
+        target_y = target_point_index[1]
+        return_vel = []
+        
+        if x != target_x:
+            if self.current_is_passable_list[x + direction_robot_to_target[0]][y]:
+                return_vel = [x + direction_robot_to_target[0], y]
+            
+        
+        elif y != target_y:
+            if self.current_is_passable_list[x][y + direction_robot_to_target[1]]:
+                return_vel = [x, y + direction_robot_to_target[1]]
+        
+        else:
+            pass
 
-    # def planning_stopover(self, target): # for test
-    #     x_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_X_LIST, self.my_pose[0])
-    #     y_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_Y_LIST, self.my_pose[1])
-    #     target_x_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_X_LIST, target[0])
-    #     last_y_min_index = self.find_approximation_to_pose_list(self.SUB_PATH_POSE_Y_LIST, target[1])
+        return return_vel   
+        
+        
         
     
-    #     path_poses = [
-    #             [
-    #                 self.MAIN_PATH_POSE_X_LIST[x_min_index],
-    #                 self.MAIN_PATH_POSE_Y_LIST[y_min_index],
-    #                 0.0
-    #             ],
-    #             [
-    #                 self.MAIN_PATH_POSE_X_LIST[target_x_min_index],
-    #                 self.MAIN_PATH_POSE_Y_LIST[y_min_index],
-    #                 0.0
-    #             ],
-    #             [
-    #                 self.MAIN_PATH_POSE_X_LIST[target_x_min_index],
-    #                 self.SUB_PATH_POSE_Y_LIST[last_y_min_index],
-    #                 0.0
-    #             ]
-    #         ]
-        
-    #     return path_poses
 
     def find_approximation_to_pose_list(self, pose_list, target_vel):
         min_vel = 999
@@ -544,12 +554,12 @@ class RobotController(Node) :
             i = i + 1
             feedback = self.nav.getFeedback()
 
-            if feedback and i % 5 == 0 :
+            if feedback and i % 30 == 0 :
                 self.get_logger().info("distance remaining: " + "{:.2f}".format(feedback.distance_remaining) + " meters.")
                 send_data.data = feedback.distance_remaining
                 # self.feedback_publisher.publish(send_data)
                 # 추후 distance_remaining 0.10으로 변경할 것
-                if (feedback.distance_remaining <= 3.50 and feedback.distance_remaining != 0.0) or Duration.from_msg(feedback.navigation_time) > Duration(seconds=40.0) :
+                if (feedback.distance_remaining <= 0.40 and feedback.distance_remaining != 0.0) or Duration.from_msg(feedback.navigation_time) > Duration(seconds=40.0) :
                     time.sleep(2) # 목표지점 인접시 2초후 다음목적지
                     self.nav.cancelTask()
                     self.get_logger().info("cancel nav Task")
