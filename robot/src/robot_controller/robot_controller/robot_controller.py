@@ -184,16 +184,16 @@ class RobotController(Node) :
         }
 
         self.YAW_DICT = {
-            "I1" : 4.71, "I2" : 4.71, "I3" : 4.71,
-            "O1" : 1.57, "O2" : 1.57, "O3" : 1.5707,
-            "P1" : 4.71, "P2" : 4.71, "P3" : 4.71,
-            "A1" : 3.14, "A1_2" : 3.14, 
-            "A2" : 3.14, "A2_2" : 3.14,
-            "B1" : 3.14, "B1_2" : 3.14, 
-            "B2" : 3.14, "B2_2" : 3.14, 
-            "C1" : 3.14, "C1_2" : 3.14, 
-            "C2" : 3.14, "C2_2" : 3.14, 
-            "R1" : 1.57, "R2" : 1.57
+            "I1" : 3.14, "I2" : 3.14, "I3" : 3.14,
+            "O1" : 0.0, "O2" : 0.0, "O3" : 0.0,
+            "P1" : 3.14, "P2" : 3.14, "P3" : 3.14,
+            "A1" : 4.71, "A1_2" : 4.71, 
+            "A2" : 4.71, "A2_2" : 4.71,
+            "B1" : 4.71, "B1_2" : 4.71, 
+            "B2" : 4.71, "B2_2" : 4.71, 
+            "C1" : 4.71, "C1_2" : 4.71, 
+            "C2" : 4.71, "C2_2" : 4.71, 
+            "R1" : 0.0, "R2" : 0.0
         }
         self.declare_lists()
         # self.SUB_PATH_POSE_X_LIST = [2.3, 1.7, 0.7, 0.2]
@@ -314,16 +314,16 @@ class RobotController(Node) :
 
             if lift == "Up" : # lift up first place (첫 장소 리프트 업)
                 self.get_logger().info("lift up")
-                self.service_call_lift(pose_name, "up")
-                self.service_call_marker(pose_name, "forward")
                 self.service_call_lift(pose_name, "down")
+                self.service_call_marker(pose_name, "forward")
+                self.service_call_lift(pose_name, "up")
                 self.service_call_marker(pose_name, "backward")
 
             elif lift == "Down" : # lift down last place(마지막 장소 리프트 다운)
                 self.get_logger().info("lift down")
-                self.service_call_lift(pose_name, "down")
-                self.service_call_marker(pose_name, "forward")
                 self.service_call_lift(pose_name, "up")
+                self.service_call_marker(pose_name, "forward")
+                self.service_call_lift(pose_name, "down")
                 self.service_call_marker(pose_name, "backward")
 
             else : # 나머지 장소
@@ -377,7 +377,11 @@ class RobotController(Node) :
                 self.get_logger().info("move stopover")
                 self.get_logger().info(f"my pose = {current_point_index}")
                 self.get_logger().info(f"go pose = {passable_path}")
-                self.move_pose(self.PATH_LIST[passable_path[0]][passable_path[1]], 0.0)
+
+                yaw = self.point_to_yaw(self.PATH_LIST[current_point_index[0]][current_point_index[1]],
+                                         self.PATH_LIST[passable_path[0]][passable_path[1]])
+                self.move_pose(self.PATH_LIST[current_point_index[0]][current_point_index[1]], yaw)
+                self.move_pose(self.PATH_LIST[passable_path[0]][passable_path[1]], yaw)
                 current_point_index = passable_path.copy()
 
 
@@ -491,13 +495,16 @@ class RobotController(Node) :
         # res = self.lift_client.call_async(req)
         # rp.spin_until_future_complete(self, res, timeout_sec=5.0)
         
+
     def wait_lift_res(self):
         while not self.lift_service_done:
             time.sleep(1)
             # self.get_logger().info("wait lift response")
         self.lift_service_done = False
 
+
     def service_call_marker(self, location=None ,direction=None):
+        self.get_logger().info(direction)
         if "_" in location:
             location = location.split("_")[0]
 
@@ -560,7 +567,7 @@ class RobotController(Node) :
                 # self.feedback_publisher.publish(send_data)
                 # 추후 distance_remaining 0.10으로 변경할 것
                 if (feedback.distance_remaining <= 0.40 and feedback.distance_remaining != 0.0) or Duration.from_msg(feedback.navigation_time) > Duration(seconds=40.0) :
-                    time.sleep(2) # 목표지점 인접시 2초후 다음목적지
+                    time.sleep(0.5) # 목표지점 인접시 0.5초후 다음목적지
                     self.nav.cancelTask()
                     self.get_logger().info("cancel nav Task")
 
