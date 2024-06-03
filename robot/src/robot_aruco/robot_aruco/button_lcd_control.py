@@ -8,6 +8,7 @@ from task_msgs.srv import CompletePicking
 from task_msgs.srv import CompletePickingResponse
 from robot_aruco.lcd_display import LCDDisplay
 from rclpy.executors import MultiThreadedExecutor
+
 class ButtonResponseController(Node):
     def __init__(self, button):
         super().__init__("button_response_controller")
@@ -41,7 +42,7 @@ class ButtonResponseController(Node):
 
 class ButtonLCDControl(Node):
     def __init__(self):
-        super().__init__('Button_Lcd_Node')
+        super().__init__('button_lcd_control')
         
         # Define pin number
         self.button1_pin = 20
