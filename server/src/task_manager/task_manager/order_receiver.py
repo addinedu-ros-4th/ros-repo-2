@@ -56,7 +56,8 @@ class OrderReceiver(Node):
                     bundle_id=str(bundle_id),    # Use bundle_id
                     item=item,
                     quantity=quantity,
-                    location=self.get_location_for_item(item)
+                    location=self.get_location_for_item(item),
+                    lift = "X"
                 )
             
                 tasks.append(task)
@@ -74,12 +75,18 @@ class OrderReceiver(Node):
     
     def get_location_for_item(self, item):
         # Determine the location for a given item
-        if item == 'cola':
-            return 'A'
-        elif item == 'water':
-            return 'B'
-        elif item == 'ramen':
-            return 'C'
+        if item == 'Coke':
+            return 'A1'
+        elif item == 'Sprite':
+            return 'A2'
+        elif item == 'Chapagetti':
+            return 'B1'
+        elif item == 'Buldak':
+            return 'B2'
+        elif item == 'Robot Vacuum':
+            return 'C1'
+        elif item == 'Coffee Pot':
+            return 'C2'
         else:
             return 'X'        
             

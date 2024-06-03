@@ -133,6 +133,7 @@ class TaskAllocator(Node):
         request.item = task.item
         request.quantity = task.quantity
         request.location = task.location
+        request.lift = task.lift
 
         service_name = f'/allocate_task_{robot_id}'                                 # Allocate task service
         allocate_task_client = self.create_client(AllocateTask, service_name)       # Create service client
