@@ -22,12 +22,12 @@ topics:
 
   task_213:
     type: task_msgs/srv/AllocateTask
-    from_domain: 213
-    to_domain: 212
+    from_domain: 217
+    to_domain: 213
 
   task_214:
     type: task_msgs/srv/AllocateTask
-    from_domain: 214
+    from_domain: 213
     to_domain: 212
 
   task_215:
