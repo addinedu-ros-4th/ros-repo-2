@@ -169,12 +169,7 @@ class DatabaseManager:
         self.cur.execute(query, (quantity, item_id))
         self.conn.commit()
 
-<<<<<<< HEAD
     # 실행될때 재고 초기화 되지 않도록 수정
-=======
-
-    # 내가 추가한거 다른데로 이동
->>>>>>> localization
     def initialize_inventory(self):
         self.cur.execute("SELECT COUNT(*) FROM ProductInventory")
         result = self.cur.fetchone()
@@ -193,17 +188,7 @@ class DatabaseManager:
             self.cur.execute("INSERT IGNORE INTO ProductInventory (item_id, item_name, stock) VALUES (%s, %s, %s)", (item_id, item_name, stock))
             # print(f"Inserted {item_name} with item_id={item_id} and stock={stock}")  # 디버깅 정보 출력
         self.conn.commit()
-<<<<<<< HEAD
-=======
         
-        
-    # # 이것도 마찬가지
-    # def clear_inventory(self):
-    #     query = "DELETE FROM ProductInventory"
-    #     self.cur.execute(query)
-    #     self.conn.commit()
->>>>>>> localization
-
 
     def close_connection(self):
         if self.cur:
