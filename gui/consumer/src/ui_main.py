@@ -160,7 +160,7 @@ class Ui_MainWindow(QMainWindow, Ui_Setup):
             # JSON 메시지 생성
             order_message = json.dumps({
                 "op": "publish",
-                "topic": "/order",
+                "topic": "/outbound",
                 "msg": {"data": json.dumps(self.orders)}
             })
             # 메시지 전송

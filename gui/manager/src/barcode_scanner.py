@@ -17,10 +17,6 @@ class BarcodeScanner(QObject):
         self.db_manager = DatabaseManager(host='localhost')
         self.db_manager.connect_database()
         self.db_manager.create_table()
-<<<<<<< HEAD
-        # self.db_manager.clear_inventory()  # Only call this if you really need to clear the inventory
-=======
->>>>>>> b90d6320e4b8a0db503466e55f074c29cd6b9eb5
         self.db_manager.insert_initial_data()
         self.db_manager.initialize_inventory()
 
@@ -64,9 +60,13 @@ class BarcodeScanner(QObject):
                         "arrival_date": barcode_entry["time"],
                         "current_status": 'waiting'
                     }
-                    self.db_manager.save_data("Inbound", self.inbound_data)
+                    primary_key = self.db_manager.save_data("Inbound", self.inbound_data)
                     self.db_manager.add_to_stock(item_id, quantity)
                     
+                    # Change format to send to ros
+                    self.inbound_data["id"] = primary_key
+                    del self.inbound_data["quantity"]
+                    self.inbound_data["quantities"] = quantity
                     self.send_task_to_ros()
                     
                     self.barcode_scanned.emit(self.inbound_data)  # Emit signal with inbound data

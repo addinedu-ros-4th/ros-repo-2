@@ -9,21 +9,20 @@ class OrderReceiver(Node):
     def __init__(self):
         super().__init__('order_receiver')
         
-        self.order_list = []
-        
-        self.subscription = self.create_subscription(String, '/order', self.order_callback, 10)
+        self.order_subscription = self.create_subscription(String, '/outbound', self.order_callback, 10)
+        self.inbound_subscription = self.create_subscription(String, '/inbound', self.order_callback, 10)
         self.task_list_publisher = self.create_publisher(TaskList, '/task_list', 10)
         
         
-    def order_callback(self, msg):
+    def order_callback(self, msg, topic_name):
         try:
-            # msg.data를 직접 리스트로 파싱
             order_info = json.loads(msg.data)
+            order_type = "outbound" if topic_name == "/outbound" else "inbound"
             
             if isinstance(order_info, list):
                 for single_order in order_info:
                     if isinstance(single_order, dict):
-                        self.process_single_order(single_order)
+                        self.process_single_order(single_order, order_type)
                     else:
                         self.get_logger().warn(f"Invalid order format: {single_order}")
             else:
@@ -33,34 +32,50 @@ class OrderReceiver(Node):
         except TypeError as e:
             self.get_logger().error(f"Type error: {str(e)}")
 
+    
+    def create_subscription(self, msg_type, topic_name, callback, qos):
+        def subscription_callback(msg):
+            callback(msg, topic_name)
+        # Assuming this is the method to create a subscription, adjust as necessary for actual ROS2 API
+        return self.node.create_subscription(msg_type, topic_name, subscription_callback, qos)
+    
 
-    def process_single_order(self, single_order):
+    def process_single_order(self, single_order, order_type):
         try:
-            bundle_id = single_order['user_id']
+            if order_type == 'inbound':
+                bundle_id = single_order['inbound_id']
+                inbound_zone = single_order['inbound_zone']
+            else:
+                bundle_id = single_order['user_id']
             items = single_order['item_name']
             quantities = single_order['quantities']
 
             tasks = []
             for item, quantity in zip(items, quantities):
-
-                self.order_list.append({
-                    'user_id': bundle_id,
-                    'items': items,
-                    'quantities': quantities
-                })
-                
-                task = Task(
+                if order_type == "inbound":
+                    task = Task(
                     task_id=str(uuid.uuid4()),
-                    task_type="OB",              # Assuming outbound for example
+                    task_type="IB",              # Assuming outbound for example
                     priority=3,                  # Example priority
                     bundle_id=str(bundle_id),    # Use bundle_id
                     item=item,
                     quantity=quantity,
                     location=self.get_location_for_item(item),
                     lift = "X"
-                )
-            
+                    )
+                else:
+                    task = Task(
+                    task_id=str(uuid.uuid4()),
+                    task_type="OB",              # Assuming outbound for example
+                    priority=1,                  # Example priority
+                    bundle_id=str(bundle_id),    # Use bundle_id
+                    item=item,
+                    quantity=quantity,
+                    location=inbound_zone,
+                    lift = "Up"
+                    )
                 tasks.append(task)
+                
 
             # 작업 리스트를 게시
             self.publish_task_list(tasks)
