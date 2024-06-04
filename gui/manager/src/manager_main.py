@@ -12,16 +12,225 @@ from rclpy.node import Node
 from threading import Thread
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSReliabilityPolicy, QoSProfile, qos_profile_sensor_data
+import numpy as np
+import cv2
 
 # from task_msgs.msg import *
 from std_msgs.msg import String
 from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import PoseWithCovarianceStamped 
+from std_srvs.srv import SetBool
+from geometry_msgs.msg import Twist
+from task_msgs.msg import RobotStatus
 
+
+
+global amcl_1, amcl_2, amcl_3
+amcl_1 = PoseWithCovarianceStamped()
+amcl_2 = PoseWithCovarianceStamped()
+amcl_3 = PoseWithCovarianceStamped()
+
+class AmclSubscriber(Node):
+    def __init__(self):
+        super().__init__('amcl_subscriber')
+
+        self.pose1_sub = self.create_subscription(PoseWithCovarianceStamped, 'amcl_pose_1', self.amcl_callback1, 10)
+        self.pose2_sub = self.create_subscription(PoseWithCovarianceStamped, 'amcl_pose_2', self.amcl_callback2, 10)
+        self.pose3_sub = self.create_subscription(PoseWithCovarianceStamped, 'amcl_pose_3', self.amcl_callback3, 10)
+
+    def amcl_callback1(self, amcl):
+        global amcl_1
+        amcl_1 = amcl
+        
+    def amcl_callback2(self, amcl):
+        global amcl_2
+        amcl_2 = amcl
+        
+    def amcl_callback3(self, amcl):
+        global amcl_3
+        amcl_3 = amcl
+    
+class PiCamSubscriber(Node):
+    def __init__(self, ui):
+        super().__init__('pi_cam_sub_scriber') 
+        
+        self.ui = ui
+        self.ui.robot_cam_clicked.connect(self.handle_picam)
+        
+        self.cam_client1 = self.create_client(SetBool, "/camera_control_1")
+        self.cam_client2 = self.create_client(SetBool, "/camera_control_2")
+        self.cam_client3 = self.create_client(SetBool, "/camera_control_3")
+        self.picam_sub1 = None
+        self.picam_sub2 = None
+        self.picam_sub3 = None 
+        self.robot_name = None
+
+    def handle_picam(self, robot_name):
+        if robot_name == 'robot_1':
+            self.picam_sub1 = self.create_subscription(CompressedImage, '/camera/compressed_1', self.img_callback1, 10)
+            self.cam_client1.call_async(True)
+            self.robot_name = robot_name
+            
+            if self.picam_sub2:
+                self.picam_sub2.destroy_subscription()
+                self.cam_client2.call_async(False)
+            
+            if self.picam_sub3:
+                self.picam_sub3.destroy_subscription()
+                self.cam_client3.call_async(False)
+
+            
+        elif robot_name == 'robot_2':
+            self.picam_sub2 = self.create_subscription(CompressedImage, '/camera/compressed_2', self.img_callback2, 10)
+            self.cam_client2.call_async(True)
+            self.robot_name = robot_name
+
+            if self.picam_sub1:
+                self.picam_sub1.destroy_subscription()
+                self.cam_client1.call_async(False)
+
+            if self.picam_sub3:
+                self.picam_sub3.destroy_subscription()
+                self.cam_client3.call_async(False)
+
+            
+        elif robot_name == 'robot_3':
+            self.picam_sub3 = self.create_subscription(CompressedImage, '/camera/compressed_3', self.img_callback3, 10)
+            self.cam_client3.call_async(True)
+            self.robot_name = robot_name
+
+            if self.picam_sub1:
+                self.picam_sub1.destroy_subscription()
+                self.cam_client1.call_async(False)
+
+            if self.picam_sub2:
+                self.picam_sub2.destroy_subscription()
+                self.cam_client2.call_async(False)
+
+        else:
+            self.get_logger().info("robot_name invalid")
+
+
+    def img_callback1(self, data):
+        if self.robot_name == 'robot_1':
+            np_arr = np.frombuffer(data.data, np.uint8)
+            image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+            image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+            height, width, channel = image_np.shape
+            bytes_per_line = 3 * width
+            q_image = QImage(image_np.data, width, height, bytes_per_line, QImage.Format_RGB888)
+            pixmap = QPixmap.fromImage(q_image)
+            self.ui.picamLabel.setPixmap(pixmap)
+        
+        else:
+            pass
+        
+    def img_callback2(self, data):
+        if self.robot_name == 'robot_2':
+            np_arr = np.frombuffer(data.data, np.uint8)
+            image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+            image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+            height, width, channel = image_np.shape
+            bytes_per_line = 3 * width
+            q_image = QImage(image_np.data, width, height, bytes_per_line, QImage.Format_RGB888)
+            pixmap = QPixmap.fromImage(q_image)
+            self.ui.picamLabel.setPixmap(pixmap)
+        
+        else:
+            pass
+    
+    def img_callback3(self, data):
+        if self.robot_name == 'robot_3':
+            np_arr = np.frombuffer(data.data, np.uint8)
+            image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+            image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+            height, width, channel = image_np.shape
+            bytes_per_line = 3 * width
+            q_image = QImage(image_np.data, width, height, bytes_per_line, QImage.Format_RGB888)
+            pixmap = QPixmap.fromImage(q_image)
+            self.ui.picamLabel.setPixmap(pixmap)
+        
+        else:
+            pass
+
+class RobotStatusSubscriber(Node):
+    def __init__(self, ui):
+        super().__init__('robot_status_subscriber')
+
+        self.ui = ui
+        self.ui.robot_status_clicked.connect(self.handle_status)
+
+        self.status_sub1 = self.create_subscription(RobotStatus, '/robot_status_1', self.status_callback1, 10)
+        self.status_sub2 = self.create_subscription(RobotStatus, '/robot_status_2', self.status_callback2, 10)
+        self.status_sub3 = self.create_subscription(RobotStatus, '/robot_status_3', self.status_callback3, 10) 
+        self.robot_name = None
+
+    def handle_status(self, robot_name):
+        self.robot_name = robot_name
+
+    def status_callback1(self, data):
+        if self.robot_name == 'robot_1':
+            self.ui.statusLabel.setText(data)
+
+        else:
+            pass
+
+    def status_callback2(self, data):
+        if self.robot_name == 'robot_2':
+            self.ui.statusLabel.setText(data)
+
+        else:
+            pass
+
+    def status_callback3(self, data):
+        if self.robot_name == 'robot_3':
+            self.ui.statusLabel.setText(data)
+
+        else:
+            pass
+
+class RobotController(Node):
+    def __init__(self, ui):
+        super().__init__('robot_controller')   
+        
+        self.ui = ui
+        self.ui.robot_control_clicked.connect(self.handle_control)
+        self.ui.robot_stop_clicked.connect(self.robot_stop)
+        self.control_pub1 = self.create_publisher(Twist, 'base_controller/cmd_vel_unstamped_1', 10)
+        self.control_pub2 = self.create_publisher(Twist, 'base_controller/cmd_vel_unstamped_2', 10)
+        self.control_pub3 = self.create_publisher(Twist, 'base_controller/cmd_vel_unstamped_3', 10)
+        
+        self.Twist = Twist()
+        self.robot_name = None
+
+    def handle_control(self, robot_name):
+        self.robot_name = robot_name
+
+    def robot_stop(self):
+        if self.robot_name == 'robot_1':
+            self.Twist.linear.x = 0.0
+            self.Twist.angular.z = 0.0
+            self.control_pub1.publish(self.Twist)
+
+        elif self.robot_name == 'robot_2':
+            self.Twist.linear.x = 0.0
+            self.Twist.angular.z = 0.0
+            self.control_pub1.publish(self.Twist)
+        
+        elif self.robot_name == 'robot_3':
+            self.Twist.linear.x = 0.0
+            self.Twist.angular.z = 0.0
+            self.control_pub1.publish(self.Twist)
+
+        else: 
+            self.get_logger().info("robot_name invalid")
 
 
 class Ui_MainWindow(QMainWindow):
-
+    robot_picam_clicked = pyqtSignal(str)
+    robot_status_clicked = pyqtSignal(str)
+    robot_control_clicked = pyqtSignal(str)
+    robot_stop_clicked = pyqtSignal(bool)
 
     def __init__(self):
         super().__init__()
@@ -135,31 +344,23 @@ class Ui_MainWindow(QMainWindow):
         self.robotComboBox = self.findChild(QComboBox, 'robotComboBox')
         self.picamLabel = self.findChild(QLabel, 'picamLabel')
         self.statusLabel = self.findChild(QLabel, 'statusLabel')
+        self.btnStop = self.findChild(QPushButton, 'btnStop')
 
         self.robotComboBox.addItems(["robot_1", "robot_2", "robot_3"])
         self.robotComboBox.currentIndexChanged.connect(self.update_robot_info)
-
+        self.btnStop.clicked.connect(self.robot_stop)
         # Initialize with the first robot's data
         self.update_robot_info(0)
 
     def update_robot_info(self, index):
         robot_name = self.robotComboBox.itemText(index)
-        self.display_robot_picam(robot_name)
-        self.display_robot_status(robot_name)
+        self.robot_picam_clicked.emit(robot_name)
+        self.robot_control_clicked.emit(robot_name)
+        self.robot_status_clicked.emit(robot_name)
 
-    def display_robot_picam(self, robot_name):
-        # # Replace with the actual path to the PiCam feed images or stream
-        # picam_path = f'path/to/{robot_name}_picam_feed.jpg'
-        # pixmap = QPixmap(picam_path)
-        # self.picamLabel.setPixmap(pixmap)
-        # self.picamLabel.setScaledContents(True)  # Ensure the image scales to the label size
-        pass
+    def robot_stop(self):
+        self.robot_stop_clicked.emit(True)
 
-    def display_robot_status(self, robot_name):
-        # # Replace with the actual logic to fetch the robot's status
-        # status = self.db_manager.get_robot_status(robot_name)
-        # self.statusLabel.setText(f"Status: {status}")
-        pass
 
     def init_inbound_order_control_page(self):
         self.inbound_list = self.findChild(QTableWidget, 'inbound_list')  # Ensure this matches the object name in your UI
@@ -199,8 +400,29 @@ class Ui_MainWindow(QMainWindow):
         threading.Thread(target=self.barcode_scanner.append_list).start()
         
 
-if __name__ == '__main__':
+def main(args=None):
+    rclpy.init(args=args)
+    executor = MultiThreadedExecutor()
+
+    amcl_node = AmclSubscriber()
+    picam_node = PiCamSubscriber()
+    status_node = RobotStatusSubscriber()
+    control_node = RobotController()
+
     app = QApplication(sys.argv)
+
     window = Ui_MainWindow()
     window.show()
-    sys.exit(app.exec_())
+
+    executor.add_node(amcl_node)
+    executor.add_node(picam_node)
+    executor.add_node(status_node)
+    executor.add_node(control_node)
+
+    thread = Thread(target=executor.spin)
+    thread.start()
+
+    app.exec_()
+
+if __name__ == '__main__':
+    main()

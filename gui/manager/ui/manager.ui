@@ -28,7 +28,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="MainPage">
      <widget class="QWidget" name="widget_2" native="true">
@@ -449,6 +449,19 @@ p, li { white-space: pre-wrap; }
        <property name="alignment">
         <set>Qt::AlignCenter</set>
        </property>
+       <widget class="QPushButton" name="btnStop">
+        <property name="geometry">
+         <rect>
+          <x>90</x>
+          <y>100</y>
+          <width>81</width>
+          <height>71</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>STOP</string>
+        </property>
+       </widget>
       </widget>
      </widget>
     </widget>
