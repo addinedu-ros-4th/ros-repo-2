@@ -19,6 +19,7 @@ from task_msgs.msg import TaskCompletion
 from task_msgs.msg import CurrentPath
 from task_msgs.msg import RobotStatus
 from task_msgs.msg import OutTask
+
 from std_msgs.msg import Empty
 from std_msgs.msg import Float32
 from rclpy.executors import MultiThreadedExecutor
@@ -318,11 +319,11 @@ class RobotController(Node) :
             try:
                 self.tasking = True
                 self.task_id = req.task_id
+                self.task_status = req.task_type
                 self.current_task_location = req.location
                 self.item = req.item
                 self.quantity = req.quantity
                 
-                # pose_list = self.encoding_path(req.location)
                 res.success = self.follow_path(self.current_task_location, req.lift)
                 self.tasking = False
                 self.send_complete_task_topics()
@@ -366,17 +367,17 @@ class RobotController(Node) :
 
             if lift == "Up" : # lift up first place (첫 장소 리프트 업)
                 self.get_logger().info("lift up")
-                # self.service_call_lift(pose_name, "down")
-                # self.service_call_marker(pose_name, "forward")
-                # self.service_call_lift(pose_name, "up")
-                # self.service_call_marker(pose_name, "backward")
+                self.service_call_lift(pose_name, "down")
+                self.service_call_marker(pose_name, "forward")
+                self.service_call_lift(pose_name, "up")
+                self.service_call_marker(pose_name, "backward")
 
             elif lift == "Down" : # lift down last place(마지막 장소 리프트 다운)
                 self.get_logger().info("lift down")
-                # self.service_call_lift(pose_name, "up")
-                # self.service_call_marker(pose_name, "forward")
-                # self.service_call_lift(pose_name, "down")
-                # self.service_call_marker(pose_name, "backward")
+                self.service_call_lift(pose_name, "up")
+                self.service_call_marker(pose_name, "forward")
+                self.service_call_lift(pose_name, "down")
+                self.service_call_marker(pose_name, "backward")
 
             else : # 나머지 장소
                 self.current_task_location = pose_name
@@ -430,20 +431,13 @@ class RobotController(Node) :
                 
                 
             
-            else:
-                self.get_logger().info("move stopover")
-                self.get_logger().info(f"my pose = {current_point_index}")
-                self.get_logger().info(f"go pose = {passable_path}")
-                self.current_path_msg.start_x = current_point_index[0]
-                self.current_path_msg.start_y = current_point_index[1]
-                self.current_path_msg.end_x = passable_path[0]
-                self.current_path_msg.end_y = passable_path[1]
-                
-                yaw = self.point_to_yaw(self.PATH_LIST[current_point_index[0]][current_point_index[1]],
-                                         self.PATH_LIST[passable_path[0]][passable_path[1]])
-                self.move_pose(self.PATH_LIST[current_point_index[0]][current_point_index[1]], yaw)
-                self.move_pose(self.PATH_LIST[passable_path[0]][passable_path[1]], yaw)
-                current_point_index = passable_path.copy()
+            elif len(passable_path) == 2:
+                self.move_set(passable_path, current_point_index)
+
+            elif len(passable_path) > 2:
+                passable_path_list = [passable_path[:2], passable_path[2:4]]
+                for path in passable_path_list:
+                    self.move_set(path, current_point_index)
 
 
     def search_nearest_point(self,target_pose): # 타겟에 가장 가까운 point 찾기
@@ -483,9 +477,37 @@ class RobotController(Node) :
         if x != target_x and self.current_is_passable_list[x + direction_robot_to_target[0]][y]:
             return_vel = [x + direction_robot_to_target[0], y]
 
+        if return_vel == [] and (y != target_y or x != target_x) : # 
+            if x - target_x > y - target_y and self.current_is_passable_list[x + direction_robot_to_target[0]][y + direction_robot_to_target[1]]:
+                return_vel = [x, y + direction_robot_to_target[1], x + direction_robot_to_target[0], y + direction_robot_to_target[1]]
+                    
+            elif x - target_x > y - target_y and self.current_is_passable_list[x + direction_robot_to_target[0]][y - direction_robot_to_target[1]]:
+                return_vel = [x, y - direction_robot_to_target[1], x + direction_robot_to_target[0], y - direction_robot_to_target[1]]
+            
+            elif x - target_x < y - target_y and self.current_is_passable_list[x + direction_robot_to_target[0]][y + direction_robot_to_target[1]]:
+                return_vel = [x + direction_robot_to_target[0], y, x + direction_robot_to_target[0], y + direction_robot_to_target[1]]
+
+            elif x - target_x < y - target_y and self.current_is_passable_list[x - direction_robot_to_target[0]][y + direction_robot_to_target[1]]:
+                return_vel = [x - direction_robot_to_target[0], y, x - direction_robot_to_target[0], y + direction_robot_to_target[1]]
 
         return return_vel   
         
+
+    def move_set(self, passable_path, current_point_index):
+        self.get_logger().info("move stopover")
+        self.get_logger().info(f"my pose = {current_point_index}")
+        self.get_logger().info(f"go pose = {passable_path}")
+        self.current_path_msg.start_x = current_point_index[0]
+        self.current_path_msg.start_y = current_point_index[1]
+        self.current_path_msg.end_x = passable_path[0]
+        self.current_path_msg.end_y = passable_path[1]
+        
+        yaw = self.point_to_yaw(self.PATH_LIST[current_point_index[0]][current_point_index[1]],
+                                self.PATH_LIST[passable_path[0]][passable_path[1]])
+        self.move_pose(self.PATH_LIST[current_point_index[0]][current_point_index[1]], yaw)
+        self.move_pose(self.PATH_LIST[passable_path[0]][passable_path[1]], yaw)
+        current_point_index = passable_path.copy()
+
 
     def find_approximation_to_pose_list(self, pose_list, target_vel):
         min_vel = 999
@@ -499,26 +521,6 @@ class RobotController(Node) :
                 min_index = i
 
         return min_index
-
-
-    def encoding_path(self, task) :
-        pose_list = task.split("#")
-        self.get_logger().info(f"task_list is : {pose_list}")
-        
-        if "A" in pose_list[0] : # 수거
-            self.task_status = "RETURN"
-
-        elif "O" in pose_list[0] : # 출고
-            self.task_status = "OUT"
-
-
-        elif "I" in pose_list[0] : # 입고
-            self.task_status = "IN"
-
-        else :
-            self.task_status = None
-        
-        return pose_list
 
         
     def point_to_yaw(self, start_pose, target):
