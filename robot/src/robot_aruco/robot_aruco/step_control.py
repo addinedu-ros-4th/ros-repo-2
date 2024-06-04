@@ -3,7 +3,7 @@ from rclpy.node import Node
 import RPi.GPIO as GPIO
 import time
 from task_msgs.srv import StepControl
-
+from task_msgs.srv import StepControlResponse
 class RasGPIOController:
     def __init__(self, step_pins):
         # pin 번호 설정
@@ -59,22 +59,27 @@ class RobotStepControl(Node):
         super().__init__('robot_step_control')  # 노드 이름 지정
         self.rascontroller = RasGPIOController([17, 18, 22, 23])
         self.server = self.create_service(StepControl, '/step_control', self.handle_forkarm)
-    
+        self.lift_done_client = self.create_client(
+            StepControlResponse, "/step_control_response"
+        )
 
     def handle_forkarm(self, request, response):
         self.floor = request.floor 
         self.direction = request.direction 
+        res = StepControlResponse.Request()
         if self.direction == 'up':
             self.rascontroller.step_control(f'{self.floor}lift')
-            response.success = True
+            res.success = True
             
         elif self.direction == 'down':
             self.rascontroller.step_control(f'{self.floor}place')
-            response.success = True
+            res.success = True
             
         else: 
-            response.success = False
+            res.success = False
+
         
+        self.lift_done_client.call_async(res)
         return response
     
 

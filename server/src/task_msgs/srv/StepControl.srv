@@ -1,6 +1,3 @@
 int32 floor
-# 1, 2
 string direction
-# up, down
 ---
-bool success
