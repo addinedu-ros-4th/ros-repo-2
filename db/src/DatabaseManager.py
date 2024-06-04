@@ -174,6 +174,7 @@ class DatabaseManager:
             self.cur.execute("INSERT IGNORE INTO ProductInventory (item_id, item_name, stock) VALUES (%s, %s, %s)", (item_id, item_name, stock))
             # print(f"Inserted {item_name} with item_id={item_id} and stock={stock}")  # 디버깅 정보 출력
         self.conn.commit()
+        
     # 이것도 마찬가지
     def clear_inventory(self):
         query = "DELETE FROM ProductInventory"
