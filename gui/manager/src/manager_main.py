@@ -7,6 +7,62 @@ from PyQt5.QtWidgets import *
 from PyQt5 import uic
 from DatabaseManager import DatabaseManager
 from barcode_scanner import BarcodeScanner
+import rclpy
+from rclpy.node import Node
+from threading import Thread
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSReliabilityPolicy, QoSProfile, qos_profile_sensor_data
+
+# from task_msgs.msg import *
+from std_msgs.msg import String
+from sensor_msgs.msg import CompressedImage
+from geometry_msgs.msg import PoseWithCovarianceStamped 
+
+
+
+# class AmclSubscriber(Node):
+
+#     def __init__(self):
+
+#         super().__init__('amcl_subscriber')
+  
+#         amcl_pose_qos = QoSProfile(
+#                 durability=QoSDurabilityPolicy.TRANSIENT_LOCAL,
+#                 reliability=QoSReliabilityPolicy.RELIABLE,
+#                 history=QoSHistoryPolicy.KEEP_LAST,
+#                 depth=1)
+        
+#         # 3개의 로봇 위치 표시
+#         self.pose1 = self.create_subscription(
+#             PoseWithCovarianceStamped, 
+#             '/amcl_pose_1', 
+#             self.amcl_callback1, 
+#             amcl_pose_qos)
+        
+#         self.pose2 = self.create_subscription(
+#             PoseWithCovarianceStamped, 
+#             '/amcl_pose_2', 
+#             self.amcl_callback2, 
+#             amcl_pose_qos)
+        
+#         self.pose3 = self.create_subscription(
+#             PoseWithCovarianceStamped, 
+#             '/amcl_pose_3', 
+#             self.amcl_callback3, 
+#             amcl_pose_qos)
+
+#     def amcl_callback1(self, amcl):
+#         global amcl_1
+#         amcl_1 = amcl
+        
+#     def amcl_callback2(self, amcl):
+#         global amcl_2
+#         amcl_2 = amcl
+        
+#     def amcl_callback3(self, amcl):
+#         global amcl_3
+#         amcl_3 = amcl
+
 
 class Ui_MainWindow(QMainWindow):
     def __init__(self):
@@ -17,7 +73,7 @@ class Ui_MainWindow(QMainWindow):
         self.db_manager.connect_database()
         self.db_manager.create_table()
 
-         # Load UI
+        # Load UI
         uic.loadUi("gui/manager/ui/manager.ui", self)
 
         # Initialize the Stacked Widget
@@ -29,6 +85,8 @@ class Ui_MainWindow(QMainWindow):
         self.init_inbound_order_control_page()
 
         self.init_navigation_buttons()
+
+        self.init_ros2_node()
 
 
     def init_navigation_buttons(self):
@@ -69,27 +127,90 @@ class Ui_MainWindow(QMainWindow):
         icon = QIcon(icon_path)
         button.setIcon(icon)
         button.setIconSize(QSize(35, 35))  # Adjust the size as needed
-       
+
     def switch_page(self, page_index):
         self.stackedWidget.setCurrentIndex(page_index)
-        
+
     def init_main_page(self):
         # Main Page: Real-time location of robots, Task list, Current Stock info
+        self.map_label = self.findChild(QLabel, 'mapLabel')  # Assuming there's a QLabel for the map
+
+    def init_ros2_node(self):
+        # rclpy.init()
+        # self.executor = MultiThreadedExecutor()
+        # self.amcl_subscriber = AmclSubscriber()
+        # self.executor.add_node(self.amcl_subscriber)
+
+        # # Run ROS 2 executor in a separate thread
+        # self.ros_thread = Thread(target=self.executor.spin)
+        # self.ros_thread.start()
+
+        # # Timer to update the map periodically
+        # self.timer = QTimer(self)
+        # self.timer.timeout.connect(self.update_map)
+        # self.timer.start(1000)  # Update the map every second
+        pass
+
+    def update_map(self):
+        # # Fetch the latest positions
+        # global amcl_1, amcl_2, amcl_3
+        # positions = [amcl_1, amcl_2, amcl_3]
+        
+        # # Placeholder for actual map update logic
+        # for idx, pose in enumerate(positions):
+        #     if pose:
+        #         position = pose.pose.pose.position
+        #         orientation = pose.pose.pose.orientation
+        #         print(f"Robot {idx + 1} Position: {position.x}, {position.y}, Orientation: {orientation.z}")
+        
+        # # Update your QLabel or map with the positions
+        # self.map_label.setPixmap(updated_map_pixmap)
+        pass
+
+    def update_task_list(self):
         pass
 
     def update_stock_info(self):
         pass
 
     def init_robot_control_page(self):
+        self.robotComboBox = self.findChild(QComboBox, 'robotComboBox')
+        self.picamLabel = self.findChild(QLabel, 'picamLabel')
+        self.statusLabel = self.findChild(QLabel, 'statusLabel')
+
+        self.robotComboBox.addItems(["robot_1", "robot_2", "robot_3"])
+        self.robotComboBox.currentIndexChanged.connect(self.update_robot_info)
+
+        # Initialize with the first robot's data
+        self.update_robot_info(0)
+
+    def update_robot_info(self, index):
+        robot_name = self.robotComboBox.itemText(index)
+        self.display_robot_picam(robot_name)
+        self.display_robot_status(robot_name)
+
+    def display_robot_picam(self, robot_name):
+        # # Replace with the actual path to the PiCam feed images or stream
+        # picam_path = f'path/to/{robot_name}_picam_feed.jpg'
+        # pixmap = QPixmap(picam_path)
+        # self.picamLabel.setPixmap(pixmap)
+        # self.picamLabel.setScaledContents(True)  # Ensure the image scales to the label size
         pass
 
-    def update_robot_info(self):
+    def display_robot_status(self, robot_name):
+        # # Replace with the actual logic to fetch the robot's status
+        # status = self.db_manager.get_robot_status(robot_name)
+        # self.statusLabel.setText(f"Status: {status}")
         pass
 
     def init_inbound_order_control_page(self):
+        self.inbound_list = self.findChild(QTableWidget, 'inbound_list')  # Ensure this matches the object name in your UI
         self.scanned_data = ""
+        self.scan_button = self.findChild(QPushButton, 'scan_button')  # Ensure this matches the object name in your UI
         self.scan_button.clicked.connect(self.scan_barcode)
-
+        
+        self.refresh_button = self.findChild(QPushButton, 'refresh_button')  # Ensure this matches the object name in your UI
+        self.refresh_button.clicked.connect(self.update_inbound_list)
 
         self.barcode_scanner = BarcodeScanner()  # Properly initialize BarcodeScanner
         self.barcode_scanner.barcode_scanned.connect(self.update_inbound_list)  # Connect signal to slot
@@ -97,12 +218,13 @@ class Ui_MainWindow(QMainWindow):
     def update_inbound_list(self, data=None):
         # Clear the existing rows in the QTableWidget
         self.inbound_list.setRowCount(0)
+        self.inbound_list.setColumnCount(5)
+        self.inbound_list.setHorizontalHeaderLabels(["Item Name", "Quantity", "Inbound Zone", "Arrival Date", "Status"])
 
-        # Get all rows from the Inbound table
-        all_rows = self.db_manager.get_data("Inbound")
+        # Create a new cursor and fetch all rows from the Inbound table
+        self.db_manager.connect_database()  # Reconnect to refresh the cursor
+        all_rows = self.db_manager.get_data("Inbound", ["item_name", "quantity", "inbound_zone", "arrival_date", "current_status"])
         
-        print("Inbound table data:", all_rows)  # Debugging print statement
-
         # Populate the QTableWidget with data from the Inbound table
         for row in all_rows:
             row_position = self.inbound_list.rowCount()
@@ -111,9 +233,13 @@ class Ui_MainWindow(QMainWindow):
                 self.inbound_list.setItem(row_position, column, QTableWidgetItem(str(value)))
         print("Updated inbound_list with new data")  # Debugging print statement
 
+    def update_order_list(self):
+        pass
+
     def scan_barcode(self):
-        self.barcode_scanner.append_list()
-        self.update_inbound_list()
+        import threading
+        threading.Thread(target=self.barcode_scanner.append_list).start()
+        
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
