@@ -87,7 +87,7 @@ class OrderReceiver(Node):
         except TypeError as e:
             self.get_logger().error(f"Type error in single order: {e}")
     
-    
+
     def get_location_for_item(self, item):
         # Determine the location for a given item
         if item == 'Coke':

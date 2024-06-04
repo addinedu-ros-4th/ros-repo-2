@@ -35,7 +35,11 @@ class TaskAllocator(Node):
 
 
     def get_final_location_from_db(self, task):
-        return 'A1'
+        # item_name = task[item]
+        # 수정 필요
+        # task[0]의 bundle id가 db의 inbound_id 컬럼과 같으면 그 데이터의 item_tag 컬럼의 값을 return
+        # 구현하면 Inbound는 대충 끝 테스트
+        pass
 
 
     def receive_task_list(self, msg):
@@ -49,6 +53,7 @@ class TaskAllocator(Node):
                 if task.bundle_id not in self.inbound_to_task_map:
                     self.inbound_to_task_map[task.bundle_id] = []
                 self.inbound_to_task_map[task.bundle_id].append(task)
+                self.inbound_item = self.task.item
 
         self.get_logger().info(f'Received task list with {len(msg.tasks)} tasks')
         self.bundle_tasks()
@@ -69,7 +74,7 @@ class TaskAllocator(Node):
 
         # In case of inbound
         for bundle_id, tasks in self.inbound_to_task_map.items():
-            transaction_tasks = TaskFactory.create_inbound_tasks(bundle_id, tasks, self.get_final_location_from_db(tasks[0]))
+            transaction_tasks = TaskFactory.create_inbound_tasks(bundle_id, self.inbound_item, tasks, self.get_final_location_from_db(tasks[0]))
             
             if transaction_tasks:                                                   # Create transaction task
                 unique_tasks = list({task.task_id: task for task in transaction_tasks}.values())
