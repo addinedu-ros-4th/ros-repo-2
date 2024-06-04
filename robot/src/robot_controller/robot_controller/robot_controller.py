@@ -79,9 +79,10 @@ class My_Location(Node) :
         
     def renew_out_task_data(self):
         msg = OutTask()
-        msg.location = self.controller.current_out_task
-        msg.product = ""
-        msg.count = 0
+        msg.location = self.controller.current_task_location
+        msg.product = self.controller.item
+        msg.count = self.controller.quantity
+        
         self.publisher_out_task.publish(msg)
 
     def current_pose(self, data):
@@ -113,7 +114,7 @@ class RobotController(Node) :
         self.get_logger().info("start robot_controller")
         self.nav = BasicNavigator()
         
-        self.current_out_task = ""
+        self.current_task_location = ""
         self.tasking = False
         self.next_out = False
         self.lift_service_done = False
@@ -121,10 +122,12 @@ class RobotController(Node) :
         
         self.task_status = ""
         self.task_id = ""
+        self.item = ""
+        self.quantity = 0
         self.my_pose = [0.0, 0.0, 0.0]
         self.server = self.create_service(
             AllocateTask, 
-            f"/task_{ID}", 
+            f"/allocate_task_{ID}", 
             self.task_callback
         )
 
@@ -192,23 +195,7 @@ class RobotController(Node) :
             "C2" : 3.14, "C2_2" : 3.14, 
             "R1" : 1.57, "R2" : 1.57
         }
-        self.PATH_LIST = [
-            [[0.3, -1.1, 0.0],  [0.85, -1.1, 0.0],  [1.15, -1.1, 0.0],  [1.6, -1.1, 0.0]],
-            [[0.3, -0.75, 0.0], [0.85, -0.75, 0.0], [1.15, -0.75, 0.0], [1.6, -0.75, 0.0]],
-            [[0.3, -0.4, 0.0],  [0.85, -0.4, 0.0],  [1.15, -0.4, 0.0],  [1.6, -0.4, 0.0]],
-            [[0.3, 0.0, 0.0],   [0.85, 0.0, 0.0],   [1.15, 0.0, 0.0],   [1.6, 0.0, 0.0]],
-            [[0.3, 0.4, 0.0],   [0.85, 0.4, 0.0],   [1.15, 0.4, 0.0],   [1.6, 0.4, 0.0]],
-            [[0.3, 0.75, 0.0],  [0.85, 0.75, 0.0],  [1.15, 0.75, 0.0],  [1.6, 0.75, 0.0]],
-            [[0.3, 1.1, 0.0],   [0.85, 1.1, 0.0],   [1.15, 1.1, 0.0],   [1.6, 1.1, 0.0]]
-        ]
-        self.X_LIST = []
-        self.Y_LIST = []
-        for i in self.PATH_LIST[0]:
-            self.X_LIST.append(i[0])
-        for i in self.PATH_LIST:
-            self.Y_LIST.append(i[0][1])
-
-        
+        self.declare_lists()
         # self.SUB_PATH_POSE_X_LIST = [2.3, 1.7, 0.7, 0.2]
         # self.SUB_PATH_POSE_Y_LIST = [0.7, 0.3, 0.0, -0.5]
 
@@ -219,9 +206,34 @@ class RobotController(Node) :
         
         
         
-
+        self.send_robot_status_topics()
         self.get_logger().info("controller is ready")
 
+    def declare_lists(self):
+        self.PATH_LIST = [
+            [[0.3, -1.1, 0.0],  [0.85, -1.1, 0.0],  [1.15, -1.1, 0.0],  [1.6, -1.1, 0.0]],
+            [[0.3, -0.75, 0.0], [0.85, -0.75, 0.0], [1.15, -0.75, 0.0], [1.6, -0.75, 0.0]],
+            [[0.3, -0.4, 0.0],  [0.85, -0.4, 0.0],  [1.15, -0.4, 0.0],  [1.6, -0.4, 0.0]],
+            [[0.3, 0.0, 0.0],   [0.85, 0.0, 0.0],   [1.15, 0.0, 0.0],   [1.6, 0.0, 0.0]],
+            [[0.3, 0.4, 0.0],   [0.85, 0.4, 0.0],   [1.15, 0.4, 0.0],   [1.6, 0.4, 0.0]],
+            [[0.3, 0.75, 0.0],  [0.85, 0.75, 0.0],  [1.15, 0.75, 0.0],  [1.6, 0.75, 0.0]],
+            [[0.3, 1.1, 0.0],   [0.85, 1.1, 0.0],   [1.15, 1.1, 0.0],   [1.6, 1.1, 0.0]]
+        ]
+        
+        self.X_LIST = []
+        self.Y_LIST = []
+        for i in self.PATH_LIST[0]:
+            self.X_LIST.append(i[0])
+        for i in self.PATH_LIST:
+            self.Y_LIST.append(i[0][1])
+
+        self.is_passable_list = [[True for _ in range(len(self.PATH_LIST[0]))] for _ in range(len(self.PATH_LIST))]
+        not_passable_index_list = [[1, 1], [1, 2], [3, 1], [3, 2], [5, 1], [5, 2]]
+        
+        for i in not_passable_index_list:
+            self.is_passable_list[i[0]][i[1]] = False
+
+        self.current_is_passable_list = self.is_passable_list.copy()
 
 
     def check_emergency_status(self):
@@ -240,10 +252,11 @@ class RobotController(Node) :
 
         
         msg.robot_id = ID
-        msg.robot_status = self.task_status
+        msg.robot_status = "available"
 
-        for i in range(5):
+        for i in range(20):
             self.robot_status_publisher.publish(msg)
+            time.sleep(0.1)
 
 
     def task_callback(self, req, res) :
@@ -252,10 +265,14 @@ class RobotController(Node) :
             try:
                 self.tasking = True
                 self.task_id = req.task_id
-                pose_list = self.encoding_path(req.location)
-                res.success = self.follow_path(pose_list)
+                self.current_task_location = req.location
+                self.item = req.item
+                self.quantity = req.quantity
+                
+                # pose_list = self.encoding_path(req.location)
+                res.success = self.follow_path(self.current_task_location, req.lift)
                 self.tasking = False
-                # self.send_complete_task_topics()
+                self.send_complete_task_topics()
 
             except Exception as e:
                 self.get_logger().error(f"{e}")
@@ -274,33 +291,35 @@ class RobotController(Node) :
         msg.robot_id = ID
         msg.task_id = self.task_id
 
-        for i in range(5):
+        for i in range(20):
             self.task_completion_publisher.publish(msg)
+            time.sleep(0.1)
 
 
 
-    def follow_path(self, pose_list) :
-        self.get_logger().info("path_planning start")
-        
-        for pose_name in pose_list:
+    def follow_path(self, pose_name, lift) :
+        try:
+            self.get_logger().info("path_planning start")
+            
+            # for pose_name in pose_list:
             target_pose = self.POSE_DICT[pose_name]
             target_yaw = self.YAW_DICT[pose_name]
             
 
-            self.real_time_stopover_planning(target_pose)
+            # self.real_time_stopover_planning(target_pose)
 
             
             self.get_logger().info(f"goto{pose_name}")
             self.move_pose(target_pose, target_yaw)
 
-            if pose_name == pose_list[0] and self.task_status != "OUT" : # lift up first place (첫 장소 리프트 업)
+            if lift == "Up" : # lift up first place (첫 장소 리프트 업)
                 self.get_logger().info("lift up")
                 self.service_call_lift(pose_name, "up")
                 self.service_call_marker(pose_name, "forward")
                 self.service_call_lift(pose_name, "down")
                 self.service_call_marker(pose_name, "backward")
 
-            elif pose_name == pose_list[-1] : # lift down last place(마지막 장소 리프트 다운)
+            elif lift == "Down" : # lift down last place(마지막 장소 리프트 다운)
                 self.get_logger().info("lift down")
                 self.service_call_lift(pose_name, "down")
                 self.service_call_marker(pose_name, "forward")
@@ -308,13 +327,18 @@ class RobotController(Node) :
                 self.service_call_marker(pose_name, "backward")
 
             else : # 나머지 장소
-                self.current_out_task = pose_name
+                self.current_task_location = pose_name
                 self.checking_task_is_out() # 현재 테스크 상태가 OUT이면 대기상태 진입
                 
 
-        self.get_logger().info("move end")
+            self.get_logger().info("move end")
+            return True
+        
+        except Exception as e:
+            self.get_logger().error(f"{e}")
+            return False
 
-        return True
+        
     
     
 
@@ -333,9 +357,13 @@ class RobotController(Node) :
     def real_time_stopover_planning(self, target_pose):
         nearest_point_from_target, nearest_point_from_target_index = self.search_nearest_point(target_pose)
         nearest_point_from_me, nearest_point_from_me_index = self.search_nearest_point(self.my_pose)
-        
+        current_point_index = nearest_point_from_me_index.copy()
+
         self.move_pose(nearest_point_from_me, [0.0, 0.0, 0.0])
 
+        while current_point_index != nearest_point_from_target_index:
+            self.current_is_passable_list
+            pass
         
 
     def search_nearest_point(self,target_pose): # 타겟에 가장 가까운 point 찾기
@@ -360,6 +388,9 @@ class RobotController(Node) :
             
         return nearest_point, nearest_point_index
 
+
+    def is_passable(self):
+        pass
 
     # def planning_stopover(self, target): # for test
     #     x_min_index = self.find_approximation_to_pose_list(self.MAIN_PATH_POSE_X_LIST, self.my_pose[0])

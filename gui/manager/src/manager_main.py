@@ -8,6 +8,7 @@ from PyQt5 import uic
 from DatabaseManager import DatabaseManager
 from barcode_scanner import BarcodeScanner
 
+
 class Ui_MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -114,6 +115,26 @@ class Ui_MainWindow(QMainWindow):
     def scan_barcode(self):
         self.barcode_scanner.append_list()
         self.update_inbound_list()
+        
+        
+    def send_task_to_ros(self):
+        try:
+        # WebSocket을 통해 rosbridge로 연결
+            ws = create_connection("ws://192.168.0.85:9090")
+            # JSON 메시지 생성
+            order_message = json.dumps({
+                "op": "publish",
+                "topic": "/db_update",
+                "msg": {"data": json.dumps(self.orders)}
+            })
+            # 메시지 전송
+            ws.send(order_message)
+            ws.close()
+        except OSError as e:
+            QMessageBox.warning(self, "WebSocket Error", f"Failed to connect to WebSocket: {str(e)}")
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"An error occurred: {str(e)}")
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
