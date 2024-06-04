@@ -20,51 +20,9 @@ from geometry_msgs.msg import PoseWithCovarianceStamped
 
 
 
-# class AmclSubscriber(Node):
-
-#     def __init__(self):
-
-#         super().__init__('amcl_subscriber')
-  
-#         amcl_pose_qos = QoSProfile(
-#                 durability=QoSDurabilityPolicy.TRANSIENT_LOCAL,
-#                 reliability=QoSReliabilityPolicy.RELIABLE,
-#                 history=QoSHistoryPolicy.KEEP_LAST,
-#                 depth=1)
-        
-#         # 3개의 로봇 위치 표시
-#         self.pose1 = self.create_subscription(
-#             PoseWithCovarianceStamped, 
-#             '/amcl_pose_1', 
-#             self.amcl_callback1, 
-#             amcl_pose_qos)
-        
-#         self.pose2 = self.create_subscription(
-#             PoseWithCovarianceStamped, 
-#             '/amcl_pose_2', 
-#             self.amcl_callback2, 
-#             amcl_pose_qos)
-        
-#         self.pose3 = self.create_subscription(
-#             PoseWithCovarianceStamped, 
-#             '/amcl_pose_3', 
-#             self.amcl_callback3, 
-#             amcl_pose_qos)
-
-#     def amcl_callback1(self, amcl):
-#         global amcl_1
-#         amcl_1 = amcl
-        
-#     def amcl_callback2(self, amcl):
-#         global amcl_2
-#         amcl_2 = amcl
-        
-#     def amcl_callback3(self, amcl):
-#         global amcl_3
-#         amcl_3 = amcl
-
-
 class Ui_MainWindow(QMainWindow):
+
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Manager Window")
