@@ -20,6 +20,40 @@ topics:
     remap: amcl_pose_3
 
 
+  obstacle:
+    type: task_msgs/msg/CurrentPath
+    from_domain: 214
+    to_domain: 213
+    remap: obstacle_1
+  obstacle:
+    type: task_msgs/msg/CurrentPath
+    from_domain: 215
+    to_domain: 213
+    remap: obstacle_2
+
+  obstacle:
+    type: task_msgs/msg/CurrentPath
+    from_domain: 213
+    to_domain: 214
+    remap: obstacle_1
+  obstacle:
+    type: task_msgs/msg/CurrentPath
+    from_domain: 215
+    to_domain: 214
+    remap: obstacle_2
+
+  obstacle:
+    type: task_msgs/msg/CurrentPath
+    from_domain: 213
+    to_domain: 215
+    remap: obstacle_1
+  obstacle:
+    type: task_msgs/msg/CurrentPath
+    from_domain: 214
+    to_domain: 215
+    remap: obstacle_2
+
+
   task_213:
     type: task_msgs/srv/AllocateTask
     from_domain: 217
