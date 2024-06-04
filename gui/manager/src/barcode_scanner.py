@@ -17,10 +17,6 @@ class BarcodeScanner(QObject):
         self.db_manager = DatabaseManager(host='localhost')
         self.db_manager.connect_database()
         self.db_manager.create_table()
-<<<<<<< HEAD
-        # self.db_manager.clear_inventory()  # Only call this if you really need to clear the inventory
-=======
->>>>>>> b90d6320e4b8a0db503466e55f074c29cd6b9eb5
         self.db_manager.insert_initial_data()
         self.db_manager.initialize_inventory()
 

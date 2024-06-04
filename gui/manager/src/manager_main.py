@@ -7,6 +7,8 @@ from PyQt5.QtWidgets import *
 from PyQt5 import uic
 from DatabaseManager import DatabaseManager
 from barcode_scanner import BarcodeScanner
+from RobotController import RobotController
+import pandas as pd
 import rclpy
 from rclpy.node import Node
 from threading import Thread
@@ -91,40 +93,45 @@ class Ui_MainWindow(QMainWindow):
 
     def init_main_page(self):
         # Main Page: Real-time location of robots, Task list, Current Stock info
-        self.map_label = self.findChild(QLabel, 'mapLabel')  # Assuming there's a QLabel for the map
+        product_inventory = self.db_manager.utils.fetch_all_product("ProductInventory")
 
-    def init_ros2_node(self):
-        # rclpy.init()
-        # self.executor = MultiThreadedExecutor()
-        # self.amcl_subscriber = AmclSubscriber()
-        # self.executor.add_node(self.amcl_subscriber)
+        df = pd.DataFrame(product_inventory, columns=['item_id', 'item_name', 'stock'])
 
-        # # Run ROS 2 executor in a separate thread
-        # self.ros_thread = Thread(target=self.executor.spin)
-        # self.ros_thread.start()
+        # tableWidget 업데이트
+        self.tableWidget.setRowCount(len(df))
+        self.tableWidget.setColumnCount(len(df.columns))
+        self.tableWidget.setHorizontalHeaderLabels(df.columns)
 
-        # # Timer to update the map periodically
-        # self.timer = QTimer(self)
-        # self.timer.timeout.connect(self.update_map)
-        # self.timer.start(1000)  # Update the map every second
-        pass
+        for row_index, row in enumerate(df.itertuples(index=False)):
+            for col_index, value in enumerate(row):
+                item = QTableWidgetItem(str(value))
+                self.tableWidget.setItem(row_index, col_index, item)
+
+        robotstatus = self.db_manager.utils.fetch_all_product("RobotStatus")
+
+        df = pd.DataFrame(robotstatus, columns=['robot_id', 'status'])
+        id_list = df['robot_id'].tolist()
+        status_list = df['status'].tolist()
+
+        self.update_robot_button(self.R1, self.status1, id_list[0], status_list[0])
+        self.update_robot_button(self.R2, self.status2, id_list[1], status_list[1])
+        self.update_robot_button(self.R3, self.status3, id_list[2], status_list[2])
+
+    def update_robot_button(self, button, status_label, robot_id, status):
+        button.setText(robot_id)
+        status_label.setText(status)
+        if status == "busy":
+            button.setStyleSheet("background-color: rgb(246, 97, 81);""border-radius: 20px")
+        elif status == "available":
+            button.setStyleSheet("background-color: rgb(143, 240, 164);""border-radius: 20px")
+        else:
+            button.setStyleSheet("")
+                
+            pass
 
     def update_map(self):
-        # # Fetch the latest positions
-        # global amcl_1, amcl_2, amcl_3
-        # positions = [amcl_1, amcl_2, amcl_3]
-        
-        # # Placeholder for actual map update logic
-        # for idx, pose in enumerate(positions):
-        #     if pose:
-        #         position = pose.pose.pose.position
-        #         orientation = pose.pose.pose.orientation
-        #         print(f"Robot {idx + 1} Position: {position.x}, {position.y}, Orientation: {orientation.z}")
-        
-        # # Update your QLabel or map with the positions
-        # self.map_label.setPixmap(updated_map_pixmap)
         pass
-
+    
     def update_task_list(self):
         pass
 
@@ -148,17 +155,9 @@ class Ui_MainWindow(QMainWindow):
         self.display_robot_status(robot_name)
 
     def display_robot_picam(self, robot_name):
-        # # Replace with the actual path to the PiCam feed images or stream
-        # picam_path = f'path/to/{robot_name}_picam_feed.jpg'
-        # pixmap = QPixmap(picam_path)
-        # self.picamLabel.setPixmap(pixmap)
-        # self.picamLabel.setScaledContents(True)  # Ensure the image scales to the label size
         pass
 
     def display_robot_status(self, robot_name):
-        # # Replace with the actual logic to fetch the robot's status
-        # status = self.db_manager.get_robot_status(robot_name)
-        # self.statusLabel.setText(f"Status: {status}")
         pass
 
     def init_inbound_order_control_page(self):
