@@ -1,0 +1,26 @@
+[
+    {
+        "time": "2024-06-04 16:52:47",
+        "barcode_id": "A1.04.I1",
+        "inbound_location": "I1",
+        "quantity": 4
+    },
+    {
+        "time": "2024-06-04 16:52:50",
+        "barcode_id": "A1.04.I1",
+        "inbound_location": "I1",
+        "quantity": 4
+    },
+    {
+        "time": "2024-06-04 16:52:53",
+        "barcode_id": "A1.04.I1",
+        "inbound_location": "I1",
+        "quantity": 4
+    },
+    {
+        "time": "2024-06-04 16:52:57",
+        "barcode_id": "A1.04.I1",
+        "inbound_location": "I1",
+        "quantity": 4
+    }
+]
