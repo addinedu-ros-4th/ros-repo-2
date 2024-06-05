@@ -1,19 +1,35 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QTableWidget, QTableWidgetItem, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QLabel
+from PyQt5.QtCore import QMetaObject, Qt, Q_ARG, pyqtSlot
 import rclpy
 from rclpy.node import Node
-from rclpy.executors import MultiThreadedExecutor
-from task_msgs.msg import PendingTaskList
+from task_msgs.msg import TaskList
 
-class GUI(Node):
+class MainWindow(QMainWindow):
     def __init__(self):
+        super().__init__()
+        self.setWindowTitle("gui_node")
+
+        self.layout = QVBoxLayout()
+        self.widget = QWidget()
+        self.widget.setLayout(self.layout)
+        self.setCentralWidget(self.widget)
+
+    @pyqtSlot(list)
+    def update_pending_tasks(self, tasks):
+        # Clear the layout
+        for i in reversed(range(self.layout.count())):
+            self.layout.itemAt(i).widget().setParent(None)
+        # Add new tasks
+        for task in tasks:
+            task_label = QLabel(f"Task ID: {task['task_id']}, Bundle ID: {task['bundle_id']}, Task Type: {task['task_type']}, Location: {task['location']}, Priority: {task['priority']}")
+            self.layout.addWidget(task_label)
+
+class GuiNode(Node):
+    def __init__(self, window):
         super().__init__('gui_node')
-        self.pending_task_sub = self.create_subscription(PendingTaskList, '/pending_tasks', self.pending_task_callback, 10)
-
-        self.app = QApplication(sys.argv)
-        self.window = ManagerGUI()
-        self.window.show()
-
+        self.window = window
+        self.subscription = self.create_subscription(TaskList, '/unassigned_tasks', self.pending_task_callback, 10)
 
     def pending_task_callback(self, msg):
         tasks = []
@@ -25,55 +41,31 @@ class GUI(Node):
                 'location': task.location,
                 'priority': task.priority
             })
-        self.get_logger().info(f"Received pending tasks: {tasks}")
-        self.window.update_pending_tasks(tasks)
-
-    def run(self):
-        self.app.exec_()
-
-
-class ManagerGUI(QMainWindow):
-    def __init__(self):
-        super().__init__()
-
-        self.setWindowTitle('Task Manager')
-        self.setGeometry(100, 100, 800, 600)
-
-        self.pending_task_table = QTableWidget()
-        self.pending_task_table.setColumnCount(5)
-        self.pending_task_table.setHorizontalHeaderLabels(['Task ID', 'Bundle ID', 'Task Type', 'Location', 'Priority'])
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.robot_status_table)
-        layout.addWidget(self.inventory_status_table)
-        layout.addWidget(self.pending_task_table)
-
-        container = QWidget()
-        container.setLayout(layout)
-        self.setCentralWidget(container)
-
-    def update_pending_tasks(self, tasks):
-        self.get_logger().info(f"Updating GUI with pending tasks: {tasks}")
-        self.pending_task_table.setRowCount(len(tasks))
-        for row, task in enumerate(tasks):
-            self.pending_task_table.setItem(row, 0, QTableWidgetItem(task['task_id']))
-            self.pending_task_table.setItem(row, 1, QTableWidgetItem(task['bundle_id']))
-            self.pending_task_table.setItem(row, 2, QTableWidgetItem(task['task_type']))
-            self.pending_task_table.setItem(row, 3, QTableWidgetItem(task['location']))
-            self.pending_task_table.setItem(row, 4, QTableWidgetItem(str(task['priority'])))
+        # Use QMetaObject to safely update the GUI from the ROS2 callback
+        QMetaObject.invokeMethod(self.window, "update_pending_tasks", Qt.QueuedConnection, Q_ARG(list, tasks))
 
 def main(args=None):
     rclpy.init(args=args)
-    gui_node = GUI()
+    app = QApplication(sys.argv)
 
-    executor = MultiThreadedExecutor()
+    window = MainWindow()
+    window.show()
+
+    gui_node = GuiNode(window)
+    executor = rclpy.executors.MultiThreadedExecutor()
     executor.add_node(gui_node)
 
-    try:
-        gui_node.run()
+    def run_executor():
         executor.spin()
+
+    # Run the executor in a separate thread
+    import threading
+    executor_thread = threading.Thread(target=run_executor, daemon=True)
+    executor_thread.start()
+
+    try:
+        sys.exit(app.exec_())
     finally:
-        executor.shutdown()
         gui_node.destroy_node()
         rclpy.shutdown()
 

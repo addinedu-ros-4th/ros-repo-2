@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.executors import MultiThreadedExecutor
 from task_msgs.srv import AllocateTask
-from task_msgs.msg import TaskList, RobotStatus, TaskCompletion, PendingTaskList
+from task_msgs.msg import TaskList, RobotStatus, TaskCompletion, Task
 from task_manager.task_factory import TaskFactory
 from data_manager.robot_controller import RobotController
 import heapq
@@ -27,9 +27,9 @@ class TaskAllocator(Node):
         self.completion_sub   = self.create_subscription(TaskCompletion, '/task_completion', self.process_task_completion, 10)
 
         # Publisher
-        self.pending_tasks_pub = self.create_publisher(PendingTaskList, '/pending_tasks', 10)
+        self.unassigned_tasks_pub = self.create_publisher(TaskList, '/unassigned_tasks', 10)
         
-        # database
+        # Database
         self.robot_controller = robot_controller
 
         self.tasks = []                             # Priority queue for tasks
@@ -37,7 +37,7 @@ class TaskAllocator(Node):
         self.robot_status = {}                      # Dictionary to keep track of robot statuses
         self.outbound_to_task_map = {}              # Dictionary to map outbound tasks to tasks
         self.inbound_to_task_map = {}               # Dictionary to map inbound tasks to unloading and storage locations
-        self.pending_tasks = []                     # List of tasks awaiting assignment
+
 
     def get_final_location_from_db(self, task):
         self.robot_controller.ensure_connection()   # Ensure the connection is valid
@@ -66,9 +66,9 @@ class TaskAllocator(Node):
                 self.inbound_item = task.item
 
         self.get_logger().info(f'Received task list with {len(msg.tasks)} tasks')
-        self.bundle_tasks()             # Bundling
-        self.update_pending_tasks()     # Update pending list
-        self.allocate_transaction()     # Allocate task to Robot
+        self.bundle_tasks()
+        self.publish_unassigned_tasks()
+        self.allocate_transaction()
 
 
     # Tasks grouped by task type (Inbound, Outbound)
@@ -99,7 +99,7 @@ class TaskAllocator(Node):
         self.robot_controller.update_robot_status(msg.robot_id, msg.robot_status)   # Update Robot Status Database
         self.get_logger().info(f'Received status from {msg.robot_id}: {msg.robot_status}')
         
-        self.allocate_transaction()                                                       # Allocate task
+        self.allocate_transaction()                                                 # Allocate task
 
 
     # Assign work by determining robot status
@@ -119,8 +119,6 @@ class TaskAllocator(Node):
             self.robot_status[robot_id] = "busy"
 
             self.assign_transaction(tasks, robot_id)
-            
-        self.update_pending_tasks()                     # Update pending list
 
 
     def assign_transaction(self, tasks, robot_id):
@@ -179,7 +177,7 @@ class TaskAllocator(Node):
             self.requeue_task(task)
             self.robot_status[robot_id] = "available"
         finally:
-            self.update_pending_tasks()
+            self.publish_unassigned_tasks()
             
 
     def process_task_completion(self, msg):
@@ -207,7 +205,7 @@ class TaskAllocator(Node):
                     del self.tasks_in_progress[transaction_id]
                     self.robot_status[msg.robot_id] = "available"
                     # Update robot status database
-                    self.robot_controller.update_robot_status(msg.robot_id, 'busy')
+                    self.robot_controller.update_robot_status(msg.robot_id, 'available')
 
                     self.allocate_transaction()
         else:
@@ -216,7 +214,7 @@ class TaskAllocator(Node):
             
     def requeue_task(self, task):
         heapq.heappush(self.tasks, PriorityTask(task.priority, [task]))
-        self.update_pending_tasks()
+        self.publish_unassigned_tasks()
 
 
     def reassign_transaction(self, transaction_id):
@@ -231,18 +229,13 @@ class TaskAllocator(Node):
             self.get_logger().info(f'Reassigning tasks for transaction {transaction_id} due to failure')
             self.allocate_transaction()
 
-    
-    def update_pending_tasks(self):
-        self.pending_tasks = [priority_task.task for priority_task in self.tasks]
-        self.publish_pending_tasks()
-        
-    
-    def publish_pending_tasks(self):
-        msg = PendingTaskList()
-        for tasks in self.pending_tasks:
-            msg.tasks.extend(tasks)
-        self.pending_tasks_pub.publish(msg)
-        
+
+    def publish_unassigned_tasks(self):
+        unassigned_tasks = [task for priority_task in self.tasks for task in priority_task.task if isinstance(task, Task)]
+        task_list_msg = TaskList(tasks=unassigned_tasks)
+        self.unassigned_tasks_pub.publish(task_list_msg)
+        self.get_logger().info(f"Published unassigned tasks: {unassigned_tasks}")
+
 
 def main(args=None):
     rclpy.init(args=args)
