@@ -10,7 +10,7 @@ class DatabaseManager:
         self.db_name = "amr"
         self.cur = None
         self.conn = None
-        self.password = "0000"
+        self.password = "JYthebest0825!"
 
 
     # def get_password_from_config(self):
@@ -85,6 +85,27 @@ class DatabaseManager:
         last_id = self.cur.fetchone()[0]
         self.cur.fetchall()  # 이전 쿼리의 결과를 모두 읽음
         return last_id
+    
+    def get_data(self, table_name, columns=None, condition=None):
+        """
+        테이블에서 데이터를 읽어오는 함수
+        :param table_name: 테이블 이름
+        :param columns: 선택적으로 읽어올 컬럼 리스트 (기본값: 모든 컬럼)
+        :param condition: 선택적으로 데이터를 필터링할 조건 (기본값: 없음)
+        :return: 조건에 맞는 데이터의 리스트
+        """
+        if columns:
+            columns_str = ', '.join(columns)
+        else:
+            columns_str = '*'
+        
+        query = f"SELECT {columns_str} FROM {table_name}"
+        if condition:
+            query += f" WHERE {condition}"
+        
+        self.cur.execute(query)
+        rows = self.cur.fetchall()
+        return rows
 
 
     def get_product_id(self, product_name):

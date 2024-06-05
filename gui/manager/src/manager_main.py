@@ -9,26 +9,6 @@ from DatabaseManager import DatabaseManager
 from barcode_scanner import BarcodeScanner
 from RobotController import RobotController
 import pandas as pd
-<<<<<<< HEAD
-import rclpy
-from rclpy.node import Node
-from threading import Thread
-from rclpy.executors import MultiThreadedExecutor
-from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSReliabilityPolicy, QoSProfile, qos_profile_sensor_data
-import numpy as np
-import cv2
-
-# from task_msgs.msg import *
-from std_msgs.msg import String
-from sensor_msgs.msg import CompressedImage
-from geometry_msgs.msg import PoseWithCovarianceStamped 
-from std_srvs.srv import SetBool
-from geometry_msgs.msg import Twist
-from task_msgs.msg import RobotStatus
-
-
-=======
->>>>>>> 43ff7afe33c9d020f404f9725aae1e14e0b84c4f
 
 global amcl_1, amcl_2, amcl_3
 amcl_1 = PoseWithCovarianceStamped()

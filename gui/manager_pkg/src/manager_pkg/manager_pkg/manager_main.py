@@ -350,7 +350,7 @@ class Ui_MainWindow(QMainWindow):
 
     def update_stock_info(self):
 
-        product_inventory = self.db_manager.utils.fetch_all_product("ProductInventory")
+        product_inventory = self.db_manager.fetch_all_product("ProductInventory")
         product_info = self.db_manager.get_data("ProductInfo", ["item_id", "item_tag"])
 
         df_inventory = pd.DataFrame(product_inventory, columns=['item_id', 'item_name', 'stock'])
@@ -381,8 +381,8 @@ class Ui_MainWindow(QMainWindow):
             item_tag = row['item_tag']
 
             if item_id in label_mapping:
-                label = label_mapping[item_id]
-                label.setText(f"{item_tag}\n{item_name}\nstock: {stock}")
+                self.label = label_mapping[item_id]
+                self.label.setText(f"{item_tag}\n{item_name}\nstock: {stock}")
         
     def update_product_quantity(self, product_id, quantity):
         query = "UPDATE ProductInventory SET stock = %s WHERE item_id = %s"
