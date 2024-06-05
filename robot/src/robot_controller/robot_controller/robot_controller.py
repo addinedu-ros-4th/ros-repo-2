@@ -649,7 +649,7 @@ class RobotController(Node) :
                 
                 ###########
                 if (feedback.distance_remaining <= 0.40 and feedback.distance_remaining != 0.0) or Duration.from_msg(feedback.navigation_time) > Duration(seconds=40.0) :
-                    time.sleep(0.5) # 목표지점 인접시 0.5초후 다음목적지
+                    # time.sleep(0.5) # 목표지점 인접시 0.5초후 다음목적지
                     self.nav.cancelTask()
                     self.get_logger().info("cancel nav Task")
 
