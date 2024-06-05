@@ -8,6 +8,19 @@ setup.py
 ../../build/manager_pkg/manager_pkg.egg-info/requires.txt
 ../../build/manager_pkg/manager_pkg.egg-info/top_level.txt
 ../../build/manager_pkg/manager_pkg.egg-info/zip-safe
+data/barcode_data.json
+image/A1.png
+image/A2.png
+image/B1.png
+image/B2.png
+image/C1.png
+image/C2.png
+image/home.png
+image/list.png
+image/map.pgm
+image/map.yaml
+image/resources.qrc
+image/robot.png
 manager_pkg/__init__.py
 manager_pkg/barcode_scanner.py
 manager_pkg/manager_main.py
@@ -15,3 +28,4 @@ resource/manager_pkg
 test/test_copyright.py
 test/test_flake8.py
 test/test_pep257.py
+ui/manager.ui

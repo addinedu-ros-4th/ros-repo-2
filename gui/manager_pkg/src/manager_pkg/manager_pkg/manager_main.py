@@ -4,15 +4,9 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
-<<<<<<< HEAD
-from DatabaseManager import DatabaseManager
-from RobotController import RobotController
-from barcode_scanner import BarcodeScanner
-=======
 
 from data_manager.database_manager import DatabaseManager
 from manager_pkg.barcode_scanner import BarcodeScanner
->>>>>>> 75a130c5d2a5987b926194b7fea4e6d9c4496b1d
 import rclpy
 from rclpy.node import Node
 from threading import Thread
@@ -247,8 +241,6 @@ class Ui_MainWindow(QMainWindow):
         self.db_manager = DatabaseManager(host='localhost')
         self.db_manager.connect_database()
         self.db_manager.create_table()
-        
-        self.robotstatus = RobotController(host='localhost')
 
         # Load UI
         ui_path = os.path.join(get_package_share_directory('manager_pkg'), 'ui', 'manager.ui')
@@ -321,11 +313,12 @@ class Ui_MainWindow(QMainWindow):
             self.robotComboBox.setCurrentIndex(robot_index)
 
     def init_main_page(self):
-        # Main Page: Real-time location of robots, Task list, Current Stock info
+        pass
+    #     # Main Page: Real-time location of robots, Task list, Current Stock info
         self.map_label = self.findChild(QLabel, 'mapLabel')  # Assuming there's a QLabel for the map
         self.update_stock_info()
 
-        robotstatus = self.db_manager.utils.fetch_all_product("RobotStatus")
+        robotstatus = self.db_manager.fetch_all_product("RobotStatus")
 
         df = pd.DataFrame(robotstatus, columns=['robot_id', 'status'])
         id_list = df['robot_id'].tolist()
@@ -383,7 +376,7 @@ class Ui_MainWindow(QMainWindow):
 
     def update_stock_info(self):
         print("Updating stock info")
-        product_inventory = self.db_manager.utils.fetch_all_product("ProductInventory")
+        product_inventory = self.db_manager.fetch_all_product("ProductInventory")
         print(f"Fetched product inventory: {product_inventory}")
 
         df = pd.DataFrame(product_inventory, columns=['item_id', 'item_name', 'stock'])

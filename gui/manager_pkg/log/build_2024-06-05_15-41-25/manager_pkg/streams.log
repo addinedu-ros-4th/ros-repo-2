@@ -1,0 +1,42 @@
+[0.679s] Invoking command in '/home/addinedu/ros-repo-2/gui/manager_pkg/src/manager_pkg': PYTHONPATH=/home/addinedu/ros-repo-2/gui/manager_pkg/build/manager_pkg/prefix_override:/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base ../../build/manager_pkg build --build-base /home/addinedu/ros-repo-2/gui/manager_pkg/build/manager_pkg/build install --record /home/addinedu/ros-repo-2/gui/manager_pkg/build/manager_pkg/install.log --single-version-externally-managed install_data
+[0.889s] running egg_info
+[0.904s] writing ../../build/manager_pkg/manager_pkg.egg-info/PKG-INFO
+[0.905s] writing dependency_links to ../../build/manager_pkg/manager_pkg.egg-info/dependency_links.txt
+[0.905s] writing entry points to ../../build/manager_pkg/manager_pkg.egg-info/entry_points.txt
+[0.905s] writing requirements to ../../build/manager_pkg/manager_pkg.egg-info/requires.txt
+[0.906s] writing top-level names to ../../build/manager_pkg/manager_pkg.egg-info/top_level.txt
+[0.938s] reading manifest file '../../build/manager_pkg/manager_pkg.egg-info/SOURCES.txt'
+[0.939s] writing manifest file '../../build/manager_pkg/manager_pkg.egg-info/SOURCES.txt'
+[0.939s] running build
+[0.939s] running build_py
+[0.940s] copying manager_pkg/manager_main.py -> /home/addinedu/ros-repo-2/gui/manager_pkg/build/manager_pkg/build/lib/manager_pkg
+[0.940s] copying manager_pkg/barcode_scanner.py -> /home/addinedu/ros-repo-2/gui/manager_pkg/build/manager_pkg/build/lib/manager_pkg
+[0.940s] copying manager_pkg/__init__.py -> /home/addinedu/ros-repo-2/gui/manager_pkg/build/manager_pkg/build/lib/manager_pkg
+[0.940s] running install
+[0.945s] running install_lib
+[0.961s] copying /home/addinedu/ros-repo-2/gui/manager_pkg/build/manager_pkg/build/lib/manager_pkg/manager_main.py -> /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/lib/python3.10/site-packages/manager_pkg
+[0.961s] byte-compiling /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/lib/python3.10/site-packages/manager_pkg/manager_main.py to manager_main.cpython-310.pyc
+[0.964s] running install_data
+[0.964s] copying resource/manager_pkg -> /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/ament_index/resource_index/packages
+[0.964s] copying package.xml -> /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg
+[0.964s] copying image/A2.png -> /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/image
+[0.964s] copying image/A1.png -> /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/image
+[0.964s] copying image/home.png -> /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/image
+[0.965s] copying image/C1.png -> /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/image
+[0.965s] copying image/robot.png -> /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/image
+[0.965s] copying image/map.yaml -> /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/image
+[0.965s] copying image/map.pgm -> /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/image
+[0.965s] copying image/C2.png -> /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/image
+[0.965s] copying image/list.png -> /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/image
+[0.966s] copying image/B2.png -> /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/image
+[0.966s] copying image/resources.qrc -> /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/image
+[0.966s] copying image/B1.png -> /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/image
+[0.966s] copying data/barcode_data.json -> /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/data
+[0.966s] copying ui/manager.ui -> /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/ui
+[0.966s] running install_egg_info
+[0.984s] removing '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/lib/python3.10/site-packages/manager_pkg-0.0.0-py3.10.egg-info' (and everything under it)
+[0.984s] Copying ../../build/manager_pkg/manager_pkg.egg-info to /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/lib/python3.10/site-packages/manager_pkg-0.0.0-py3.10.egg-info
+[0.985s] running install_scripts
+[1.123s] Installing manager_main script to /home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/lib/manager_pkg
+[1.123s] writing list of installed files to '/home/addinedu/ros-repo-2/gui/manager_pkg/build/manager_pkg/install.log'
+[1.141s] Invoked command in '/home/addinedu/ros-repo-2/gui/manager_pkg/src/manager_pkg' returned '0': PYTHONPATH=/home/addinedu/ros-repo-2/gui/manager_pkg/build/manager_pkg/prefix_override:/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base ../../build/manager_pkg build --build-base /home/addinedu/ros-repo-2/gui/manager_pkg/build/manager_pkg/build install --record /home/addinedu/ros-repo-2/gui/manager_pkg/build/manager_pkg/install.log --single-version-externally-managed install_data

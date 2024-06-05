@@ -61,7 +61,7 @@ border-radius: 30px</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../../../../../consumer/ui/Downloads/home.png</normaloff>../../../../../../consumer/ui/Downloads/home.png</iconset>
+         <normaloff>../../../../../../../../consumer/ui/Downloads/home.png</normaloff>../../../../../../../../consumer/ui/Downloads/home.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -88,7 +88,7 @@ border-radius: 30px</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../../../../../consumer/ui/Downloads/pngwing.com.png</normaloff>../../../../../../consumer/ui/Downloads/pngwing.com.png</iconset>
+         <normaloff>../../../../../../../../consumer/ui/Downloads/pngwing.com.png</normaloff>../../../../../../../../consumer/ui/Downloads/pngwing.com.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -115,7 +115,7 @@ border-radius: 30px</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
+         <normaloff>../../../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -209,7 +209,7 @@ border-radius: 20px</string>
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>../../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
+           <normaloff>../../../../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -236,7 +236,7 @@ border-radius: 20px</string>
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>../../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
+           <normaloff>../../../../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -331,7 +331,7 @@ border-radius: 20px</string>
          </property>
          <property name="icon">
           <iconset>
-           <normaloff>../../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
+           <normaloff>../../../../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -482,7 +482,7 @@ border-radius: 30px</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../../../../../consumer/ui/Downloads/home.png</normaloff>../../../../../../consumer/ui/Downloads/home.png</iconset>
+         <normaloff>../../../../../../../../consumer/ui/Downloads/home.png</normaloff>../../../../../../../../consumer/ui/Downloads/home.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -509,7 +509,7 @@ border-radius: 30px</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../../../../../consumer/ui/Downloads/pngwing.com.png</normaloff>../../../../../../consumer/ui/Downloads/pngwing.com.png</iconset>
+         <normaloff>../../../../../../../../consumer/ui/Downloads/pngwing.com.png</normaloff>../../../../../../../../consumer/ui/Downloads/pngwing.com.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -536,7 +536,7 @@ border-radius: 30px</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
+         <normaloff>../../../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -726,7 +726,7 @@ border-radius: 30px</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../../../../../consumer/ui/Downloads/home.png</normaloff>../../../../../../consumer/ui/Downloads/home.png</iconset>
+         <normaloff>../../../../../../../../consumer/ui/Downloads/home.png</normaloff>../../../../../../../../consumer/ui/Downloads/home.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -753,7 +753,7 @@ border-radius: 30px</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../../../../../consumer/ui/Downloads/pngwing.com.png</normaloff>../../../../../../consumer/ui/Downloads/pngwing.com.png</iconset>
+         <normaloff>../../../../../../../../consumer/ui/Downloads/pngwing.com.png</normaloff>../../../../../../../../consumer/ui/Downloads/pngwing.com.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -780,7 +780,7 @@ border-radius: 30px</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
+         <normaloff>../../../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
        </property>
        <property name="iconSize">
         <size>

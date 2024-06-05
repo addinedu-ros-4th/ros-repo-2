@@ -3,7 +3,7 @@ import os
 sys.path.append('./db/src')
 
 import json
-from DatabaseManager import DatabaseManager
+from data_manager.database_manager import DatabaseManager
 from datetime import datetime
 from PyQt5.QtCore import pyqtSignal, QObject
 from websocket import create_connection
@@ -17,7 +17,7 @@ class BarcodeScanner(QObject):
         self.db_manager = DatabaseManager(host='localhost')
         self.db_manager.connect_database()
         self.db_manager.create_table()
-        self.db_manager.insert_initial_data()
+        # self.db_manager.insert_initial_data()
         self.db_manager.initialize_inventory()
 
 
