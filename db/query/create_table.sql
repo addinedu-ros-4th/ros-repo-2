@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS ProductInfo (
 CREATE TABLE IF NOT EXISTS Inbound ( 
     inbound_id INT AUTO_INCREMENT PRIMARY KEY, 
     item_name VARCHAR(16) NOT NUlL,
+    item_tag VARCHAR(100) NOT NULL,
     quantity INT NOT NULL,
     inbound_zone VARCHAR(16) NOT NULL,
     arrival_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 

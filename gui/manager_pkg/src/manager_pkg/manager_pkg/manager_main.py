@@ -6,6 +6,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
 from DatabaseManager import DatabaseManager
+from RobotController import RobotController
 from barcode_scanner import BarcodeScanner
 import rclpy
 from rclpy.node import Node
@@ -13,6 +14,7 @@ from threading import Thread
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSReliabilityPolicy, QoSProfile, qos_profile_sensor_data
 import numpy as np
+import pandas as pd
 import cv2
 
 # from task_msgs.msg import *
@@ -239,6 +241,8 @@ class Ui_MainWindow(QMainWindow):
         self.db_manager = DatabaseManager(host='localhost')
         self.db_manager.connect_database()
         self.db_manager.create_table()
+        
+        self.robotstatus = RobotController(host='localhost')
 
         # Load UI
         uic.loadUi("gui/manager/ui/manager.ui", self)
@@ -254,6 +258,12 @@ class Ui_MainWindow(QMainWindow):
         self.init_navigation_buttons()
 
         self.init_ros2_node()
+        
+         # Set up a timer to update stock info every 5 seconds
+        self.stock_update_timer = QTimer(self)
+        self.stock_update_timer.timeout.connect(self.update_stock_info)
+        self.stock_update_timer.start(5000)  # Update every 5000 milliseconds (5 seconds)
+        print("Timer started for updating stock info every 5 seconds")
 
 
     def init_navigation_buttons(self):
@@ -289,18 +299,45 @@ class Ui_MainWindow(QMainWindow):
         self.home_3.clicked.connect(lambda: self.switch_page(0))
         self.robot_3.clicked.connect(lambda: self.switch_page(1))
         self.list_3.clicked.connect(lambda: self.switch_page(2))
+        self.R1.clicked.connect(lambda: self.switch_page(1, 0))
+        self.R2.clicked.connect(lambda: self.switch_page(1, 1))
+        self.R3.clicked.connect(lambda: self.switch_page(1, 2))
 
     def set_button_icon(self, button, icon_path):
         icon = QIcon(icon_path)
         button.setIcon(icon)
         button.setIconSize(QSize(35, 35))  # Adjust the size as needed
 
-    def switch_page(self, page_index):
+    def switch_page(self, page_index, robot_index=None):
         self.stackedWidget.setCurrentIndex(page_index)
+        if robot_index is not None:
+            self.robotComboBox.setCurrentIndex(robot_index)
 
     def init_main_page(self):
         # Main Page: Real-time location of robots, Task list, Current Stock info
         self.map_label = self.findChild(QLabel, 'mapLabel')  # Assuming there's a QLabel for the map
+        self.update_stock_info()
+
+        robotstatus = self.db_manager.utils.fetch_all_product("RobotStatus")
+
+        df = pd.DataFrame(robotstatus, columns=['robot_id', 'status'])
+        id_list = df['robot_id'].tolist()
+        status_list = df['status'].tolist()
+
+        self.update_robot_button(self.R1, self.status1, id_list[0], status_list[0])
+        self.update_robot_button(self.R2, self.status2, id_list[1], status_list[1])
+        self.update_robot_button(self.R3, self.status3, id_list[2], status_list[2])
+
+
+    def update_robot_button(self, button, status_label, robot_id, status):
+        button.setText(robot_id)
+        status_label.setText(status)
+        if status == "busy":
+            button.setStyleSheet("background-color: rgb(246, 97, 81);""border-radius: 20px")
+        elif status == "available":
+            button.setStyleSheet("background-color: rgb(143, 240, 164);""border-radius: 20px")
+        else:
+            button.setStyleSheet("")
 
     def init_ros2_node(self):
         # rclpy.init()
@@ -338,7 +375,29 @@ class Ui_MainWindow(QMainWindow):
         pass
 
     def update_stock_info(self):
-        pass
+        print("Updating stock info")
+        product_inventory = self.db_manager.utils.fetch_all_product("ProductInventory")
+        print(f"Fetched product inventory: {product_inventory}")
+
+        df = pd.DataFrame(product_inventory, columns=['item_id', 'item_name', 'stock'])
+
+        # tableWidget 업데이트
+        self.tableWidget.setRowCount(len(df))
+        self.tableWidget.setColumnCount(len(df.columns))
+        self.tableWidget.setHorizontalHeaderLabels(df.columns)
+
+        for row_index, row in enumerate(df.itertuples(index=False)):
+            for col_index, value in enumerate(row):
+                item = QTableWidgetItem(str(value))
+                self.tableWidget.setItem(row_index, col_index, item)
+        print("Stock info updated")
+        
+    def update_product_quantity(self, product_id, quantity):
+        query = "UPDATE ProductInventory SET stock = %s WHERE item_id = %s"
+        self.db_manager.cursor.execute(query, (quantity, product_id))
+        self.db_manager.conn.commit()
+        print(f"Updated product {product_id} with quantity {quantity}")
+
 
     def init_robot_control_page(self):
         self.robotComboBox = self.findChild(QComboBox, 'robotComboBox')

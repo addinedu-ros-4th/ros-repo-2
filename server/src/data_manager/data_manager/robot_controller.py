@@ -13,10 +13,12 @@ class RobotController(DatabaseManager):
             Status VARCHAR(255)
         )
         """
+        self.ensure_connection()
         self.cur.execute(create_table_query)
         self.conn.commit()
 
     def get_robot_status(self, robot_id):
+        self.ensure_connection()
         query = "SELECT Status FROM RobotStatus WHERE RobotID = %s"
         self.cur.execute(query, (robot_id,))
         result = self.cur.fetchone()
@@ -26,6 +28,7 @@ class RobotController(DatabaseManager):
             return 'IDLE'  # 기본 상태를 IDLE로 설정
 
     def update_robot_status(self, robot_id, status):
+        self.ensure_connection()
         query = """
         INSERT INTO RobotStatus (RobotID, Status)
         VALUES (%s, %s)

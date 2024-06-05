@@ -1,26 +1,32 @@
 [
     {
-        "time": "2024-06-04 16:52:47",
-        "barcode_id": "A1.04.I1",
-        "inbound_location": "I1",
+        "time": "2024-06-05 12:20:46",
+        "barcode_id": "B2.04.I2",
+        "inbound_location": "I2",
         "quantity": 4
     },
     {
-        "time": "2024-06-04 16:52:50",
-        "barcode_id": "A1.04.I1",
-        "inbound_location": "I1",
+        "time": "2024-06-05 12:24:43",
+        "barcode_id": "B2.04.I2",
+        "inbound_location": "I2",
         "quantity": 4
     },
     {
-        "time": "2024-06-04 16:52:53",
-        "barcode_id": "A1.04.I1",
-        "inbound_location": "I1",
+        "time": "2024-06-05 12:26:11",
+        "barcode_id": "B2.04.I2",
+        "inbound_location": "I2",
         "quantity": 4
     },
     {
-        "time": "2024-06-04 16:52:57",
-        "barcode_id": "A1.04.I1",
-        "inbound_location": "I1",
+        "time": "2024-06-05 12:30:00",
+        "barcode_id": "B2.04.I2",
+        "inbound_location": "I2",
+        "quantity": 4
+    },
+    {
+        "time": "2024-06-05 12:30:04",
+        "barcode_id": "B2.04.I2",
+        "inbound_location": "I2",
         "quantity": 4
     }
 ]
