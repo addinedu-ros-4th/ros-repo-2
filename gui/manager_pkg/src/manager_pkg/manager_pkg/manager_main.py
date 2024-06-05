@@ -155,41 +155,62 @@ class PiCamSubscriber(Node):
         else:
             pass
 
+
+
 class RobotStatusSubscriber(Node):
+
+    update_task_list_signal = pyqtSignal()
+
     def __init__(self, ui):
         super().__init__('robot_status_subscriber')
 
         self.ui = ui
         self.ui.robot_status_clicked.connect(self.handle_status)
 
-        self.status_sub1 = self.create_subscription(RobotStatus, '/robot_status_1', self.status_callback1, 10)
-        self.status_sub2 = self.create_subscription(RobotStatus, '/robot_status_2', self.status_callback2, 10)
-        self.status_sub3 = self.create_subscription(RobotStatus, '/robot_status_3', self.status_callback3, 10) 
+        self.status_sub = self.create_subscription(RobotStatus, '/robot_status', self.status_callback, 10)
+        # self.status_sub2 = self.create_subscription(RobotStatus, '/robot_status_2', self.status_callback2, 10)
+        # self.status_sub3 = self.create_subscription(RobotStatus, '/robot_status_3', self.status_callback3, 10)
         self.robot_name = None
 
     def handle_status(self, robot_name):
         self.robot_name = robot_name
 
-    def status_callback1(self, data):
-        if self.robot_name == 'robot_1':
-            self.ui.statusLabel.setText(data)
+    def status_callback(self, data):
+        self.ui.refresh_button.click()
+        self.ui.refresh_button_2.click()
 
+        self.robot_id = data.robot_id
+        if self.robot_id == '91':
+            self.robot_status1 = data.robot_status
+            self.ui.status1.setText(self.robot_status1)
+            self.update_button_style(self.ui.R1, self.robot_status1)
+
+            if self.robot_name == 'robot_1':
+                self.ui.statusLabel.setText(self.robot_status1)
+
+        elif  self.robot_id == '92':
+            self.robot_status2 = data.robot_status
+            self.ui.status2.setText(self.robot_status2)
+            self.update_button_style(self.ui.R2, self.robot_status2)
+
+            if self.robot_name == 'robot_2':
+                self.ui.statusLabel.setText(self.robot_status2)
+
+        elif  self.robot_id == '93':
+            self.robot_status3 = data.robot_status
+            self.ui.status3.setText(self.robot_status3)
+            self.update_button_style(self.ui.R3, self.robot_status3)
+
+            if self.robot_name == 'robot_3':
+                self.ui.statusLabel.setText(self.robot_status2)
+
+    def update_button_style(self, button, status):
+        if status == "busy":
+            button.setStyleSheet("background-color: rgb(246, 97, 81);""border-radius: 20px")
+        elif status == "available":
+            button.setStyleSheet("background-color: rgb(143, 240, 164);""border-radius: 20px")
         else:
-            pass
-
-    def status_callback2(self, data):
-        if self.robot_name == 'robot_2':
-            self.ui.statusLabel.setText(data)
-
-        else:
-            pass
-
-    def status_callback3(self, data):
-        if self.robot_name == 'robot_3':
-            self.ui.statusLabel.setText(data)
-
-        else:
-            pass
+            button.setStyleSheet("")
 
 class RobotController(Node):
     def __init__(self, ui):
@@ -278,15 +299,18 @@ class Ui_MainWindow(QMainWindow):
         self.list_3 = self.findChild(QPushButton, 'list_3')
 
         # Set icons for buttons
-        self.set_button_icon(self.home, 'gui/manager/image/home.png')
-        self.set_button_icon(self.robot, 'gui/manager/image/robot.png')
-        self.set_button_icon(self.list, 'gui/manager/image/list.png')
-        self.set_button_icon(self.home_2, 'gui/manager/image/home.png')
-        self.set_button_icon(self.robot_2, 'gui/manager/image/robot.png')
-        self.set_button_icon(self.list_2, 'gui/manager/image/list.png')
-        self.set_button_icon(self.home_3, 'gui/manager/image/home.png')
-        self.set_button_icon(self.robot_3, 'gui/manager/image/robot.png')
-        self.set_button_icon(self.list_3, 'gui/manager/image/list.png')
+        home_png_path = os.path.join(get_package_share_directory('manager_pkg'), 'image', 'home.png')
+        robot_png_path = os.path.join(get_package_share_directory('manager_pkg'), 'image', 'robot.png')
+        list_png_path = os.path.join(get_package_share_directory('manager_pkg'), 'image', 'list.png')
+        self.set_button_icon(self.home, home_png_path)
+        self.set_button_icon(self.robot, robot_png_path)
+        self.set_button_icon(self.list, list_png_path)
+        self.set_button_icon(self.home_2, home_png_path)
+        self.set_button_icon(self.robot_2, robot_png_path)
+        self.set_button_icon(self.list_2, list_png_path)
+        self.set_button_icon(self.home_3, home_png_path)
+        self.set_button_icon(self.robot_3, robot_png_path)
+        self.set_button_icon(self.list_3, list_png_path)
 
         # Connect buttons to switch pages
         self.home.clicked.connect(lambda: self.switch_page(0))
@@ -450,7 +474,7 @@ class Ui_MainWindow(QMainWindow):
         print("Updated inbound_list with new data")  # Debugging print statement
 
     def update_order_list(self):
-        order_list = self.db_manager.utils.fetch_all_product("ProductOrder")
+        order_list = self.db_manager.fetch_all_product("ProductOrder")
 
         df = pd.DataFrame(order_list, columns=['order_id', 'user_id', 'item_id', 'item_name', 'quantities', 'order_time'])
 
