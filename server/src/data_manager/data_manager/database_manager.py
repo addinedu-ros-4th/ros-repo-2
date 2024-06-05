@@ -42,6 +42,7 @@ class DatabaseManager:
                 raise
         self.cur = self.conn.cursor()
     
+    
     def create_database(self, db_name):
         try:
             self.cur.execute(f"CREATE DATABASE {db_name}")
@@ -51,9 +52,11 @@ class DatabaseManager:
         print(f"Database {db_name} created successfully.")
         self.cur.execute(f"USE {db_name}")
     
+    
     def create_table(self):
         self.execute_sql_file("db/query/create_table.sql")
         self.initialize_inventory()
+    
     
     def execute_sql_file(self, file_path):
         with open(file_path, 'r') as file:
@@ -67,6 +70,7 @@ class DatabaseManager:
                 print(f"Error occurred: {err}")
         self.conn.commit()
     
+    
     def save_data(self, table_name, data):
         columns = ', '.join(data.keys())
         placeholders = ', '.join(['%s' for _ in data])
@@ -78,6 +82,7 @@ class DatabaseManager:
         self.cur.fetchall()  # 이전 쿼리의 결과를 모두 읽음
         return last_id
 
+
     def get_product_id(self, product_name):
         query = "SELECT item_id FROM ProductInventory WHERE item_name = %s"
         self.cur.execute(query, (product_name,))
@@ -86,12 +91,14 @@ class DatabaseManager:
         print(f"get_product_id: product_name={product_name}, product_id={result[0] if result else None}")  # 디버깅 정보 출력
         return result[0] if result else None
  
+ 
     def get_stock(self, item_id):
         query = "SELECT stock FROM ProductInventory WHERE item_id = %s"
         self.cur.execute(query, (item_id,))
         result = self.cur.fetchone()
         self.cur.fetchall()  # 이전 쿼리의 결과를 모두 읽음
         return result[0] if result else None
+
 
     def update_stock(self, item_id, quantity):
         query = "UPDATE ProductInventory SET stock = stock - %s WHERE item_id = %s"
@@ -123,6 +130,7 @@ class DatabaseManager:
         if self.conn:
             self.conn.close()
     
+    
     def find_elements(self, name, password):
         query = "SELECT UserId, Name, Password from Users where Name = %s and (Password) = %s;"
         self.cur.execute(query, (name, password))
@@ -147,6 +155,26 @@ class DatabaseManager:
         result = self.cur.fetchall()
         self.cur.fetchall() 
         return result
+    
+    
+    # Update table one
+    def fetchone(self, query, params):
+        self.connect_database()
+        try:
+            self.cur.execute(query, params)
+            result = self.cur.fetchone()
+        finally:
+            self.close_connection()
+        return result
+    
+    
+    def ensure_connection(self):
+        if self.conn is None or not self.conn.is_connected():
+            self.connect_database()
+        if self.cur is None or self.conn is None:
+            self.cur = self.conn.cursor()
+
+    
     
 if __name__ == '__main__':
     db_manager = DatabaseManager(host='localhost')
