@@ -1,15 +1,12 @@
-import sys
-sys.path.append('./db/src')  # DatabaseManager.py 파일의 경로를 추가
+import sys, os
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
-from DatabaseManager import DatabaseManager
-from barcode_scanner import BarcodeScanner
-from RobotController import RobotController
-import pandas as pd
-<<<<<<< HEAD
+
+from data_manager.database_manager import DatabaseManager
+from manager_pkg.barcode_scanner import BarcodeScanner
 import rclpy
 from rclpy.node import Node
 from threading import Thread
@@ -17,6 +14,7 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSReliabilityPolicy, QoSProfile, qos_profile_sensor_data
 import numpy as np
 import cv2
+from ament_index_python.packages import get_package_share_directory
 
 # from task_msgs.msg import *
 from std_msgs.msg import String
@@ -27,8 +25,6 @@ from geometry_msgs.msg import Twist
 from task_msgs.msg import RobotStatus
 
 
-=======
->>>>>>> 43ff7afe33c9d020f404f9725aae1e14e0b84c4f
 
 global amcl_1, amcl_2, amcl_3
 amcl_1 = PoseWithCovarianceStamped()
@@ -60,7 +56,7 @@ class PiCamSubscriber(Node):
         super().__init__('pi_cam_sub_scriber') 
         
         self.ui = ui
-        self.ui.robot_cam_clicked.connect(self.handle_picam)
+        self.ui.robot_picam_clicked.connect(self.handle_picam)
         
         self.cam_client1 = self.create_client(SetBool, "/camera_control_1")
         self.cam_client2 = self.create_client(SetBool, "/camera_control_2")
@@ -244,11 +240,10 @@ class Ui_MainWindow(QMainWindow):
         self.db_manager = DatabaseManager(host='localhost')
         self.db_manager.connect_database()
         self.db_manager.create_table()
-        
-        self.robotstatus = RobotController(host='localhost')
 
         # Load UI
-        uic.loadUi("gui/manager/ui/manager.ui", self)
+        ui_path = os.path.join(get_package_share_directory('manager_pkg'), 'ui', 'manager.ui')
+        uic.loadUi(ui_path, self)
 
         # Initialize the Stacked Widget
         self.stackedWidget = self.findChild(QStackedWidget, 'stackedWidget')
@@ -259,6 +254,9 @@ class Ui_MainWindow(QMainWindow):
         self.init_inbound_order_control_page()
 
         self.init_navigation_buttons()
+
+        self.init_ros2_node()
+
 
     def init_navigation_buttons(self):
         # Find buttons
@@ -293,10 +291,7 @@ class Ui_MainWindow(QMainWindow):
         self.home_3.clicked.connect(lambda: self.switch_page(0))
         self.robot_3.clicked.connect(lambda: self.switch_page(1))
         self.list_3.clicked.connect(lambda: self.switch_page(2))
-        self.R1.clicked.connect(lambda: self.switch_page(1))
-        self.R2.clicked.connect(lambda: self.switch_page(1))
-        self.R3.clicked.connect(lambda: self.switch_page(1))
-        
+
     def set_button_icon(self, button, icon_path):
         icon = QIcon(icon_path)
         button.setIcon(icon)
@@ -307,45 +302,40 @@ class Ui_MainWindow(QMainWindow):
 
     def init_main_page(self):
         # Main Page: Real-time location of robots, Task list, Current Stock info
-        product_inventory = self.db_manager.utils.fetch_all_product("ProductInventory")
+        self.map_label = self.findChild(QLabel, 'mapLabel')  # Assuming there's a QLabel for the map
 
-        df = pd.DataFrame(product_inventory, columns=['item_id', 'item_name', 'stock'])
+    def init_ros2_node(self):
+        # rclpy.init()
+        # self.executor = MultiThreadedExecutor()
+        # self.amcl_subscriber = AmclSubscriber()
+        # self.executor.add_node(self.amcl_subscriber)
 
-        # tableWidget 업데이트
-        self.tableWidget.setRowCount(len(df))
-        self.tableWidget.setColumnCount(len(df.columns))
-        self.tableWidget.setHorizontalHeaderLabels(df.columns)
+        # # Run ROS 2 executor in a separate thread
+        # self.ros_thread = Thread(target=self.executor.spin)
+        # self.ros_thread.start()
 
-        for row_index, row in enumerate(df.itertuples(index=False)):
-            for col_index, value in enumerate(row):
-                item = QTableWidgetItem(str(value))
-                self.tableWidget.setItem(row_index, col_index, item)
-
-        robotstatus = self.db_manager.utils.fetch_all_product("RobotStatus")
-
-        df = pd.DataFrame(robotstatus, columns=['robot_id', 'status'])
-        id_list = df['robot_id'].tolist()
-        status_list = df['status'].tolist()
-
-        self.update_robot_button(self.R1, self.status1, id_list[0], status_list[0])
-        self.update_robot_button(self.R2, self.status2, id_list[1], status_list[1])
-        self.update_robot_button(self.R3, self.status3, id_list[2], status_list[2])
-
-    def update_robot_button(self, button, status_label, robot_id, status):
-        button.setText(robot_id)
-        status_label.setText(status)
-        if status == "busy":
-            button.setStyleSheet("background-color: rgb(246, 97, 81);""border-radius: 20px")
-        elif status == "available":
-            button.setStyleSheet("background-color: rgb(143, 240, 164);""border-radius: 20px")
-        else:
-            button.setStyleSheet("")
-                
-            pass
+        # # Timer to update the map periodically
+        # self.timer = QTimer(self)
+        # self.timer.timeout.connect(self.update_map)
+        # self.timer.start(1000)  # Update the map every second
+        pass
 
     def update_map(self):
+        # # Fetch the latest positions
+        # global amcl_1, amcl_2, amcl_3
+        # positions = [amcl_1, amcl_2, amcl_3]
+        
+        # # Placeholder for actual map update logic
+        # for idx, pose in enumerate(positions):
+        #     if pose:
+        #         position = pose.pose.pose.position
+        #         orientation = pose.pose.pose.orientation
+        #         print(f"Robot {idx + 1} Position: {position.x}, {position.y}, Orientation: {orientation.z}")
+        
+        # # Update your QLabel or map with the positions
+        # self.map_label.setPixmap(updated_map_pixmap)
         pass
-    
+
     def update_task_list(self):
         pass
 
@@ -370,19 +360,6 @@ class Ui_MainWindow(QMainWindow):
         self.robot_control_clicked.emit(robot_name)
         self.robot_status_clicked.emit(robot_name)
 
-        if self.robotComboBox is None:
-            print("Error: robotComboBox not found")
-        else:
-            self.robotComboBox.addItems(["robot_1", "robot_2", "robot_3"])
-        self.robotComboBox.currentIndexChanged.connect(self.update_robot_info)
-
-        # Initialize with the first robot's data
-        #self.update_robot_info(0)
-
-    def display_robot_status(self, robot_name):
-        pass
-
-    
     def robot_stop(self):
         self.robot_stop_clicked.emit(True)
 
@@ -405,7 +382,8 @@ class Ui_MainWindow(QMainWindow):
         self.inbound_list.setColumnCount(5)
         self.inbound_list.setHorizontalHeaderLabels(["Item Name", "Quantity", "Inbound Zone", "Arrival Date", "Status"])
 
-        # Get all rows from the Inbound table
+        # Create a new cursor and fetch all rows from the Inbound table
+        self.db_manager.connect_database()  # Reconnect to refresh the cursor
         all_rows = self.db_manager.get_data("Inbound", ["item_name", "quantity", "inbound_zone", "arrival_date", "current_status"])
         
         # Populate the QTableWidget with data from the Inbound table
@@ -422,20 +400,22 @@ class Ui_MainWindow(QMainWindow):
     def scan_barcode(self):
         import threading
         threading.Thread(target=self.barcode_scanner.append_list).start()
+        
 
 def main(args=None):
     rclpy.init(args=args)
     executor = MultiThreadedExecutor()
 
-    amcl_node = AmclSubscriber()
-    picam_node = PiCamSubscriber()
-    status_node = RobotStatusSubscriber()
-    control_node = RobotController()
-
     app = QApplication(sys.argv)
 
     window = Ui_MainWindow()
     window.show()
+
+    amcl_node = AmclSubscriber()
+    picam_node = PiCamSubscriber(window)
+    status_node = RobotStatusSubscriber(window)
+    control_node = RobotController(window)
+
 
     executor.add_node(amcl_node)
     executor.add_node(picam_node)

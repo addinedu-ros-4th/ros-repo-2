@@ -1,8 +1,8 @@
 from setuptools import find_packages, setup
-import os 
 import glob
+import os
 
-package_name = 'data_manager'
+package_name = 'manager_pkg'
 
 setup(
     name=package_name,
@@ -12,20 +12,20 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        (os.path.join('share', package_name, 'config'), glob.glob('config/*')),
-        (os.path.join('share', package_name, 'query'), glob.glob('query/*')),
+        (os.path.join('share', package_name, 'image'), glob.glob('image/*')),
+        (os.path.join('share', package_name, 'data'), glob.glob('data/*')),
+        (os.path.join('share', package_name, 'ui'), glob.glob('ui/*')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='addinedu',
-    maintainer_email='cheun0928@naver.com',
+    maintainer_email='dydxkr0410@gmail.com',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'client = data_manager.add_two_ints_clients:main',
-            'server = data_manager.add_two_ints_server:main'
+            'manager_main = manager_pkg.manager_main:main',
         ],
     },
 )
