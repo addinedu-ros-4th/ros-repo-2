@@ -16,12 +16,9 @@ class OrderReceiver(Node):
         
         
     def order_callback(self, topic_name, msg):
-        self.get_logger().info(f'Received message on {topic_name}: {msg.data}')
         try:
             order_info = json.loads(msg.data)
-            self.get_logger().info(f'Parsed order info: {order_info}')
             order_type = "outbound" if topic_name == "/outbound" else "inbound"
-            print(order_type)
             
             if isinstance(order_info, dict):
                 self.process_single_order(order_info, order_type)    
@@ -46,7 +43,6 @@ class OrderReceiver(Node):
     
     
     def process_single_order(self, single_order, order_type):
-        self.get_logger().info(f'Processing single order: {single_order}')
         try:
             if order_type == 'inbound':
                 bundle_id = single_order['inbound_id']

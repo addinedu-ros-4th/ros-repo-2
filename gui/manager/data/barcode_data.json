@@ -1,30 +1,12 @@
 [
     {
-        "time": "2024-06-05 12:20:46",
+        "time": "2024-06-05 16:01:52",
         "barcode_id": "B2.04.I2",
         "inbound_location": "I2",
         "quantity": 4
     },
     {
-        "time": "2024-06-05 12:24:43",
-        "barcode_id": "B2.04.I2",
-        "inbound_location": "I2",
-        "quantity": 4
-    },
-    {
-        "time": "2024-06-05 12:26:11",
-        "barcode_id": "B2.04.I2",
-        "inbound_location": "I2",
-        "quantity": 4
-    },
-    {
-        "time": "2024-06-05 12:30:00",
-        "barcode_id": "B2.04.I2",
-        "inbound_location": "I2",
-        "quantity": 4
-    },
-    {
-        "time": "2024-06-05 12:30:04",
+        "time": "2024-06-05 16:02:04",
         "barcode_id": "B2.04.I2",
         "inbound_location": "I2",
         "quantity": 4
