@@ -22,8 +22,9 @@ from std_msgs.msg import String
 from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import PoseWithCovarianceStamped 
 from std_srvs.srv import SetBool
-from geometry_msgs.msg import Twist
+from std_msgs.msg import Empty
 from task_msgs.msg import RobotStatus
+from task_msgs.msg import PendingTaskList
 
 
 
@@ -155,26 +156,27 @@ class PiCamSubscriber(Node):
         else:
             pass
 
+class RobotStatusBarSubscriber(Node):
+    def __init__(self, ui):
+        super().__init__('robot_statusbar_subscriber')
 
+        self.ui = ui
+        self.ui.robot_status_clicked.connect(self.handle_statusbar)
+        
+        # 추가 예정 
+        self.statusbar_sub = None
 
+    def handle_statusbar(self, robot_name):
+        self.robot_name = robot_name
+
+    
 class RobotStatusSubscriber(Node):
-
-    update_task_list_signal = pyqtSignal()
-
     def __init__(self, ui):
         super().__init__('robot_status_subscriber')
 
         self.ui = ui
-        self.ui.robot_status_clicked.connect(self.handle_status)
-
         self.status_sub = self.create_subscription(RobotStatus, '/robot_status', self.status_callback, 10)
-        # self.status_sub2 = self.create_subscription(RobotStatus, '/robot_status_2', self.status_callback2, 10)
-        # self.status_sub3 = self.create_subscription(RobotStatus, '/robot_status_3', self.status_callback3, 10)
-        self.robot_name = None
-
-    def handle_status(self, robot_name):
-        self.robot_name = robot_name
-
+        
     def status_callback(self, data):
         self.ui.refresh_button.click()
         self.ui.refresh_button_2.click()
@@ -185,24 +187,16 @@ class RobotStatusSubscriber(Node):
             self.ui.status1.setText(self.robot_status1)
             self.update_button_style(self.ui.R1, self.robot_status1)
 
-            if self.robot_name == 'robot_1':
-                self.ui.statusLabel.setText(self.robot_status1)
-
         elif  self.robot_id == '92':
             self.robot_status2 = data.robot_status
             self.ui.status2.setText(self.robot_status2)
             self.update_button_style(self.ui.R2, self.robot_status2)
-
-            if self.robot_name == 'robot_2':
-                self.ui.statusLabel.setText(self.robot_status2)
 
         elif  self.robot_id == '93':
             self.robot_status3 = data.robot_status
             self.ui.status3.setText(self.robot_status3)
             self.update_button_style(self.ui.R3, self.robot_status3)
 
-            if self.robot_name == 'robot_3':
-                self.ui.statusLabel.setText(self.robot_status2)
 
     def update_button_style(self, button, status):
         if status == "busy":
@@ -219,11 +213,9 @@ class RobotController(Node):
         self.ui = ui
         self.ui.robot_control_clicked.connect(self.handle_control)
         self.ui.robot_stop_clicked.connect(self.robot_stop)
-        self.control_pub1 = self.create_publisher(Twist, 'base_controller/cmd_vel_unstamped_1', 10)
-        self.control_pub2 = self.create_publisher(Twist, 'base_controller/cmd_vel_unstamped_2', 10)
-        self.control_pub3 = self.create_publisher(Twist, 'base_controller/cmd_vel_unstamped_3', 10)
-        
-        self.Twist = Twist()
+        self.emergency_pub1 = self.create_publisher(Empty, '/emergency_stop_1', 10)
+        self.emergency_pub2 = self.create_publisher(Empty, '/emergency_stop_2', 10)
+        self.emergency_pub3 = self.create_publisher(Empty, '/emergency_stop_3', 10)
         self.robot_name = None
 
     def handle_control(self, robot_name):
@@ -231,23 +223,45 @@ class RobotController(Node):
 
     def robot_stop(self):
         if self.robot_name == 'robot_1':
-            self.Twist.linear.x = 0.0
-            self.Twist.angular.z = 0.0
-            self.control_pub1.publish(self.Twist)
+            self.emergency_pub1.publish()
 
         elif self.robot_name == 'robot_2':
-            self.Twist.linear.x = 0.0
-            self.Twist.angular.z = 0.0
-            self.control_pub1.publish(self.Twist)
+            self.emergency_pub2.publish()
         
         elif self.robot_name == 'robot_3':
-            self.Twist.linear.x = 0.0
-            self.Twist.angular.z = 0.0
-            self.control_pub1.publish(self.Twist)
+            self.emergency_pub3.publish()
 
         else: 
             self.get_logger().info("robot_name invalid")
 
+
+class PendingTaskSubscriber(Node):
+    def __init__(self, ui):
+        super().__init__('pending_task_node')
+        
+        self.ui = ui
+        self.pending_task_sub = self.create_subscription(PendingTaskList, '/pending_tasks', self.pending_task_callback, 10)
+
+    def pending_task_callback(self, data):
+        tasks = []
+        for task in data.tasks:
+            tasks.append({
+                'task_id': task.task_id,
+                'bundle_id': task.bundle_id,
+                'task_type': task.task_type,
+                'location': task.location,
+                'priority': task.priority
+            })
+        self.update_pending_tasks(tasks)
+
+    def update_pending_tasks(self, tasks):
+        self.ui.taskView.setRowCount(len(tasks))
+        for row, task in enumerate(tasks):
+            self.ui.taskView.setItem(row, 0, QTableWidgetItem(task['task_id']))
+            self.ui.taskView.setItem(row, 1, QTableWidgetItem(task['bundle_id']))
+            self.ui.taskView.setItem(row, 2, QTableWidgetItem(task['task_type']))
+            self.ui.taskView.setItem(row, 3, QTableWidgetItem(task['location']))
+            self.ui.taskView.setItem(row, 4, QTableWidgetItem(str(task['priority'])))
 
 class Ui_MainWindow(QMainWindow):
     robot_picam_clicked = pyqtSignal(str)
@@ -270,13 +284,16 @@ class Ui_MainWindow(QMainWindow):
         # Initialize the Stacked Widget
         self.stackedWidget = self.findChild(QStackedWidget, 'stackedWidget')
 
+        # Set Timer
+        timer = QTimer(self)
+        timer.timeout.connect(self.update_map)
+        timer.start(200)
+
         # Initialize pages
         self.init_main_page()
         self.init_robot_control_page()
         self.init_inbound_order_control_page()
-
         self.init_navigation_buttons()
-
         self.init_ros2_node()
         
         # Set up a timer to update stock info every 5 seconds
@@ -367,7 +384,10 @@ class Ui_MainWindow(QMainWindow):
         pass
 
     def update_map(self):
+        # timer 이용해서 amcl값 map에 업데이트하기.
+        # 3기 코드 OR 동규 코드 참고
         pass
+
 
     def update_task_list(self):
         pass
@@ -504,13 +524,16 @@ def main(args=None):
 
     amcl_node = AmclSubscriber()
     picam_node = PiCamSubscriber(window)
+    statusbar_node = RobotStatusBarSubscriber(window)
     status_node = RobotStatusSubscriber(window)
+    pending_task_node = PendingTaskSubscriber(window)
     control_node = RobotController(window)
-
 
     executor.add_node(amcl_node)
     executor.add_node(picam_node)
+    executor.add_node(statusbar_node)
     executor.add_node(status_node)
+    executor.add_node(pending_task_node)
     executor.add_node(control_node)
 
     thread = Thread(target=executor.spin)
