@@ -1,4 +1,4 @@
-from DatabaseManager import DatabaseManager
+from db.src.DatabaseManager import DatabaseManager
 
 class RobotController(DatabaseManager):
     def __init__(self, host):
