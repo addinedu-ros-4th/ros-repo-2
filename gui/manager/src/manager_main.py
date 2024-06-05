@@ -9,6 +9,7 @@ from DatabaseManager import DatabaseManager
 from barcode_scanner import BarcodeScanner
 from RobotController import RobotController
 import pandas as pd
+<<<<<<< HEAD
 import rclpy
 from rclpy.node import Node
 from threading import Thread
@@ -21,6 +22,8 @@ from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import PoseWithCovarianceStamped 
 
 
+=======
+>>>>>>> 43ff7afe33c9d020f404f9725aae1e14e0b84c4f
 
 class Ui_MainWindow(QMainWindow):
 
@@ -32,6 +35,8 @@ class Ui_MainWindow(QMainWindow):
         self.db_manager = DatabaseManager(host='localhost')
         self.db_manager.connect_database()
         self.db_manager.create_table()
+        
+        self.robotstatus = RobotController(host='localhost')
 
         # Load UI
         uic.loadUi("gui/manager/ui/manager.ui", self)
@@ -46,9 +51,12 @@ class Ui_MainWindow(QMainWindow):
 
         self.init_navigation_buttons()
 
+<<<<<<< HEAD
         self.init_ros2_node()
 
 
+=======
+>>>>>>> 43ff7afe33c9d020f404f9725aae1e14e0b84c4f
     def init_navigation_buttons(self):
         # Find buttons
         self.home = self.findChild(QPushButton, 'home')
@@ -82,7 +90,10 @@ class Ui_MainWindow(QMainWindow):
         self.home_3.clicked.connect(lambda: self.switch_page(0))
         self.robot_3.clicked.connect(lambda: self.switch_page(1))
         self.list_3.clicked.connect(lambda: self.switch_page(2))
-
+        self.R1.clicked.connect(lambda: self.switch_page(1))
+        self.R2.clicked.connect(lambda: self.switch_page(1))
+        self.R3.clicked.connect(lambda: self.switch_page(1))
+        
     def set_button_icon(self, button, icon_path):
         icon = QIcon(icon_path)
         button.setIcon(icon)
@@ -143,6 +154,7 @@ class Ui_MainWindow(QMainWindow):
         self.picamLabel = self.findChild(QLabel, 'picamLabel')
         self.statusLabel = self.findChild(QLabel, 'statusLabel')
 
+<<<<<<< HEAD
         self.robotComboBox.addItems(["robot_1", "robot_2", "robot_3"])
         self.robotComboBox.currentIndexChanged.connect(self.update_robot_info)
 
@@ -156,6 +168,16 @@ class Ui_MainWindow(QMainWindow):
 
     def display_robot_picam(self, robot_name):
         pass
+=======
+        if self.robotComboBox is None:
+            print("Error: robotComboBox not found")
+        else:
+            self.robotComboBox.addItems(["robot_1", "robot_2", "robot_3"])
+        self.robotComboBox.currentIndexChanged.connect(self.update_robot_info)
+
+        # Initialize with the first robot's data
+        #self.update_robot_info(0)
+>>>>>>> 43ff7afe33c9d020f404f9725aae1e14e0b84c4f
 
     def display_robot_status(self, robot_name):
         pass
@@ -178,8 +200,12 @@ class Ui_MainWindow(QMainWindow):
         self.inbound_list.setColumnCount(5)
         self.inbound_list.setHorizontalHeaderLabels(["Item Name", "Quantity", "Inbound Zone", "Arrival Date", "Status"])
 
+<<<<<<< HEAD
         # Create a new cursor and fetch all rows from the Inbound table
         self.db_manager.connect_database()  # Reconnect to refresh the cursor
+=======
+        # Get all rows from the Inbound table
+>>>>>>> 43ff7afe33c9d020f404f9725aae1e14e0b84c4f
         all_rows = self.db_manager.get_data("Inbound", ["item_name", "quantity", "inbound_zone", "arrival_date", "current_status"])
         
         # Populate the QTableWidget with data from the Inbound table
@@ -196,7 +222,11 @@ class Ui_MainWindow(QMainWindow):
     def scan_barcode(self):
         import threading
         threading.Thread(target=self.barcode_scanner.append_list).start()
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 43ff7afe33c9d020f404f9725aae1e14e0b84c4f
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
