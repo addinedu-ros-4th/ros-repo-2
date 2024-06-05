@@ -340,57 +340,49 @@ class Ui_MainWindow(QMainWindow):
             button.setStyleSheet("")
     
     def init_ros2_node(self):
-        # rclpy.init()
-        # self.executor = MultiThreadedExecutor()
-        # self.amcl_subscriber = AmclSubscriber()
-        # self.executor.add_node(self.amcl_subscriber)
-
-        # # Run ROS 2 executor in a separate thread
-        # self.ros_thread = Thread(target=self.executor.spin)
-        # self.ros_thread.start()
-
-        # # Timer to update the map periodically
-        # self.timer = QTimer(self)
-        # self.timer.timeout.connect(self.update_map)
-        # self.timer.start(1000)  # Update the map every second
         pass
 
     def update_map(self):
-        # # Fetch the latest positions
-        # global amcl_1, amcl_2, amcl_3
-        # positions = [amcl_1, amcl_2, amcl_3]
-        
-        # # Placeholder for actual map update logic
-        # for idx, pose in enumerate(positions):
-        #     if pose:
-        #         position = pose.pose.pose.position
-        #         orientation = pose.pose.pose.orientation
-        #         print(f"Robot {idx + 1} Position: {position.x}, {position.y}, Orientation: {orientation.z}")
-        
-        # # Update your QLabel or map with the positions
-        # self.map_label.setPixmap(updated_map_pixmap)
         pass
 
     def update_task_list(self):
         pass
 
     def update_stock_info(self):
-        print("Updating stock info")
-        product_inventory = self.db_manager.fetch_all_product("ProductInventory")
-        print(f"Fetched product inventory: {product_inventory}")
 
-        df = pd.DataFrame(product_inventory, columns=['item_id', 'item_name', 'stock'])
+        product_inventory = self.db_manager.utils.fetch_all_product("ProductInventory")
+        product_info = self.db_manager.get_data("ProductInfo", ["item_id", "item_tag"])
 
-        # tableWidget 업데이트
-        self.tableWidget.setRowCount(len(df))
-        self.tableWidget.setColumnCount(len(df.columns))
-        self.tableWidget.setHorizontalHeaderLabels(df.columns)
+        df_inventory = pd.DataFrame(product_inventory, columns=['item_id', 'item_name', 'stock'])
+        df_info = pd.DataFrame(product_info, columns=(["item_id", "item_tag"]))
 
-        for row_index, row in enumerate(df.itertuples(index=False)):
-            for col_index, value in enumerate(row):
-                item = QTableWidgetItem(str(value))
-                self.tableWidget.setItem(row_index, col_index, item)
-        print("Stock info updated")
+        df_merged = pd.merge(df_inventory, df_info, on='item_id')
+
+        self.A1Label = self.findChild(QLabel, 'A1Label')
+        self.A2Label = self.findChild(QLabel, 'A2Label')
+        self.B1Label = self.findChild(QLabel, 'B1Label')
+        self.B2Label = self.findChild(QLabel, 'B2Label')
+        self.C1Label = self.findChild(QLabel, 'C1Label')
+        self.C2Label = self.findChild(QLabel, 'C2Label')
+
+        label_mapping = {
+        1: self.A1Label,
+        2: self.A2Label,
+        3: self.B1Label,
+        4: self.B2Label,
+        5: self.C1Label,
+        6: self.C2Label,
+        }
+        
+        for index, row in df_merged.iterrows():
+            item_id = row['item_id']
+            item_name = row['item_name']
+            stock = row['stock']
+            item_tag = row['item_tag']
+
+            if item_id in label_mapping:
+                label = label_mapping[item_id]
+                label.setText(f"{item_tag}\n{item_name}\nstock: {stock}")
         
     def update_product_quantity(self, product_id, quantity):
         query = "UPDATE ProductInventory SET stock = %s WHERE item_id = %s"
@@ -422,6 +414,9 @@ class Ui_MainWindow(QMainWindow):
 
     def init_inbound_order_control_page(self):
         self.inbound_list = self.findChild(QTableWidget, 'inbound_list')  # Ensure this matches the object name in your UI
+        self.OrderList = self.findChild(QTableWidget, 'OrderList')
+
+        
         self.scanned_data = ""
         self.scan_button = self.findChild(QPushButton, 'scan_button')  # Ensure this matches the object name in your UI
         self.scan_button.clicked.connect(self.scan_barcode)
@@ -431,6 +426,10 @@ class Ui_MainWindow(QMainWindow):
 
         self.barcode_scanner = BarcodeScanner()  # Properly initialize BarcodeScanner
         self.barcode_scanner.barcode_scanned.connect(self.update_inbound_list)  # Connect signal to slot
+
+        self.refresh_button_2 = self.findChild(QPushButton, 'refresh_button_2')
+        self.refresh_button_2.clicked.connect(self.update_order_list)
+
 
     def update_inbound_list(self, data=None):
         # Clear the existing rows in the QTableWidget
@@ -451,7 +450,19 @@ class Ui_MainWindow(QMainWindow):
         print("Updated inbound_list with new data")  # Debugging print statement
 
     def update_order_list(self):
-        pass
+        order_list = self.db_manager.utils.fetch_all_product("ProductOrder")
+
+        df = pd.DataFrame(order_list, columns=['order_id', 'user_id', 'item_id', 'item_name', 'quantities', 'order_time'])
+
+        # tableWidget 업데이트
+        self.OrderList.setRowCount(len(df))
+        self.OrderList.setColumnCount(len(df.columns))
+        self.OrderList.setHorizontalHeaderLabels(df.columns)
+
+        for row_index, row in enumerate(df.itertuples(index=False)):
+            for col_index, value in enumerate(row):
+                item = QTableWidgetItem(str(value))
+                self.OrderList.setItem(row_index, col_index, item)
 
     def scan_barcode(self):
         import threading
