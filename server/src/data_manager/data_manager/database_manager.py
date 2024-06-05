@@ -1,6 +1,7 @@
 import mysql.connector
 import configparser
 import os
+from ament_index_python.packages import get_package_share_directory
 
 class DatabaseManager:
     def __init__(self, host):
@@ -9,7 +10,7 @@ class DatabaseManager:
         self.db_name = "amr"
         self.cur = None
         self.conn = None
-        self.password = "1234"
+        self.password = "0000"
 
 
     # def get_password_from_config(self):
@@ -54,7 +55,10 @@ class DatabaseManager:
     
     
     def create_table(self):
-        self.execute_sql_file("db/query/create_table.sql")
+        package_share_directory = get_package_share_directory('data_manager')
+        create_table_sql_path = os.path.join(package_share_directory, 'query', 'create_table.sql')
+
+        self.execute_sql_file(create_table_sql_path)
         self.initialize_inventory()
     
     
