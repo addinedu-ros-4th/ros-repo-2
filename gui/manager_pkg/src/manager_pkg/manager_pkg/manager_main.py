@@ -1,12 +1,12 @@
-import sys
-sys.path.append('./db/src')  # DatabaseManager.py 파일의 경로를 추가
+import sys, os
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
-from DatabaseManager import DatabaseManager
-from barcode_scanner import BarcodeScanner
+
+from data_manager.database_manager import DatabaseManager
+from manager_pkg.barcode_scanner import BarcodeScanner
 import rclpy
 from rclpy.node import Node
 from threading import Thread
@@ -14,6 +14,7 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSReliabilityPolicy, QoSProfile, qos_profile_sensor_data
 import numpy as np
 import cv2
+from ament_index_python.packages import get_package_share_directory
 
 # from task_msgs.msg import *
 from std_msgs.msg import String
@@ -55,7 +56,7 @@ class PiCamSubscriber(Node):
         super().__init__('pi_cam_sub_scriber') 
         
         self.ui = ui
-        self.ui.robot_cam_clicked.connect(self.handle_picam)
+        self.ui.robot_picam_clicked.connect(self.handle_picam)
         
         self.cam_client1 = self.create_client(SetBool, "/camera_control_1")
         self.cam_client2 = self.create_client(SetBool, "/camera_control_2")
@@ -241,7 +242,8 @@ class Ui_MainWindow(QMainWindow):
         self.db_manager.create_table()
 
         # Load UI
-        uic.loadUi("gui/manager/ui/manager.ui", self)
+        ui_path = os.path.join(get_package_share_directory('manager_pkg'), 'ui', 'manager.ui')
+        uic.loadUi(ui_path, self)
 
         # Initialize the Stacked Widget
         self.stackedWidget = self.findChild(QStackedWidget, 'stackedWidget')
@@ -404,15 +406,16 @@ def main(args=None):
     rclpy.init(args=args)
     executor = MultiThreadedExecutor()
 
-    amcl_node = AmclSubscriber()
-    picam_node = PiCamSubscriber()
-    status_node = RobotStatusSubscriber()
-    control_node = RobotController()
-
     app = QApplication(sys.argv)
 
     window = Ui_MainWindow()
     window.show()
+
+    amcl_node = AmclSubscriber()
+    picam_node = PiCamSubscriber(window)
+    status_node = RobotStatusSubscriber(window)
+    control_node = RobotController(window)
+
 
     executor.add_node(amcl_node)
     executor.add_node(picam_node)
