@@ -1,0 +1,2 @@
+[console_scripts]
+manager_main = manager_pkg.manager_main:main
