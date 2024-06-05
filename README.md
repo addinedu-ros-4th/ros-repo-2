@@ -30,4 +30,11 @@
 |COMMUNICATION|<img src="https://img.shields.io/badge/confluence-%23172BF4.svg?style=for-the-badge&logo=confluence&logoColor=white"> <img src="https://img.shields.io/badge/jira-%230A0FFF.svg?style=for-the-badge&logo=jira&logoColor=white"> <img src="https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=Slack&logoColor=white">  <img src="https://img.shields.io/badge/github-181717?style=for-the-badge&logo=github&logoColor=white">|
 
 ### 1-3. 팀원 역할
-
+|구분|팀원|역할| 
+|:---:|:---|:---|
+|팀장|송용탁|이슈 및 일정 관리, 로봇 형상 및 기구 설계, Fork lift 및 GPIO 센서 제어, 세부 기능 개선 및 코드 통합, 주행 환경 구축|
+|팀원|김동규|Camera Calibration, ArUco Navigation, 딥러닝 기반 Human Following Robot, Confluence 관리, 주행 환경 구축|
+|팀원|이재혁|다중 로봇 제어 시스템 구현, Path Planning Algorithm 설계, WayPoint Navigation, 정적/동적 장애물 회피주행 구현|
+|팀원|최가은|로봇 통신 서버 구축, 통신 인터페이스 및 프로토콜 설계, 데이터베이스 구조 설계, 물류 공정 시나리오 설계, Github 및 Jira 관리|
+|팀원|유겸희|SLAM Mapping, 관리자 GUI 설계, 물류 공정 시나리오 설계, 데이터베이스 구축, 주행 환경 구축|
+|팀원|장하린|SLAM Mapping, 소비자 GUI 설계, 데이터베이스 구축 |
