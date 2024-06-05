@@ -25,21 +25,27 @@ class TaskAllocator(Node):
         self.robot_status_sub = self.create_subscription(RobotStatus,    '/robot_status',    self.update_robot_status,     10)
         self.completion_sub   = self.create_subscription(TaskCompletion, '/task_completion', self.process_task_completion, 10)
 
+        # database
         self.robot_controller = robot_controller
 
-        self.tasks = []                       # Priority queue for tasks
-        self.tasks_in_progress = {}           # Dictionary to keep track of transactions in progress
-        self.robot_status = {}                # Dictionary to keep track of robot statuses
-        self.outbound_to_task_map = {}        # Dictionary to map outbound tasks to tasks
-        self.inbound_to_task_map = {}         # Dictionary to map inbound tasks to unloading and storage locations
+        self.tasks = []                             # Priority queue for tasks
+        self.tasks_in_progress = {}                 # Dictionary to keep track of transactions in progress
+        self.robot_status = {}                      # Dictionary to keep track of robot statuses
+        self.outbound_to_task_map = {}              # Dictionary to map outbound tasks to tasks
+        self.inbound_to_task_map = {}               # Dictionary to map inbound tasks to unloading and storage locations
 
 
     def get_final_location_from_db(self, task):
-        # item_name = task[item]
-        # 수정 필요
-        # task[0]의 bundle id가 db의 inbound_id 컬럼과 같으면 그 데이터의 item_tag 컬럼의 값을 return
-        # 구현하면 Inbound는 대충 끝 테스트
-        pass
+        self.robot_controller.ensure_connection()   # Ensure the connection is valid
+        bundle_id = task.bundle_id
+        query = "SELECT item_tag FROM Inbound WHERE inbound_id = %s"
+        result = self.robot_controller.fetchone(query, (bundle_id,))
+        
+        if result:
+            return result[0]
+        else:
+            self.get_logger().error("No item_tag found for the given inbound_id")
+            return None
 
 
     def receive_task_list(self, msg):
@@ -53,7 +59,7 @@ class TaskAllocator(Node):
                 if task.bundle_id not in self.inbound_to_task_map:
                     self.inbound_to_task_map[task.bundle_id] = []
                 self.inbound_to_task_map[task.bundle_id].append(task)
-                self.inbound_item = self.task.item
+                self.inbound_item = task.item
 
         self.get_logger().info(f'Received task list with {len(msg.tasks)} tasks')
         self.bundle_tasks()
@@ -191,6 +197,9 @@ class TaskAllocator(Node):
                     self.get_logger().info(f'All tasks in transaction {transaction_id} completed')
                     del self.tasks_in_progress[transaction_id]
                     self.robot_status[msg.robot_id] = "available"
+                    # Update robot status database
+                    self.robot_controller.update_robot_status(msg.robot_id, 'busy')
+
                     self.allocate_transaction()
         else:
             self.get_logger().warn(f'Transaction {transaction_id} not found in progress')
