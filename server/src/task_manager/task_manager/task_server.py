@@ -8,7 +8,7 @@ class TaskServer(Node):
     def __init__(self):
         super().__init__('task_server')
         
-        self.robot_id = '213'
+        self.robot_id = '91'
         self.topic_name = f'/allocate_task_{self.robot_id}'
         
         self.srv = self.create_service(AllocateTask, self.topic_name, self.allocate_task_callback)

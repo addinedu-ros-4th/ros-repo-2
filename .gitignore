@@ -4,6 +4,7 @@
 /robot/install/
 /robot/log/
 /robot/build/
+/robot/src/robot_aruco/config/
 /.vscode/
 /db/config/config.ini
 /gui/consumer/src/__pycache__/
@@ -12,7 +13,7 @@
 /log
 /build
 /install
-/gui/manager_pkg/build
-/gui/manager_pkg/install
-/gui/manager_pkg/log
+/gui/manager_pkg/build/
+/gui/manager_pkg/install/
+/gui/manager_pkg/log/
 /gui/manager/data/barcode_data.json

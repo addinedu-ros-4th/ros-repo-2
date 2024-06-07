@@ -111,6 +111,7 @@ class My_Location(Node) :
         self.obstacle_1[0][1] = data.start_y
         self.obstacle_1[1][0] = data.end_x
         self.obstacle_1[1][1] = data.end_y
+
         self.send_map_status()
 
 
@@ -119,6 +120,7 @@ class My_Location(Node) :
         self.obstacle_2[0][1] = data.start_y
         self.obstacle_2[1][0] = data.end_x
         self.obstacle_2[1][1] = data.end_y
+
         self.send_map_status()
 
 
@@ -153,21 +155,26 @@ class My_Location(Node) :
         
         self.publisher_out_task.publish(msg)
 
+
     def current_pose(self, data):
         self.controller.my_pose[0] = data.pose.pose.position.x
         self.controller.my_pose[1] = data.pose.pose.position.y
+
 
     def next_out_is_clicked(self, req, res):
         self.controller.next_out = True
         return res
 
+
     def emergency_button_is_clicked(self, data):
         self.controller.task_status = "emergency"
+
 
     def aruco_is_done(self, req, res):
         self.controller.marker_service_done = True
         self.get_logger().info("marker end")
         return res
+
 
     def lift_is_done(self, req, res):
         self.controller.lift_service_done = True
@@ -183,11 +190,11 @@ class RobotController(Node) :
         self.get_logger().info("start robot_controller")
         self.nav = BasicNavigator()
         
-        self.current_task_location = ""
-        self.tasking = False
-        self.next_out = False
-        self.lift_service_done = False
-        self.marker_service_done = False
+        self.current_task_location  = ""
+        self.tasking                = False
+        self.next_out               = False
+        self.lift_service_done      = False
+        self.marker_service_done    = False
         
         self.task_status    = ""
         self.task_id        = ""
@@ -242,29 +249,29 @@ class RobotController(Node) :
         # pose x, y, z
         # 추후 json or yaml로 변경 필요
         self.POSE_DICT = {
-            "I1" : [ 0.3, -1.225, 0.0], "I2" : [0.3, -0.925, 0.0], "I3" : [0.3, -0.625, 0.0],
-            "O1" : [1.55, 1.06, 0.0], "O2" : [1.55, 0.76, 0.0], "O3" : [1.55, 0.46, 0.0],
-            "P1" : [0.3, 0.0, 0.0], "P2" : [0.3, 0.58, 0.0], "P3" : [0.3, 1.16, 0.0],
-            "A1" : [0.91, -0.12, 0.0], "A1_2" : [0.91, -0.12, 0.0], 
-            "A2" : [0.91, 0.27, 0.0], "A2_2" : [0.91, 0.27, 0.0],
-            "B1" : [1.64, -0.08, 0.0], "B1_2" : [1.64, -0.08, 0.0], 
-            "B2" : [1.64, 0.33, 0.0], "B2_2" : [1.64, 0.33, 0.0],
-            "C1" : [2.37, -0.06, 0.0], "C1_2" : [2.37, -0.06, 0.0], 
-            "C2" : [2.37, 0.32, 0.0], "C2_2" : [2.37, 0.32, 0.0],
-            "R1" : [1.55, -0.9, 0.0], "R2" : [1.55, -1.2, 0.0]
+            "I1" : [ 0.3, -1.225, 0.0], "I2" : [0.3, -0.925, 0.0],  "I3" : [0.3, -0.625, 0.0],
+            "O1" : [1.55, 1.06, 0.0],   "O2" : [1.55, 0.76, 0.0],   "O3" : [1.55, 0.46, 0.0],
+            "P1" : [0.3, 0.0, 0.0],     "P2" : [0.3, 0.58, 0.0],    "P3" : [0.3, 1.16, 0.0],
+            "A1" : [0.85, 0.4, 0.0],   "A1_2" : [0.85, 0.4, 0.0], 
+            "A2" : [1.15, 0.4, 0.0],   "A2_2" : [1.15, 0.4, 0.0],
+            "B1" : [0.85, -0.4, 0.0],    "B1_2" : [0.85, -0.4, 0.0], 
+            "B2" : [1.15, -0.4, 0.0],    "B2_2" : [1.15, -0.4, 0.0],
+            "C1" : [0.85, -1.1, 0.0],    "C1_2" : [0.85, -1.1, 0.0], 
+            "C2" : [1.15, -1.1, 0.0],    "C2_2" : [1.15, -1.1, 0.0],
+            "R1" : [1.55, -1.2, 0.0],   "R2" : [1.55, -0.9, 0.0]
         }
 
         self.YAW_DICT = {
-            "I1" : 3.14, "I2" : 3.14, "I3" : 3.14,
-            "O1" : 0.0, "O2" : 0.0, "O3" : 0.0,
-            "P1" : 3.14, "P2" : 3.14, "P3" : 3.14,
-            "A1" : 4.71, "A1_2" : 4.71, 
-            "A2" : 4.71, "A2_2" : 4.71,
-            "B1" : 4.71, "B1_2" : 4.71, 
-            "B2" : 4.71, "B2_2" : 4.71, 
-            "C1" : 4.71, "C1_2" : 4.71, 
-            "C2" : 4.71, "C2_2" : 4.71, 
-            "R1" : 0.0, "R2" : 0.0
+            "I1" : 3.14,    "I2" : 3.14,    "I3" : 3.14,
+            "O1" : 0.0,     "O2" : 0.0,     "O3" : 0.0,
+            "P1" : 3.14,    "P2" : 3.14,    "P3" : 3.14,
+            "A1" : 1.57,    "A1_2" : 1.57, 
+            "A2" : 1.57,    "A2_2" : 1.57,
+            "B1" : 1.57,    "B1_2" : 1.57, 
+            "B2" : 1.57,    "B2_2" : 1.57, 
+            "C1" : 1.57,    "C1_2" : 1.57, 
+            "C2" : 1.57,    "C2_2" : 1.57, 
+            "R1" : 0.0,     "R2" : 0.0
         }
 
         self.declare_lists()
@@ -276,13 +283,13 @@ class RobotController(Node) :
 
     def declare_lists(self):
         self.PATH_LIST = [
-            [[0.3, -1.1, 0.0],  [0.85, -1.1, 0.0],  [1.15, -1.1, 0.0],  [1.6, -1.1, 0.0]],
-            [[0.3, -0.75, 0.0], [0.85, -0.75, 0.0], [1.15, -0.75, 0.0], [1.6, -0.75, 0.0]],
-            [[0.3, -0.4, 0.0],  [0.85, -0.4, 0.0],  [1.15, -0.4, 0.0],  [1.6, -0.4, 0.0]],
-            [[0.3, 0.0, 0.0],   [0.85, 0.0, 0.0],   [1.15, 0.0, 0.0],   [1.6, 0.0, 0.0]],
-            [[0.3, 0.4, 0.0],   [0.85, 0.4, 0.0],   [1.15, 0.4, 0.0],   [1.6, 0.4, 0.0]],
-            [[0.3, 0.75, 0.0],  [0.85, 0.75, 0.0],  [1.15, 0.75, 0.0],  [1.6, 0.75, 0.0]],
-            [[0.3, 1.1, 0.0],   [0.85, 1.1, 0.0],   [1.15, 1.1, 0.0],   [1.6, 1.1, 0.0]]
+            [[0.3, -1.1, 0.0],  [0.85, -1.1, 0.0],  [1.15, -1.1, 0.0],  [1.45, -1.1, 0.0]],
+            [[0.3, -0.75, 0.0], [0.85, -0.75, 0.0], [1.15, -0.75, 0.0], [1.45, -0.75, 0.0]],
+            [[0.3, -0.4, 0.0],  [0.85, -0.4, 0.0],  [1.15, -0.4, 0.0],  [1.45, -0.4, 0.0]],
+            [[0.3, 0.0, 0.0],   [0.85, 0.0, 0.0],   [1.15, 0.0, 0.0],   [1.45, 0.0, 0.0]],
+            [[0.3, 0.4, 0.0],   [0.85, 0.4, 0.0],   [1.15, 0.4, 0.0],   [1.45, 0.4, 0.0]],
+            [[0.3, 0.75, 0.0],  [0.85, 0.75, 0.0],  [1.15, 0.75, 0.0],  [1.45, 0.75, 0.0]],
+            [[0.3, 1.0, 0.0],   [0.85, 1.0, 0.0],   [1.15, 1.0, 0.0],   [1.45, 1.0, 0.0]]
         ]
         
         self.X_LIST = []
@@ -601,7 +608,7 @@ class RobotController(Node) :
         q = self.euler_to_quaternion(yaw=yaw)
 
         self.get_logger().info(f"pose : {target_pose} yaw : {yaw}")
-        redeem_vector = self.redeem_pose(target_pose, 0.1)
+        redeem_vector = self.redeem_pose(target_pose, 0.15)
         goal_pose = PoseStamped()
         
         goal_pose.header.frame_id = 'map'
@@ -659,8 +666,8 @@ class RobotController(Node) :
                 send_data.data = feedback.distance_remaining
                 
                 ###########
-                if (feedback.distance_remaining <= 0.40 and feedback.distance_remaining != 0.0) or Duration.from_msg(feedback.navigation_time) > Duration(seconds=40.0) :
-                    # time.sleep(0.5) # 목표지점 인접시 0.5초후 다음목적지
+                if (feedback.distance_remaining <= 0.20 and feedback.distance_remaining != 0.0) or Duration.from_msg(feedback.navigation_time) > Duration(seconds=40.0) :
+                    time.sleep(0.5) # 목표지점 인접시 0.5초후 다음목적지
                     self.nav.cancelTask()
                     self.get_logger().info("cancel nav Task")
 
