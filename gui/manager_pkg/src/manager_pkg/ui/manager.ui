@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../image/resources.qrc">
+   <iconset>
     <normaloff>:/icon/map.yaml</normaloff>:/icon/map.yaml</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -28,7 +28,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="MainPage">
      <widget class="QWidget" name="widget_2" native="true">
@@ -202,7 +202,7 @@ p, li { white-space: pre-wrap; }
         <property name="geometry">
          <rect>
           <x>340</x>
-          <y>60</y>
+          <y>50</y>
           <width>291</width>
           <height>451</height>
          </rect>
@@ -264,40 +264,6 @@ border-radius: 20px</string>
           </size>
          </property>
         </widget>
-        <widget class="QLabel" name="status1">
-         <property name="geometry">
-          <rect>
-           <x>30</x>
-           <y>80</y>
-           <width>51</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <weight>75</weight>
-           <italic>false</italic>
-           <bold>true</bold>
-           <strikeout>false</strikeout>
-          </font>
-         </property>
-         <property name="contextMenuPolicy">
-          <enum>Qt::ActionsContextMenu</enum>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">color: rgb(255, 255, 255);</string>
-         </property>
-         <property name="text">
-          <string>BUSY</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
         <widget class="QLabel" name="status2">
          <property name="geometry">
           <rect>
@@ -326,7 +292,7 @@ border-radius: 20px</string>
           <string notr="true">color: rgb(255, 255, 255);</string>
          </property>
          <property name="text">
-          <string>AVAILABLE</string>
+          <string>available</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -342,7 +308,7 @@ border-radius: 20px</string>
           </rect>
          </property>
          <property name="styleSheet">
-          <string notr="true">background-color: rgb(246, 97, 81);
+          <string notr="true">background-color: rgb(143, 240, 164);
 border-radius: 20px</string>
          </property>
          <property name="text">
@@ -387,7 +353,7 @@ border-radius: 20px</string>
           <string notr="true">color: rgb(255, 255, 255);</string>
          </property>
          <property name="text">
-          <string>AVAILABLE</string>
+          <string>available</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -406,24 +372,58 @@ border-radius: 20px</string>
           <string>할당대기</string>
          </property>
         </widget>
-        <widget class="QTableView" name="taskView">
+        <widget class="QTableWidget" name="taskView">
          <property name="geometry">
           <rect>
            <x>20</x>
-           <y>150</y>
+           <y>140</y>
            <width>256</width>
-           <height>291</height>
+           <height>301</height>
           </rect>
+         </property>
+        </widget>
+        <widget class="QLabel" name="status1">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>80</y>
+           <width>91</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <weight>75</weight>
+           <italic>false</italic>
+           <bold>true</bold>
+           <strikeout>false</strikeout>
+          </font>
+         </property>
+         <property name="contextMenuPolicy">
+          <enum>Qt::ActionsContextMenu</enum>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(255, 255, 255);</string>
+         </property>
+         <property name="text">
+          <string>available</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
          </property>
         </widget>
         <zorder>status2</zorder>
         <zorder>R2</zorder>
         <zorder>R3</zorder>
-        <zorder>status1</zorder>
         <zorder>R1</zorder>
         <zorder>status3</zorder>
         <zorder>wait</zorder>
         <zorder>taskView</zorder>
+        <zorder>status1</zorder>
        </widget>
        <widget class="QGroupBox" name="StockLabel">
         <property name="geometry">
@@ -748,22 +748,6 @@ p, li { white-space: pre-wrap; }
         <string/>
        </property>
       </widget>
-      <widget class="QLabel" name="statusLabel">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>430</y>
-         <width>401</width>
-         <height>141</height>
-        </rect>
-       </property>
-       <property name="frameShape">
-        <enum>QFrame::Box</enum>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
       <widget class="QTextEdit" name="textEdit_6">
        <property name="geometry">
         <rect>
@@ -826,6 +810,16 @@ p, li { white-space: pre-wrap; }
          <string>STOP</string>
         </property>
        </widget>
+      </widget>
+      <widget class="QTableWidget" name="status">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>430</y>
+         <width>401</width>
+         <height>141</height>
+        </rect>
+       </property>
       </widget>
      </widget>
     </widget>

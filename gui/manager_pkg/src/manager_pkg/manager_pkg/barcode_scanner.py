@@ -82,7 +82,7 @@ class BarcodeScanner(QObject):
     def send_task_to_ros(self):
         try:
         # WebSocket을 통해 rosbridge로 연결
-            ws = create_connection("ws://192.168.0.85:9090")
+            ws = create_connection("ws://172.20.10.3:9090")
             # JSON 메시지 생성
             order_message = json.dumps({
                 "op": "publish",
