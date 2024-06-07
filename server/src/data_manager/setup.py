@@ -1,4 +1,6 @@
 from setuptools import find_packages, setup
+import os 
+import glob
 
 package_name = 'data_manager'
 
@@ -10,6 +12,8 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share', package_name, 'config'), glob.glob('config/*')),
+        (os.path.join('share', package_name, 'query'), glob.glob('query/*')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

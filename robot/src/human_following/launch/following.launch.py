@@ -16,13 +16,6 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='human_following',
-            executable='robot_cam',
-            name='robot_cam',
-            parameters=[param_dir],
-            output='screen'
-        ),
-        Node(
-            package='human_following',
             executable='following',
             name='following',
             parameters=[param_dir],

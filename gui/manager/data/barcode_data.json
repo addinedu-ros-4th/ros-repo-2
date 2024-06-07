@@ -1,20 +1,14 @@
 [
     {
-        "time": "2024-05-31 17:10:37",
-        "barcode_id": "A1.04.I1",
-        "inbound_location": "I1",
+        "time": "2024-06-05 16:01:52",
+        "barcode_id": "B2.04.I2",
+        "inbound_location": "I2",
         "quantity": 4
     },
     {
-        "time": "2024-05-31 17:10:39",
-        "barcode_id": "A1.04.I1",
-        "inbound_location": "I1",
-        "quantity": 4
-    },
-    {
-        "time": "2024-05-31 17:10:41",
-        "barcode_id": "A1.04.I1",
-        "inbound_location": "I1",
+        "time": "2024-06-05 16:02:04",
+        "barcode_id": "B2.04.I2",
+        "inbound_location": "I2",
         "quantity": 4
     }
 ]
