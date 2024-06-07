@@ -54,7 +54,6 @@ class BarcodeScanner(QObject):
                         "arrival_date": barcode_entry["time"],
                         "current_status": 'waiting'
                     }
-<<<<<<< HEAD
                     primary_key = self.db_manager.save_data("Inbound", self.inbound_data)
                     self.db_manager.add_to_stock(item_id, quantity)
                     
@@ -67,11 +66,6 @@ class BarcodeScanner(QObject):
                     self.send_task_to_ros()
                     
                     self.barcode_scanned.emit(self.inbound_data)  # Emit signal with inbound data
-=======
-                    self.db_manager.save_data("Inbound", inbound_data)
-                    self.db_manager.add_to_stock(item_id, quantity)
-                    self.barcode_scanned.emit(inbound_data)  # Emit signal with inbound data
->>>>>>> 81d6c7f001f1497d2fc65f9f69ea9ba353d99101
                 else:
                     print(f"Item {item_tag} not found in database.")
                 self.save_to_json(barcodes)
@@ -82,7 +76,6 @@ class BarcodeScanner(QObject):
             self.db_manager.close_connection()
         print("Scan Completed")
 
-<<<<<<< HEAD
 
     def send_task_to_ros(self):
         try:
@@ -108,8 +101,6 @@ class BarcodeScanner(QObject):
             QMessageBox.warning(self, "Error", f"An error occurred: {str(e)}")
 
 
-=======
->>>>>>> 81d6c7f001f1497d2fc65f9f69ea9ba353d99101
 if __name__ == '__main__':
     barcode_scanner = BarcodeScanner()
     barcode_scanner.append_list()
