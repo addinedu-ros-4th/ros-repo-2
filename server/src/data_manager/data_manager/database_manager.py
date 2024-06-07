@@ -10,7 +10,7 @@ class DatabaseManager:
         self.db_name = "amr"
         self.cur = None
         self.conn = None
-        self.password = "0000"
+        self.password = "1234"
 
 
     # def get_password_from_config(self):
@@ -242,8 +242,22 @@ class DatabaseManager:
             self.connect_database()
         if self.cur is None or self.conn is None:
             self.cur = self.conn.cursor()
-
     
+    def initialize_robot_status(self):
+        self.cur.execute("SELECT COUNT(*) FROM RobotStatus")
+        result = self.cur.fetchone()
+        if result[0] > 0:
+            print("Initial data already exists in RobotStatus table.")
+            return
+        RobotStatus = [
+            (91, "available"),
+            (92, "available"),
+            (93, "available")
+        ]
+       
+        for RobotID, Status in RobotStatus:
+            self.cur.execute("INSERT IGNORE INTO RobotStatus (RobotID, Status) VALUES (%s, %s, %s)", (RobotID, Status))
+        self.conn.commit()
     
 if __name__ == '__main__':
     db_manager = DatabaseManager(host='localhost')

@@ -61,9 +61,10 @@ class BarcodeScanner(QObject):
                     self.db_manager.add_to_stock(item_id, quantity)
                     
                     # Change format to send to ros
-                    self.inbound_data["id"] = primary_key
+                    self.inbound_data["inbound_id"] = primary_key
                     del self.inbound_data["quantity"]
                     self.inbound_data["quantities"] = quantity
+                    
                     self.send_task_to_ros()
                     
                     self.barcode_scanned.emit(self.inbound_data)  # Emit signal with inbound data
@@ -82,7 +83,7 @@ class BarcodeScanner(QObject):
     def send_task_to_ros(self):
         try:
         # WebSocket을 통해 rosbridge로 연결
-            ws = create_connection("ws://172.20.10.3:9090")
+            ws = create_connection("ws://192.168.0.85:9090")
             # JSON 메시지 생성
             order_message = json.dumps({
                 "op": "publish",

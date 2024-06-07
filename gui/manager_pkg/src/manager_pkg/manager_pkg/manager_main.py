@@ -287,6 +287,7 @@ class Ui_MainWindow(QMainWindow):
         # Load UI
         ui_path = os.path.join(get_package_share_directory('manager_pkg'), 'ui', 'manager.ui')
         uic.loadUi(ui_path, self)
+        self.stackedWidget.setCurrentIndex(0)
 
         # Initialize the Stacked Widget
         self.stackedWidget = self.findChild(QStackedWidget, 'stackedWidget')
@@ -297,6 +298,11 @@ class Ui_MainWindow(QMainWindow):
         self.init_inbound_order_control_page()
         self.init_navigation_buttons()
         self.init_ros2_node()
+        
+        self.task_subscriber = TaskSubscriber()
+        self.task_subscriber.current_transactions_signal.connect(self.update_current_transactions_display)
+        self.ros2_thread = TaskThread(self.task_subscriber)
+        self.ros2_thread.start()
 
         # Set Timer
         self.map_timer = QTimer(self)
@@ -306,8 +312,16 @@ class Ui_MainWindow(QMainWindow):
         # Set up a timer to update stock info every 5 seconds
         self.stock_update_timer = QTimer(self)
         self.stock_update_timer.timeout.connect(self.update_stock_info)
-        self.stock_update_timer.start(5000)  # Update every 5000 milliseconds (5 seconds)
+        self.stock_update_timer.start(2000)  # Update every 2000 milliseconds (2 seconds)
         print("Timer started for updating stock info every 5 seconds")
+        
+        self.inbound_update_timer = QTimer(self)
+        self.inbound_update_timer.timeout.connect(self.update_inbound_list)
+        self.inbound_update_timer.start(1000)  
+
+        self.order_update_timer = QTimer(self)
+        self.order_update_timer.timeout.connect(self.update_order_list)
+        self.order_update_timer.start(1000)  
 
         self.stackedWidget.setCurrentIndex(0)
 
@@ -405,6 +419,28 @@ class Ui_MainWindow(QMainWindow):
     def init_ros2_node(self):
         pass
 
+    
+    def update_current_transactions_display(self):
+        transactions = self.task_subscriber.get_transactions()
+        if not transactions:
+            return  # No transactions to display
+        # Assuming only one transaction is handled at a time
+        transaction = transactions[0]
+        transaction_id = transaction["transaction_id"]
+        # Set transaction ID to QLabel
+        self.transactionEdit.setText(transaction_id)
+        # Populate QTableWidget with tasks
+        tasks = transaction["tasks"]
+        self.status.setRowCount(len(tasks))
+        for row, task in enumerate(tasks):
+            task_id = QTableWidgetItem(task["task_id"])
+            location = QTableWidgetItem(task["location"])
+            completed = QTableWidgetItem(str(task["completed"]))
+            self.status.setItem(row, 0, task_id)
+            self.status.setItem(row, 1, location)
+            self.status.setItem(row, 2, completed)
+            
+            
     def update_map(self):
         
         scaled_pixmap = self.pixmap.scaled(self.width * self.image_scale, self.height * self.image_scale, Qt.KeepAspectRatio)
@@ -437,6 +473,7 @@ class Ui_MainWindow(QMainWindow):
 
         self.map.setPixmap(final_pixmap)
     
+    
     def draw_robot(self, painter, amcl, color, label):
         x, y = self.calc_grid_position(100, 100)
         painter.setPen(QPen(color, 14, Qt.SolidLine))
@@ -449,6 +486,7 @@ class Ui_MainWindow(QMainWindow):
         y_grid = (y - self.map_origin[1]) / self.map_resolution
         return x_grid, y_grid
     
+    
     def load_yaml(self, file_path):
         with open(file_path, 'r') as f:
             return yaml.full_load(f)
@@ -456,6 +494,7 @@ class Ui_MainWindow(QMainWindow):
 
     def update_task_list(self):
         pass
+
 
     def update_stock_info(self):
 
@@ -493,11 +532,13 @@ class Ui_MainWindow(QMainWindow):
                 self.label = label_mapping[item_id]
                 self.label.setText(f"{item_tag}\n{item_name}\nstock: {stock}")
         
+        
     def update_product_quantity(self, product_id, quantity):
         query = "UPDATE ProductInventory SET stock = %s WHERE item_id = %s"
         self.db_manager.cursor.execute(query, (quantity, product_id))
         self.db_manager.conn.commit()
         print(f"Updated product {product_id} with quantity {quantity}")
+
 
     def init_robot_control_page(self):
         self.robotComboBox = self.findChild(QComboBox, 'robotComboBox')
@@ -572,6 +613,9 @@ class Ui_MainWindow(QMainWindow):
         self.refresh_button_2 = self.findChild(QPushButton, 'refresh_button_2')
         self.refresh_button_2.clicked.connect(self.update_order_list)
 
+        self.inbound_list.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.OrderList.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
 
     def update_inbound_list(self, data=None):
         # Clear the existing rows in the QTableWidget
@@ -603,10 +647,14 @@ class Ui_MainWindow(QMainWindow):
         self.OrderList.setColumnCount(len(df.columns))
         self.OrderList.setHorizontalHeaderLabels(df.columns)
 
+        self.db_manager.connect_database()  # Reconnect to refresh the cursor
+        all_rows = self.db_manager.get_data("ProductOrder", ['order_id', 'user_id', 'item_id', 'item_name', 'quantities', 'order_time'])
+        
         for row_index, row in enumerate(df.itertuples(index=False)):
             for col_index, value in enumerate(row):
                 item = QTableWidgetItem(str(value))
                 self.OrderList.setItem(row_index, col_index, item)
+
 
     def scan_barcode(self):
         import threading

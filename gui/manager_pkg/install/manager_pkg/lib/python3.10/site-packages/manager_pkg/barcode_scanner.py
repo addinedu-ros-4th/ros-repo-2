@@ -21,10 +21,6 @@ class BarcodeScanner(QObject):
         self.db_manager.initialize_inventory()
 
 
-    def save_to_json(self, data, filename='gui/manager/data/barcode_data.json'):
-        with open(filename, 'w', encoding='utf-8') as json_file:
-            json.dump(data, json_file, ensure_ascii=False, indent=4)
-
 
     def append_list(self):
         barcodes = []
@@ -55,6 +51,7 @@ class BarcodeScanner(QObject):
                     item_id, item_name = product_info
                     self.inbound_data = {
                         "item_name": item_name,
+                        "item_tag" : item_tag,
                         "quantity": quantity,
                         "inbound_zone": inbound_location,
                         "arrival_date": barcode_entry["time"],
@@ -64,16 +61,16 @@ class BarcodeScanner(QObject):
                     self.db_manager.add_to_stock(item_id, quantity)
                     
                     # Change format to send to ros
-                    self.inbound_data["id"] = primary_key
+                    self.inbound_data["inbound_id"] = primary_key
                     del self.inbound_data["quantity"]
                     self.inbound_data["quantities"] = quantity
+                    
                     self.send_task_to_ros()
                     
                     self.barcode_scanned.emit(self.inbound_data)  # Emit signal with inbound data
                 else:
                     print(f"Item {item_tag} not found in database.")
-                self.save_to_json(barcodes)
-                print(f"Barcode {barcode_data} saved.")
+                
                 
         except Exception as e:
             print(f"An error occurred: {e}")
@@ -86,7 +83,7 @@ class BarcodeScanner(QObject):
     def send_task_to_ros(self):
         try:
         # WebSocket을 통해 rosbridge로 연결
-            ws = create_connection("ws://172.20.10.3:9090")
+            ws = create_connection("ws://192.168.0.85:9090")
             # JSON 메시지 생성
             order_message = json.dumps({
                 "op": "publish",
