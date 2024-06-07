@@ -10,7 +10,7 @@ def generate_launch_description():
         default=os.path.join(
             get_package_share_directory('robot_aruco'),
             'config',
-            'config.yaml')
+            'aruco.yaml')
     )
 
     return LaunchDescription([

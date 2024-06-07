@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1190</width>
-    <height>864</height>
+    <width>799</width>
+    <height>601</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,10 +21,10 @@
    <widget class="QStackedWidget" name="stackedWidget">
     <property name="geometry">
      <rect>
-      <x>130</x>
-      <y>80</y>
-      <width>1011</width>
-      <height>651</height>
+      <x>0</x>
+      <y>0</y>
+      <width>801</width>
+      <height>601</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -34,8 +34,8 @@
      <widget class="QWidget" name="widget_2" native="true">
       <property name="geometry">
        <rect>
-        <x>100</x>
-        <y>30</y>
+        <x>0</x>
+        <y>0</y>
         <width>81</width>
         <height>601</height>
        </rect>
@@ -141,8 +141,8 @@ border-radius: 30px</string>
      <widget class="QWidget" name="widget_3" native="true">
       <property name="geometry">
        <rect>
-        <x>180</x>
-        <y>30</y>
+        <x>80</x>
+        <y>0</y>
         <width>721</width>
         <height>601</height>
        </rect>
@@ -155,9 +155,18 @@ border-radius: 30px</string>
         <rect>
          <x>20</x>
          <y>20</y>
-         <width>131</width>
+         <width>151</width>
          <height>31</height>
         </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::Box</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Sunken</enum>
        </property>
        <property name="html">
         <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -179,259 +188,13 @@ p, li { white-space: pre-wrap; }
        <property name="title">
         <string>Monitoring</string>
        </property>
-       <widget class="QLabel" name="map">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>260</y>
-          <width>331</width>
-          <height>241</height>
-         </rect>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::WinPanel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Sunken</enum>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-       <widget class="QWidget" name="widget" native="true">
-        <property name="geometry">
-         <rect>
-          <x>340</x>
-          <y>50</y>
-          <width>291</width>
-          <height>451</height>
-         </rect>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">background-color: rgb(153, 193, 241);</string>
-        </property>
-        <widget class="QPushButton" name="R2">
-         <property name="geometry">
-          <rect>
-           <x>110</x>
-           <y>10</y>
-           <width>71</width>
-           <height>61</height>
-          </rect>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">background-color: rgb(143, 240, 164);
-border-radius: 20px</string>
-         </property>
-         <property name="text">
-          <string>R2</string>
-         </property>
-         <property name="icon">
-          <iconset>
-           <normaloff>../../../../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>30</width>
-           <height>30</height>
-          </size>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="R3">
-         <property name="geometry">
-          <rect>
-           <x>200</x>
-           <y>10</y>
-           <width>71</width>
-           <height>61</height>
-          </rect>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">background-color: rgb(143, 240, 164);
-border-radius: 20px</string>
-         </property>
-         <property name="text">
-          <string>R3</string>
-         </property>
-         <property name="icon">
-          <iconset>
-           <normaloff>../../../../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>30</width>
-           <height>30</height>
-          </size>
-         </property>
-        </widget>
-        <widget class="QLabel" name="status2">
-         <property name="geometry">
-          <rect>
-           <x>100</x>
-           <y>80</y>
-           <width>91</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <weight>75</weight>
-           <italic>false</italic>
-           <bold>true</bold>
-           <strikeout>false</strikeout>
-          </font>
-         </property>
-         <property name="contextMenuPolicy">
-          <enum>Qt::ActionsContextMenu</enum>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">color: rgb(255, 255, 255);</string>
-         </property>
-         <property name="text">
-          <string>available</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="R1">
-         <property name="geometry">
-          <rect>
-           <x>20</x>
-           <y>10</y>
-           <width>71</width>
-           <height>61</height>
-          </rect>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">background-color: rgb(143, 240, 164);
-border-radius: 20px</string>
-         </property>
-         <property name="text">
-          <string>R1</string>
-         </property>
-         <property name="icon">
-          <iconset>
-           <normaloff>../../../../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>30</width>
-           <height>30</height>
-          </size>
-         </property>
-        </widget>
-        <widget class="QLabel" name="status3">
-         <property name="geometry">
-          <rect>
-           <x>190</x>
-           <y>80</y>
-           <width>91</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <weight>75</weight>
-           <italic>false</italic>
-           <bold>true</bold>
-           <strikeout>false</strikeout>
-          </font>
-         </property>
-         <property name="contextMenuPolicy">
-          <enum>Qt::ActionsContextMenu</enum>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">color: rgb(255, 255, 255);</string>
-         </property>
-         <property name="text">
-          <string>available</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-        <widget class="QLabel" name="wait">
-         <property name="geometry">
-          <rect>
-           <x>20</x>
-           <y>120</y>
-           <width>67</width>
-           <height>17</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>할당대기</string>
-         </property>
-        </widget>
-        <widget class="QTableWidget" name="taskView">
-         <property name="geometry">
-          <rect>
-           <x>20</x>
-           <y>140</y>
-           <width>256</width>
-           <height>301</height>
-          </rect>
-         </property>
-        </widget>
-        <widget class="QLabel" name="status1">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>80</y>
-           <width>91</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <weight>75</weight>
-           <italic>false</italic>
-           <bold>true</bold>
-           <strikeout>false</strikeout>
-          </font>
-         </property>
-         <property name="contextMenuPolicy">
-          <enum>Qt::ActionsContextMenu</enum>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">color: rgb(255, 255, 255);</string>
-         </property>
-         <property name="text">
-          <string>available</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-        <zorder>status2</zorder>
-        <zorder>R2</zorder>
-        <zorder>R3</zorder>
-        <zorder>R1</zorder>
-        <zorder>status3</zorder>
-        <zorder>wait</zorder>
-        <zorder>taskView</zorder>
-        <zorder>status1</zorder>
-       </widget>
        <widget class="QGroupBox" name="StockLabel">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>30</y>
-          <width>331</width>
-          <height>191</height>
+          <width>341</width>
+          <height>201</height>
          </rect>
         </property>
         <property name="title">
@@ -582,6 +345,231 @@ border-radius: 20px</string>
          </property>
         </widget>
        </widget>
+       <widget class="QLabel" name="wait">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>350</y>
+          <width>67</width>
+          <height>17</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>할당대기</string>
+        </property>
+       </widget>
+       <widget class="QTableWidget" name="taskView">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>370</y>
+          <width>631</width>
+          <height>141</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QLabel" name="status3">
+        <property name="geometry">
+         <rect>
+          <x>220</x>
+          <y>320</y>
+          <width>91</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+          <weight>75</weight>
+          <italic>false</italic>
+          <bold>true</bold>
+          <strikeout>false</strikeout>
+         </font>
+        </property>
+        <property name="contextMenuPolicy">
+         <enum>Qt::ActionsContextMenu</enum>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">color: rgb(255, 255, 255);</string>
+        </property>
+        <property name="text">
+         <string>available</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="R3">
+        <property name="geometry">
+         <rect>
+          <x>230</x>
+          <y>250</y>
+          <width>71</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(143, 240, 164);
+border-radius: 20px</string>
+        </property>
+        <property name="text">
+         <string>R3</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>../../../../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+       </widget>
+       <widget class="QLabel" name="status2">
+        <property name="geometry">
+         <rect>
+          <x>130</x>
+          <y>320</y>
+          <width>91</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+          <weight>75</weight>
+          <italic>false</italic>
+          <bold>true</bold>
+          <strikeout>false</strikeout>
+         </font>
+        </property>
+        <property name="contextMenuPolicy">
+         <enum>Qt::ActionsContextMenu</enum>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">color: rgb(255, 255, 255);</string>
+        </property>
+        <property name="text">
+         <string>available</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="R1">
+        <property name="geometry">
+         <rect>
+          <x>50</x>
+          <y>250</y>
+          <width>71</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(143, 240, 164);
+border-radius: 20px</string>
+        </property>
+        <property name="text">
+         <string>R1</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>../../../../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+       </widget>
+       <widget class="QLabel" name="status1">
+        <property name="geometry">
+         <rect>
+          <x>40</x>
+          <y>320</y>
+          <width>91</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+          <weight>75</weight>
+          <italic>false</italic>
+          <bold>true</bold>
+          <strikeout>false</strikeout>
+         </font>
+        </property>
+        <property name="contextMenuPolicy">
+         <enum>Qt::ActionsContextMenu</enum>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">color: rgb(255, 255, 255);</string>
+        </property>
+        <property name="text">
+         <string>available</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="R2">
+        <property name="geometry">
+         <rect>
+          <x>140</x>
+          <y>250</y>
+          <width>71</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(143, 240, 164);
+border-radius: 20px</string>
+        </property>
+        <property name="text">
+         <string>R2</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>../../../../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+       </widget>
+       <widget class="QLabel" name="map">
+        <property name="geometry">
+         <rect>
+          <x>350</x>
+          <y>50</y>
+          <width>291</width>
+          <height>311</height>
+         </rect>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::WinPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Sunken</enum>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
       </widget>
      </widget>
     </widget>
@@ -589,8 +577,8 @@ border-radius: 20px</string>
      <widget class="QWidget" name="widget_4" native="true">
       <property name="geometry">
        <rect>
-        <x>100</x>
-        <y>30</y>
+        <x>0</x>
+        <y>0</y>
         <width>81</width>
         <height>601</height>
        </rect>
@@ -696,8 +684,8 @@ border-radius: 30px</string>
      <widget class="QWidget" name="widget_5" native="true">
       <property name="geometry">
        <rect>
-        <x>180</x>
-        <y>30</y>
+        <x>80</x>
+        <y>0</y>
         <width>721</width>
         <height>601</height>
        </rect>
@@ -713,6 +701,9 @@ border-radius: 30px</string>
          <width>131</width>
          <height>31</height>
         </rect>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::Box</enum>
        </property>
        <property name="html">
         <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -827,8 +818,8 @@ p, li { white-space: pre-wrap; }
      <widget class="QWidget" name="widget_6" native="true">
       <property name="geometry">
        <rect>
-        <x>100</x>
-        <y>30</y>
+        <x>0</x>
+        <y>0</y>
         <width>81</width>
         <height>601</height>
        </rect>
@@ -934,8 +925,8 @@ border-radius: 30px</string>
      <widget class="QWidget" name="widget_7" native="true">
       <property name="geometry">
        <rect>
-        <x>180</x>
-        <y>30</y>
+        <x>80</x>
+        <y>0</y>
         <width>721</width>
         <height>601</height>
        </rect>
@@ -952,12 +943,15 @@ border-radius: 30px</string>
          <height>31</height>
         </rect>
        </property>
+       <property name="frameShape">
+        <enum>QFrame::Box</enum>
+       </property>
        <property name="html">
         <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;Inbound And Order&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;ORDER LIST&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QTextEdit" name="textEdit_4">
@@ -1001,7 +995,7 @@ p, li { white-space: pre-wrap; }
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;ORDER&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;OUTBOUND&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QPushButton" name="scan_button">
@@ -1057,17 +1051,6 @@ p, li { white-space: pre-wrap; }
     </widget>
    </widget>
   </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>1190</width>
-     <height>22</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources>
   <include location="../image/resources.qrc"/>

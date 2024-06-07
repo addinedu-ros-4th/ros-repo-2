@@ -65,8 +65,8 @@ class RobotAruco(Node):
         self.x_offset = self.tvec[0][0][0]
         self.get_logger().info(f"Distance: {self.distance}, X offset: {self.x_offset}")
         if self.direction == 'forward':
-            if self.distance <= 0.135:
-                self.get_logger().info("Marker within stopping distance, robot stopped.")
+            if self.distance <= 0.115:
+                # self.get_logger().info("Marker within stopping distance, robot stopped.")
                 self.twist.linear.x = 0.0
                 self.twist.angular.z = 0.0
                 self.cmd_pub.publish(self.twist)
@@ -75,26 +75,26 @@ class RobotAruco(Node):
             else:
                 if -0.15 < self.x_offset < 0.15:
                     if -0.02 < self.x_offset < 0.02:
-                        self.get_logger().info("moving straight.")
-                        self.twist.linear.x = 0.05  # Move forward
+                        # self.get_logger().info("moving straight.")
+                        self.twist.linear.x = 0.12  # Move forward
                         self.twist.angular.z = 0.0
                     elif self.x_offset > 0.02:
-                        self.get_logger().info("turning left.")
-                        self.twist.linear.x = 0.015 # Stop forward movement
+                        # self.get_logger().info("turning left.")
+                        self.twist.linear.x = 0.12 # Stop forward movement
                         self.twist.angular.z = -0.04  # Turn left
                     elif self.x_offset < -0.02:
-                        self.get_logger().info("turning right.")
-                        self.twist.linear.x = 0.015  # Stop forward movement
+                        # self.get_logger().info("turning right.")
+                        self.twist.linear.x = 0.12  # Stop forward movement
                         self.twist.angular.z = 0.04  # Turn right
                 else:
                     if self.x_offset > 0.02:
-                        self.get_logger().info("turning left.")
-                        self.twist.linear.x = 0.015  # Stop forward movement
-                        self.twist.angular.z = -0.07  # Turn left
+                        # self.get_logger().info("turning left.")
+                        self.twist.linear.x = 0.12  # Stop forward movement
+                        self.twist.angular.z = -0.06  # Turn left
                     elif self.x_offset < -0.02:
-                        self.get_logger().info("turning right.")
-                        self.twist.linear.x = 0.015  # Stop forward movement
-                        self.twist.angular.z = 0.07  # Turn right
+                        # self.get_logger().info("turning right.")
+                        self.twist.linear.x = 0.12  # Stop forward movement
+                        self.twist.angular.z = 0.06  # Turn right
                 self.cmd_pub.publish(self.twist)
         elif self.direction == 'backward':
             if self.distance >= 0.19:
@@ -104,7 +104,7 @@ class RobotAruco(Node):
                 self.send_response()
                 self.aruco_toggle = False
             else:
-                self.get_logger().info("Marker directly in front, moving backward.")
+                # self.get_logger().info("Marker directly in front, moving backward.")
                 self.twist.linear.x = -0.05
                 self.twist.angular.z = 0.0
                 self.cmd_pub.publish(self.twist)
@@ -115,7 +115,7 @@ class RobotAruco(Node):
         parameters = aruco.DetectorParameters()
         corners, ids, _ = aruco.detectMarkers(gray, self.aruco_dict, parameters=parameters)
         if ids is not None:
-            self.get_logger().info(f'Detected {len(ids)} markers.')
+            # self.get_logger().info(f'Detected {len(ids)} markers.')
             for i in range(len(ids)):
                 marker_id = ids[i][0]
                 marker_name = self.marker_id_map.get(marker_id, "Unknown")
@@ -125,9 +125,12 @@ class RobotAruco(Node):
                 if self.aruco_toggle and (self.location == marker_name):
                     self.motor_control()
         else:
-            self.get_logger().info('No markers detected.')
+            pass
+            # self.get_logger().info('No markers detected.')
+
         cv2.imshow('Aruco Detection', cv_image)
         cv2.waitKey(1)
+
 def main(args=None):
     rclpy.init(args=args)
     ic = RobotAruco()

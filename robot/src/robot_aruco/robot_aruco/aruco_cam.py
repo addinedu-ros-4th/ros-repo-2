@@ -139,35 +139,36 @@ class ArucoCam(Node):
     
 
     def aruco_callback(self):
-        ret, frame = self.cap.read()
+        if self.aruco_toggle or self.cam_toggle:
+            ret, frame = self.cap.read()
 
-        frame = cv2.resize(frame, (self.width, self.height))
-        ret, buffer = cv2.imencode('.jpg', frame)
+            frame = cv2.resize(frame, (self.width, self.height))
+            ret, buffer = cv2.imencode('.jpg', frame)
 
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        parameters = aruco.DetectorParameters()
-        corners, ids, _ = aruco.detectMarkers(gray, self.aruco_dict, parameters=parameters)
-        if ids is not None:
-            self.get_logger().info(f'Detected {len(ids)} markers.')
-            for i in range(len(ids)):
-                marker_id = ids[i][0]
-                marker_name = self.marker_id_map.get(marker_id, "Unknown")
-                self.get_logger().info(f'Marker detected: {marker_name}')
-                self.rvec, self.tvec, _ = aruco.estimatePoseSingleMarkers(corners[i], 0.025, self.matrix_coefficients, self.distortion_coefficients)
-                frame = cv2.drawFrameAxes(frame, self.matrix_coefficients, self.distortion_coefficients, self.rvec, self.tvec, 0.1)
-                if self.aruco_toggle and (self.location == marker_name):
-                    self.motor_control()
-        else:
-            # self.get_logger().info('No markers detected.')
-            pass
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            parameters = aruco.DetectorParameters()
+            corners, ids, _ = aruco.detectMarkers(gray, self.aruco_dict, parameters=parameters)
+            if ids is not None:
+                self.get_logger().info(f'Detected {len(ids)} markers.')
+                for i in range(len(ids)):
+                    marker_id = ids[i][0]
+                    marker_name = self.marker_id_map.get(marker_id, "Unknown")
+                    self.get_logger().info(f'Marker detected: {marker_name}')
+                    self.rvec, self.tvec, _ = aruco.estimatePoseSingleMarkers(corners[i], 0.025, self.matrix_coefficients, self.distortion_coefficients)
+                    frame = cv2.drawFrameAxes(frame, self.matrix_coefficients, self.distortion_coefficients, self.rvec, self.tvec, 0.1)
+                    if (self.location == marker_name):
+                        self.motor_control()
+            else:
+                # self.get_logger().info('No markers detected.')
+                pass
 
-        # self.cam_toggle
-        if self.cam_toggle:
-            # Convert to ROS message
-            self.img_msg.header.stamp = self.get_clock().now().to_msg()
-            self.img_msg.format = "jpeg"
-            self.img_msg.data = buffer.tobytes()
-            self.img_pub.publish(self.img_msg)
+            # self.cam_toggle
+            if self.cam_toggle:
+                # Convert to ROS message
+                self.img_msg.header.stamp = self.get_clock().now().to_msg()
+                self.img_msg.format = "jpeg"
+                self.img_msg.data = buffer.tobytes()
+                self.img_pub.publish(self.img_msg)
 
 def main():
     rclpy.init()

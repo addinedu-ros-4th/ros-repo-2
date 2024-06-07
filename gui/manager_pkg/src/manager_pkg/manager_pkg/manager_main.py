@@ -389,7 +389,8 @@ class Ui_MainWindow(QMainWindow):
         self.task_view = self.findChild(QTableWidget, 'taskView')
         self.task_view.setColumnCount(5)
         self.task_view.setHorizontalHeaderLabels(['Task ID', 'Bundle ID', 'Task Type', 'Location', 'Priority'])
-   
+        self.task_view.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        
         self.pending_task_subscriber = PendingTaskSubscriber(self)
         self.robot_status_subscriber = RobotStatusSubscriber(self)
         
@@ -542,8 +543,9 @@ class Ui_MainWindow(QMainWindow):
     def init_inbound_order_control_page(self):
         self.inbound_list = self.findChild(QTableWidget, 'inbound_list')  # Ensure this matches the object name in your UI
         self.OrderList = self.findChild(QTableWidget, 'OrderList')
-
-        
+        self.inbound_list.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.OrderList.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+                
         self.scanned_data = ""
         self.scan_button = self.findChild(QPushButton, 'scan_button')  # Ensure this matches the object name in your UI
         self.scan_button.clicked.connect(self.scan_barcode)
@@ -582,7 +584,9 @@ class Ui_MainWindow(QMainWindow):
     def update_order_list(self):
         order_list = self.db_manager.fetch_all_product("ProductOrder")
 
-        df = pd.DataFrame(order_list, columns=['order_id', 'user_id', 'item_id', 'item_name', 'quantities', 'order_time'])
+        df = pd.DataFrame(order_list, columns=['order_id', 'user_id', 'item_id', 'item_name', 'quantities', 'arrival date'])
+        df = pd.drop(labels='order_id')
+        df = pd.drop(labels='item_id')
 
         # tableWidget 업데이트
         self.OrderList.setRowCount(len(df))

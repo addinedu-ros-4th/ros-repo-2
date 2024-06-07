@@ -109,8 +109,10 @@ class TaskAllocator(Node):
         self.tasks_assigned = {task.task_id: False for task in tasks}
         self.get_logger().info(f'Assigned transaction {transaction_id} with {len(tasks)} tasks to robot {robot_id}')
         
+        # Publish current transactions immediately after assignment
+        self.publish_current_transactions()
+        
         first_task = tasks[0]
-
         self.assign_task(first_task, robot_id, transaction_id)
 
 

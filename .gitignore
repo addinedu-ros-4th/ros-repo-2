@@ -4,6 +4,7 @@
 /robot/install/
 /robot/log/
 /robot/build/
+/robot/src/robot_aruco/config/
 /.vscode/
 /db/config/config.ini
 /gui/consumer/src/__pycache__/
