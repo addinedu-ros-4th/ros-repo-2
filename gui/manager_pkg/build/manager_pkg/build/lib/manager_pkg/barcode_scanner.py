@@ -21,10 +21,6 @@ class BarcodeScanner(QObject):
         self.db_manager.initialize_inventory()
 
 
-    def save_to_json(self, data, filename='gui/manager/data/barcode_data.json'):
-        with open(filename, 'w', encoding='utf-8') as json_file:
-            json.dump(data, json_file, ensure_ascii=False, indent=4)
-
 
     def append_list(self):
         barcodes = []
@@ -55,6 +51,7 @@ class BarcodeScanner(QObject):
                     item_id, item_name = product_info
                     self.inbound_data = {
                         "item_name": item_name,
+                        "item_tag" : item_tag,
                         "quantity": quantity,
                         "inbound_zone": inbound_location,
                         "arrival_date": barcode_entry["time"],
@@ -72,8 +69,7 @@ class BarcodeScanner(QObject):
                     self.barcode_scanned.emit(self.inbound_data)  # Emit signal with inbound data
                 else:
                     print(f"Item {item_tag} not found in database.")
-                self.save_to_json(barcodes)
-                print(f"Barcode {barcode_data} saved.")
+                
                 
         except Exception as e:
             print(f"An error occurred: {e}")
