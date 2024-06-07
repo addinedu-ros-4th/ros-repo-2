@@ -25,7 +25,7 @@ from geometry_msgs.msg import PoseWithCovarianceStamped
 from std_srvs.srv import SetBool
 from std_msgs.msg import Empty
 from task_msgs.msg import RobotStatus
-from task_msgs.msg import PendingTaskList
+from task_msgs.msg import TaskList
 
 
 
@@ -241,7 +241,7 @@ class PendingTaskSubscriber(Node):
         super().__init__('pending_task_node')
         
         self.ui = ui
-        self.pending_task_sub = self.create_subscription(PendingTaskList, '/pending_tasks', self.pending_task_callback, 10)
+        self.pending_task_sub = self.create_subscription(TaskList, '/unassigned_tasks', self.pending_task_callback, 10)
 
     def pending_task_callback(self, data):
         tasks = []
@@ -277,7 +277,7 @@ class Ui_MainWindow(QMainWindow):
         self.db_manager = DatabaseManager(host='localhost')
         self.db_manager.connect_database()
         self.db_manager.create_table()
-
+        
         # Load UI
         ui_path = os.path.join(get_package_share_directory('manager_pkg'), 'ui', 'manager.ui')
         uic.loadUi(ui_path, self)
@@ -377,27 +377,20 @@ class Ui_MainWindow(QMainWindow):
     #     # Main Page: Real-time location of robots, Task list, Current Stock info
         self.map_label = self.findChild(QLabel, 'mapLabel')  # Assuming there's a QLabel for the map
         self.update_stock_info()
-
-        robotstatus = self.db_manager.fetch_all_product("RobotStatus")
-
-        df = pd.DataFrame(robotstatus, columns=['robot_id', 'status'])
-        id_list = df['robot_id'].tolist()
-        status_list = df['status'].tolist()
-
-        self.update_robot_button(self.R1, self.status1, id_list[0], status_list[0])
-        self.update_robot_button(self.R2, self.status2, id_list[1], status_list[1])
-        self.update_robot_button(self.R3, self.status3, id_list[2], status_list[2])
-
-
-    def update_robot_button(self, button, status_label, robot_id, status):
-        button.setText(robot_id)
-        status_label.setText(status)
-        if status == "busy":
-            button.setStyleSheet("background-color: rgb(246, 97, 81);""border-radius: 20px")
-        elif status == "available":
-            button.setStyleSheet("background-color: rgb(143, 240, 164);""border-radius: 20px")
-        else:
-            button.setStyleSheet("")
+        
+        self.task_view = self.findChild(QTableWidget, 'taskView')
+        self.task_view.setColumnCount(5)
+        self.task_view.setHorizontalHeaderLabels(['Task ID', 'Bundle ID', 'Task Type', 'Location', 'Priority'])
+   
+        self.pending_task_subscriber = PendingTaskSubscriber(self)
+        
+        # ROS 2 Executor 설정
+        self.executor = MultiThreadedExecutor()
+        self.executor.add_node(self.pending_task_subscriber)
+        
+        # Executor를 별도의 스레드에서 실행
+        self.executor_thread = Thread(target=self.executor.spin)
+        self.executor_thread.start()
     
     def init_ros2_node(self):
         pass
@@ -499,7 +492,7 @@ class Ui_MainWindow(QMainWindow):
     def init_robot_control_page(self):
         self.robotComboBox = self.findChild(QComboBox, 'robotComboBox')
         self.picamLabel = self.findChild(QLabel, 'picamLabel')
-        self.statusLabel = self.findChild(QLabel, 'statusLabel')
+        self.status = self.findChild(QTableWidget, 'status')
         self.btnStop = self.findChild(QPushButton, 'btnStop')
 
         self.robotComboBox.addItems(["robot_1", "robot_2", "robot_3"])
@@ -507,6 +500,19 @@ class Ui_MainWindow(QMainWindow):
         self.btnStop.clicked.connect(self.robot_stop)
         # Initialize with the first robot's data
         self.update_robot_info(0)
+        
+        self.status.setColumnCount(2)
+        self.status.setHorizontalHeaderLabels(['Task ID', 'Location'])
+        self.status.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.pending_task_subscriber = PendingTaskSubscriber(self)
+        
+        # ROS 2 Executor 설정
+        self.executor = MultiThreadedExecutor()
+        self.executor.add_node(self.pending_task_subscriber)
+        
+        # Executor를 별도의 스레드에서 실행
+        self.executor_thread = Thread(target=self.executor.spin)
+        self.executor_thread.start()
 
     def update_robot_info(self, index):
         robot_name = self.robotComboBox.itemText(index)
