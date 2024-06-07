@@ -102,7 +102,8 @@ class ButtonLCDControl(Node):
 
         self.lcd.send_command(0x01)
         self.lcd.write(4, 0, f"OB : {self.location}")
-        self.lcd.write(2, 1, f"{self.product} :{self.count} ")
+        if self.count > 0:
+            self.lcd.write(2, 1, f"{self.product} :{self.count} ")
 
 
 def main() :

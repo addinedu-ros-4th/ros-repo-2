@@ -608,7 +608,7 @@ class RobotController(Node) :
         q = self.euler_to_quaternion(yaw=yaw)
 
         self.get_logger().info(f"pose : {target_pose} yaw : {yaw}")
-        redeem_vector = self.redeem_pose(target_pose, 0.1)
+        redeem_vector = self.redeem_pose(target_pose, 0.15)
         goal_pose = PoseStamped()
         
         goal_pose.header.frame_id = 'map'
