@@ -3,6 +3,7 @@ import os
 import time
 import math
 from rclpy.node import Node
+from copy import deepcopy
 
 from task_msgs.srv import AllocateTask
 
@@ -18,6 +19,7 @@ from task_msgs.msg import TaskCompletion
 from task_msgs.msg import CurrentPath
 from task_msgs.msg import RobotStatus
 from task_msgs.msg import OutTask
+
 from std_msgs.msg import Empty
 from std_msgs.msg import Float32
 from rclpy.executors import MultiThreadedExecutor
@@ -29,14 +31,25 @@ from nav2_simple_commander.robot_navigator import TaskResult
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseWithCovarianceStamped
 
+
+
 class My_Location(Node) : 
     def __init__(self, controller):
         super().__init__("robot_sub_controller")
         self.controller = controller
         
+        self.obstacle_1 = [[2, 2],[2, 2]]
+        self.obstacle_2 = [[2, 2],[2, 2]]
+        # publisher
         self.publisher_out_task = self.create_publisher(
             OutTask,
             "/out_task",
+            10
+        )
+
+        self.publisher_current_path = self.create_publisher(
+            CurrentPath,
+            "/obstacle",
             10
         )
 
@@ -52,6 +65,20 @@ class My_Location(Node) :
             Empty,
             "/emergency_stop",
             self.emergency_button_is_clicked,
+            10
+        )
+
+        self.subscription_current_path = self.create_subscription(
+            CurrentPath,
+            "/obstacle_1",
+            self.renew_map_status_1,
+            10
+        )
+
+        self.subscription_current_path = self.create_subscription(
+            CurrentPath,
+            "/obstacle_2",
+            self.renew_map_status_2,
             10
         )
 
@@ -74,9 +101,49 @@ class My_Location(Node) :
             self.lift_is_done
         )
 
-        self.timer = self.create_timer(1.0, self.renew_out_task_data)
+        self.timer = self.create_timer(5.0, self.renew_out_task_data)
+        self.path_timer = self.create_timer(0.1, self.send_path_status)
         
+
+    def renew_map_status_1(self, data):
         
+        self.obstacle_1[0][0] = data.start_x
+        self.obstacle_1[0][1] = data.start_y
+        self.obstacle_1[1][0] = data.end_x
+        self.obstacle_1[1][1] = data.end_y
+        self.send_map_status()
+
+
+    def renew_map_status_2(self, data):
+        self.obstacle_2[0][0] = data.start_x
+        self.obstacle_2[0][1] = data.start_y
+        self.obstacle_2[1][0] = data.end_x
+        self.obstacle_2[1][1] = data.end_y
+        self.send_map_status()
+
+
+    def send_map_status(self):
+        map_data = deepcopy(self.controller.is_passable_list)
+        if self.obstacle_1[0][0] == -1:
+            map_data[self.obstacle_1[0][0]][self.obstacle_1[0][1]] = True
+            map_data[self.obstacle_1[1][0]][self.obstacle_1[1][1]] = True
+        else:
+            map_data[self.obstacle_1[0][0]][self.obstacle_1[0][1]] = False
+            map_data[self.obstacle_1[1][0]][self.obstacle_1[1][1]] = False
+
+        if self.obstacle_2[0][0] == -1:
+            map_data[self.obstacle_2[0][0]][self.obstacle_2[0][1]] = True
+            map_data[self.obstacle_2[1][0]][self.obstacle_2[1][1]] = True
+        else:
+            map_data[self.obstacle_2[0][0]][self.obstacle_2[0][1]] = False
+            map_data[self.obstacle_2[1][0]][self.obstacle_2[1][1]] = False
+        
+        self.controller.current_is_passable_list = deepcopy(map_data)
+
+
+    def send_path_status(self):
+        self.publisher_current_path.publish(self.controller.current_path_msg)
+
         
     def renew_out_task_data(self):
         msg = OutTask()
@@ -108,6 +175,7 @@ class My_Location(Node) :
         return res
 
 
+
 ID = os.getenv('ROS_DOMAIN_ID', 'Not set')
 class RobotController(Node) : 
     def __init__(self) : 
@@ -121,17 +189,20 @@ class RobotController(Node) :
         self.lift_service_done = False
         self.marker_service_done = False
         
-        self.task_status = ""
-        self.task_id = ""
-        self.item = ""
-        self.quantity = 0
-        self.my_pose = [0.0, 0.0, 0.0]
+        self.task_status    = ""
+        self.task_id        = ""
+        self.item           = ""
+        self.quantity       = 0
+        self.my_pose        = [0.0, 0.0, 0.0]
+        
+        self.current_path_msg = CurrentPath()
+
+
         self.server = self.create_service(
             AllocateTask, 
             f"/allocate_task_{ID}", 
             self.task_callback
         )
-
 
         
         self.task_completion_publisher = self.create_publisher(
@@ -151,9 +222,6 @@ class RobotController(Node) :
             "/current_path",
             10
         )
-        
-        self.current_path_msg = CurrentPath()
-        
 
         # self.wait_client = self.create_client(
 
@@ -198,19 +266,13 @@ class RobotController(Node) :
             "C2" : 4.71, "C2_2" : 4.71, 
             "R1" : 0.0, "R2" : 0.0
         }
+
         self.declare_lists()
-        # self.SUB_PATH_POSE_X_LIST = [2.3, 1.7, 0.7, 0.2]
-        # self.SUB_PATH_POSE_Y_LIST = [0.7, 0.3, 0.0, -0.5]
-
-
-
-        # self.MAIN_PATH_POSE_X_LIST = [2.3, 1.7, 0.7, 0.2]
-        # self.MAIN_PATH_POSE_Y_LIST = [0.7, -0.5]
-        
         
         
         self.send_robot_status_topics()
         self.get_logger().info("controller is ready")
+
 
     def declare_lists(self):
         self.PATH_LIST = [
@@ -236,7 +298,7 @@ class RobotController(Node) :
         for i in not_passable_index_list:
             self.is_passable_list[i[0]][i[1]] = False
 
-        self.current_is_passable_list = self.is_passable_list.copy()
+        self.current_is_passable_list = deepcopy(self.is_passable_list)
 
 
     def check_emergency_status(self):
@@ -247,7 +309,6 @@ class RobotController(Node) :
                 pass
             self.get_logger().info("emergency!!!!!!!!!!")
             time.sleep(1)
-
 
 
     def send_robot_status_topics(self):
@@ -268,11 +329,11 @@ class RobotController(Node) :
             try:
                 self.tasking = True
                 self.task_id = req.task_id
+                self.task_status = req.task_type
                 self.current_task_location = req.location
                 self.item = req.item
                 self.quantity = req.quantity
                 
-                # pose_list = self.encoding_path(req.location)
                 res.success = self.follow_path(self.current_task_location, req.lift)
                 self.tasking = False
                 self.send_complete_task_topics()
@@ -297,7 +358,6 @@ class RobotController(Node) :
         for i in range(20):
             self.task_completion_publisher.publish(msg)
             time.sleep(0.1)
-
 
 
     def follow_path(self, pose_name, lift) :
@@ -331,7 +391,7 @@ class RobotController(Node) :
 
             else : # 나머지 장소
                 self.current_task_location = pose_name
-                self.checking_task_is_out() # 현재 테스크 상태가 OUT이면 대기상태 진입
+                self.checking_task_is_out() 
                 
 
             self.get_logger().info("move end")
@@ -340,11 +400,7 @@ class RobotController(Node) :
         except Exception as e:
             self.get_logger().error(f"{e}")
             return False
-
         
-    
-    
-
 
     def checking_task_is_out(self):
         if self.task_status == "OUT":
@@ -356,13 +412,12 @@ class RobotController(Node) :
             self.complete_picking_client.call_async(req)
 
 
-
     def real_time_stopover_planning(self, target_pose):
         nearest_point_from_target, nearest_point_from_target_index = self.search_nearest_point(target_pose)
         nearest_point_from_me, nearest_point_from_me_index = self.search_nearest_point(self.my_pose)
         current_point_index = nearest_point_from_me_index.copy()
-
-        self.get_logger().info(f"start stopover : {current_point_index}")
+        
+        self.get_logger().info(f"start stopover : {current_point_index} {nearest_point_from_target_index}")
         
         direction_robot_to_target = [
             1 if nearest_point_from_target_index[0] - nearest_point_from_me_index[0] > 0 else -1,
@@ -372,25 +427,35 @@ class RobotController(Node) :
         self.move_pose(nearest_point_from_me, 0.0)
         
         while current_point_index != nearest_point_from_target_index:
+            direction_robot_to_target = [
+                1 if nearest_point_from_target_index[0] - current_point_index[0] > 0 else -1,
+                1 if nearest_point_from_target_index[1] - current_point_index[1] > 0 else -1
+            ]
             passable_path = self.search_passable_path(current_point_index, direction_robot_to_target, nearest_point_from_target_index)
             if passable_path == []:
                 self.get_logger().info("wait stopover")
-            
-            else:
-                self.get_logger().info("move stopover")
-                self.get_logger().info(f"my pose = {current_point_index}")
-                self.get_logger().info(f"go pose = {passable_path}")
-                self.current_path_msg.start_x = current_point_index[0]
-                self.current_path_msg.start_y = current_point_index[1]
-                self.current_path_msg.end_x = passable_path[0]
-                self.current_path_msg.end_y = passable_path[1]
+                for i in range(0, 7):
+                    self.get_logger().info(f"{self.current_is_passable_list[i]}")
+                self.get_logger().info("current map end")
+                for i in range(0, 7):
+                    self.get_logger().info(f"{self.is_passable_list[i]}")
+                self.get_logger().info("base map end")
                 
-                yaw = self.point_to_yaw(self.PATH_LIST[current_point_index[0]][current_point_index[1]],
-                                         self.PATH_LIST[passable_path[0]][passable_path[1]])
-                self.move_pose(self.PATH_LIST[current_point_index[0]][current_point_index[1]], yaw)
-                self.move_pose(self.PATH_LIST[passable_path[0]][passable_path[1]], yaw)
-                current_point_index = passable_path.copy()
+                time.sleep(10)
+                
+                
+            
+            elif len(passable_path) == 2:
+                self.get_logger().info("nomal move")
+                current_point_index = self.move_set(passable_path, current_point_index)
 
+            elif len(passable_path) > 2:
+                self.get_logger().info(f"not nomal move{passable_path}")
+                passable_path_list = [passable_path[:2], passable_path[2:4]]
+                for path in passable_path_list:
+                    current_point_index = self.move_set(path, current_point_index)
+
+        self.current_path_msg.start_x = -1 # path에서 장애물 비킴
 
     def search_nearest_point(self,target_pose): # 타겟에 가장 가까운 point 찾기
         nearest_point = [999, 999, 0.0]
@@ -421,24 +486,51 @@ class RobotController(Node) :
         target_x = target_point_index[0]
         target_y = target_point_index[1]
         return_vel = []
+
         
-        if x != target_x:
-            if self.current_is_passable_list[x + direction_robot_to_target[0]][y]:
-                return_vel = [x + direction_robot_to_target[0], y]
+
+
+        if y != target_y and self.current_is_passable_list[x][y + direction_robot_to_target[1]] and (0 <= y + direction_robot_to_target[1] < 4):
+            return_vel = [x, y + direction_robot_to_target[1]]
+
+
+        if x != target_x and self.current_is_passable_list[x + direction_robot_to_target[0]][y] and (0 <= x + direction_robot_to_target[0] < 7):
+            return_vel = [x + direction_robot_to_target[0], y]
+
+
+        if return_vel == [] and (y != target_y or x != target_x) : # 
+            if 0 == y - target_y and self.current_is_passable_list[x + direction_robot_to_target[0]][y + direction_robot_to_target[1]]:
+                return_vel = [x, y + direction_robot_to_target[1], x + direction_robot_to_target[0], y + direction_robot_to_target[1]]
+                    
+            elif 0 == y - target_y and self.current_is_passable_list[x + direction_robot_to_target[0]][y - direction_robot_to_target[1]]:
+                return_vel = [x, y - direction_robot_to_target[1], x + direction_robot_to_target[0], y - direction_robot_to_target[1]]
             
-        
-        elif y != target_y:
-            if self.current_is_passable_list[x][y + direction_robot_to_target[1]]:
-                return_vel = [x, y + direction_robot_to_target[1]]
-        
-        else:
-            pass
+            elif x - target_x == 0 and self.current_is_passable_list[x + direction_robot_to_target[0]][y + direction_robot_to_target[1]]:
+                return_vel = [x + direction_robot_to_target[0], y, x + direction_robot_to_target[0], y + direction_robot_to_target[1]]
+
+            elif x - target_x == 0 and self.current_is_passable_list[x - direction_robot_to_target[0]][y + direction_robot_to_target[1]]:
+                return_vel = [x - direction_robot_to_target[0], y, x - direction_robot_to_target[0], y + direction_robot_to_target[1]]
 
         return return_vel   
         
+
+    def move_set(self, passable_path, current_point_index):
+        # self.get_logger().info("move stopover")
+        self.get_logger().info(f"my pose = {current_point_index}")
+        self.get_logger().info(f"go pose = {passable_path}")
+        self.current_path_msg.start_x = current_point_index[0]
+        self.current_path_msg.start_y = current_point_index[1]
+        self.current_path_msg.end_x = passable_path[0]
+        self.current_path_msg.end_y = passable_path[1]
         
+        yaw = self.point_to_yaw(self.PATH_LIST[current_point_index[0]][current_point_index[1]],
+                                self.PATH_LIST[passable_path[0]][passable_path[1]])
+        self.move_pose(self.PATH_LIST[current_point_index[0]][current_point_index[1]], yaw)
+        self.move_pose(self.PATH_LIST[passable_path[0]][passable_path[1]], yaw)
+        current_point_index = passable_path.copy()
         
-    
+        return current_point_index
+
 
     def find_approximation_to_pose_list(self, pose_list, target_vel):
         min_vel = 999
@@ -452,27 +544,6 @@ class RobotController(Node) :
                 min_index = i
 
         return min_index
-
-
-
-    def encoding_path(self, task) :
-        pose_list = task.split("#")
-        self.get_logger().info(f"task_list is : {pose_list}")
-        
-        if "A" in pose_list[0] : # 수거
-            self.task_status = "RETURN"
-
-        elif "O" in pose_list[0] : # 출고
-            self.task_status = "OUT"
-
-
-        elif "I" in pose_list[0] : # 입고
-            self.task_status = "IN"
-
-        else :
-            self.task_status = None
-        
-        return pose_list
 
         
     def point_to_yaw(self, start_pose, target):
@@ -493,20 +564,16 @@ class RobotController(Node) :
         req = StepControl.Request()
         req.floor = floor
         req.direction = direction
-        self.get_logger().info("before call ")
+
         self.get_logger().info(f"req.floor : {req.floor}")
         self.get_logger().info(f"req.direction : {req.direction}")
         res = self.lift_client.call_async(req)
         self.wait_lift_res()
         
-        # res = self.lift_client.call_async(req)
-        # rp.spin_until_future_complete(self, res, timeout_sec=5.0)
-        
 
     def wait_lift_res(self):
         while not self.lift_service_done:
             time.sleep(1)
-            # self.get_logger().info("wait lift response")
         self.lift_service_done = False
 
 
@@ -529,11 +596,12 @@ class RobotController(Node) :
             # self.get_logger().info("wait marker response")
         self.marker_service_done = False
 
+
     def move_pose(self, target_pose, yaw) :
         q = self.euler_to_quaternion(yaw=yaw)
 
         self.get_logger().info(f"pose : {target_pose} yaw : {yaw}")
-        redeem_vector = self.redeem_pose(target_pose, 0.2)
+        redeem_vector = self.redeem_pose(target_pose, 0.1)
         goal_pose = PoseStamped()
         
         goal_pose.header.frame_id = 'map'
@@ -589,10 +657,10 @@ class RobotController(Node) :
             if feedback and i % 30 == 0 :
                 self.get_logger().info("distance remaining: " + "{:.2f}".format(feedback.distance_remaining) + " meters.")
                 send_data.data = feedback.distance_remaining
-                # self.feedback_publisher.publish(send_data)
                 
+                ###########
                 if (feedback.distance_remaining <= 0.40 and feedback.distance_remaining != 0.0) or Duration.from_msg(feedback.navigation_time) > Duration(seconds=40.0) :
-                    time.sleep(0.5) # 목표지점 인접시 0.5초후 다음목적지
+                    # time.sleep(0.5) # 목표지점 인접시 0.5초후 다음목적지
                     self.nav.cancelTask()
                     self.get_logger().info("cancel nav Task")
 

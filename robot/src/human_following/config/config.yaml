@@ -1,4 +1,4 @@
-robot_cam:
+RobotCam:
   ros__parameters:
     width: 320
     length: 240
