@@ -61,9 +61,10 @@ class BarcodeScanner(QObject):
                     self.db_manager.add_to_stock(item_id, quantity)
                     
                     # Change format to send to ros
-                    self.inbound_data["id"] = primary_key
+                    self.inbound_data["inbound_id"] = primary_key
                     del self.inbound_data["quantity"]
                     self.inbound_data["quantities"] = quantity
+                    
                     self.send_task_to_ros()
                     
                     self.barcode_scanned.emit(self.inbound_data)  # Emit signal with inbound data
