@@ -300,8 +300,16 @@ class Ui_MainWindow(QMainWindow):
         # Set up a timer to update stock info every 5 seconds
         self.stock_update_timer = QTimer(self)
         self.stock_update_timer.timeout.connect(self.update_stock_info)
-        self.stock_update_timer.start(5000)  # Update every 5000 milliseconds (5 seconds)
+        self.stock_update_timer.start(2000)  # Update every 5000 milliseconds (5 seconds)
         print("Timer started for updating stock info every 5 seconds")
+
+        self.inbound_update_timer = QTimer(self)
+        self.inbound_update_timer.timeout.connect(self.update_inbound_list)
+        self.inbound_update_timer.start(1000)  
+
+        self.order_update_timer = QTimer(self)
+        self.order_update_timer.timeout.connect(self.update_order_list)
+        self.order_update_timer.start(1000)  
 
 
     def init_navigation_buttons(self):
@@ -435,7 +443,7 @@ class Ui_MainWindow(QMainWindow):
         self.map.setPixmap(final_pixmap)
     
     def draw_robot(self, painter, amcl, color, label):
-        x, y = self.calc_grid_position(100, 100)
+        x, y = self.calc_grid_position(amcl.pose.pose.position.x, amcl.pose.pose.position.y)
         painter.setPen(QPen(color, 14, Qt.SolidLine))
         painter.drawPoint(int((self.width - x) * self.image_scale), int(y * self.image_scale))
         painter.drawText(int((self.width - x) * self.image_scale + 13), int(y * self.image_scale + 5), label)
@@ -536,6 +544,9 @@ class Ui_MainWindow(QMainWindow):
         self.refresh_button_2 = self.findChild(QPushButton, 'refresh_button_2')
         self.refresh_button_2.clicked.connect(self.update_order_list)
 
+        self.inbound_list.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.OrderList.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
 
     def update_inbound_list(self, data=None):
         # Clear the existing rows in the QTableWidget
@@ -565,6 +576,9 @@ class Ui_MainWindow(QMainWindow):
         self.OrderList.setColumnCount(len(df.columns))
         self.OrderList.setHorizontalHeaderLabels(df.columns)
 
+        self.db_manager.connect_database()  # Reconnect to refresh the cursor
+        all_rows = self.db_manager.get_data("ProductOrder", ['order_id', 'user_id', 'item_id', 'item_name', 'quantities', 'order_time'])
+        
         for row_index, row in enumerate(df.itertuples(index=False)):
             for col_index, value in enumerate(row):
                 item = QTableWidgetItem(str(value))
