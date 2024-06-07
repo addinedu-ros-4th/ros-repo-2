@@ -22,7 +22,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/TaskCompletion.msg"
   "msg/OutTask.msg"
   "msg/CurrentPath.msg"
-  "msg/PendingTaskList.msg"
 
   "srv/AllocateTask.srv"
   

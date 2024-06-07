@@ -1,5 +1,8 @@
 # Name of the domain bridge, used for node naming and logging
+# server: 90
 # robot_1_ID: 91
+# robot_2_ID: 92
+# robot_3_ID: 93
 name: domain_bridge
 
 topics:
@@ -20,8 +23,6 @@ topics:
     remap: amcl_pose_3
 
 
-
-
   allocate_task_91:
     type: task_msgs/srv/AllocateTask
     from_domain: 91
@@ -37,8 +38,7 @@ topics:
     from_domain: 93
     to_domain: 90
     
-
-
+    
   obstacle:
     type: task_msgs/msg/CurrentPath
     from_domain: 92
@@ -71,7 +71,3 @@ topics:
     from_domain: 92
     to_domain: 93
     remap: obstacle_2
-
-
-
-
