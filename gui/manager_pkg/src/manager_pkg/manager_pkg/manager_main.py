@@ -374,7 +374,7 @@ class Ui_MainWindow(QMainWindow):
         self.map_origin = self.map_yaml_data['origin'][:2]
 
 
-    #     # Main Page: Real-time location of robots, Task list, Current Stock info
+    #    Main Page: Real-time location of robots, Task list, Current Stock info
         self.map_label = self.findChild(QLabel, 'mapLabel')  # Assuming there's a QLabel for the map
         self.update_stock_info()
         
@@ -383,10 +383,12 @@ class Ui_MainWindow(QMainWindow):
         self.task_view.setHorizontalHeaderLabels(['Task ID', 'Bundle ID', 'Task Type', 'Location', 'Priority'])
    
         self.pending_task_subscriber = PendingTaskSubscriber(self)
+        self.robot_status_subscriber = RobotStatusSubscriber(self)
         
         # ROS 2 Executor 설정
         self.executor = MultiThreadedExecutor()
         self.executor.add_node(self.pending_task_subscriber)
+        self.executor.add_node(self.robot_status_subscriber)
         
         # Executor를 별도의 스레드에서 실행
         self.executor_thread = Thread(target=self.executor.spin)
