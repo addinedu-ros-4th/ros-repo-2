@@ -26,7 +26,7 @@ from std_srvs.srv import SetBool
 from std_msgs.msg import Empty
 from task_msgs.msg import RobotStatus
 from task_msgs.msg import TaskList
-
+from manager_pkg.transactions_subscriber import TaskSubscriber,TaskThread
 
 
 global amcl_1, amcl_2, amcl_3
@@ -278,6 +278,12 @@ class Ui_MainWindow(QMainWindow):
         self.db_manager.connect_database()
         self.db_manager.create_table()
         
+        self.task_subscriber = TaskSubscriber()
+        self.task_subscriber.current_transactions_signal.connect(self.update_current_transactions_display)
+        
+        self.ros2_thread = ROS2ListenerThread(self.task_subscriber)
+        self.ros2_thread.start()
+        
         # Load UI
         ui_path = os.path.join(get_package_share_directory('manager_pkg'), 'ui', 'manager.ui')
         uic.loadUi(ui_path, self)
@@ -303,6 +309,7 @@ class Ui_MainWindow(QMainWindow):
         self.stock_update_timer.start(5000)  # Update every 5000 milliseconds (5 seconds)
         print("Timer started for updating stock info every 5 seconds")
 
+        self.stackedWidget.setCurrentIndex(0)
 
     def init_navigation_buttons(self):
         # Find buttons
@@ -504,19 +511,38 @@ class Ui_MainWindow(QMainWindow):
         # Initialize with the first robot's data
         self.update_robot_info(0)
         
-        self.status.setColumnCount(2)
-        self.status.setHorizontalHeaderLabels(['Task ID', 'Location'])
+        self.status.setColumnCount(3)
+        self.status.setHorizontalHeaderLabels(['Task ID', 'Location', 'Complete'])
         self.status.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.pending_task_subscriber = PendingTaskSubscriber(self)
-        
-        # ROS 2 Executor 설정
-        self.executor = MultiThreadedExecutor()
-        self.executor.add_node(self.pending_task_subscriber)
-        
-        # Executor를 별도의 스레드에서 실행
-        self.executor_thread = Thread(target=self.executor.spin)
-        self.executor_thread.start()
+        self.transactionEdit = self.findChild(QLabel, 'transactionEdit')  
 
+    def update_current_transactions_display(self):
+        transactions = self.task_subscriber.get_transactions()
+        
+        if not transactions:
+            return  # No transactions to display
+        
+        # Assuming only one transaction is handled at a time
+        transaction = transactions[0]
+        transaction_id = transaction["transaction_id"]
+        
+        # Set transaction ID to QLabel
+        self.transactionEdit.setText(transaction_id)
+        
+        # Populate QTableWidget with tasks
+        tasks = transaction["tasks"]
+        self.status.setRowCount(len(tasks))
+        
+        for row, task in enumerate(tasks):
+            task_id = QTableWidgetItem(task["task_id"])
+            location = QTableWidgetItem(task["location"])
+            completed = QTableWidgetItem(str(task["completed"]))
+            
+            self.status.setItem(row, 0, task_id)
+            self.status.setItem(row, 1, location)
+            self.status.setItem(row, 2, completed)
+                
+    
     def update_robot_info(self, index):
         robot_name = self.robotComboBox.itemText(index)
         self.robot_picam_clicked.emit(robot_name)
