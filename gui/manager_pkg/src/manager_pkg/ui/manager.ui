@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../image/resources.qrc">
+   <iconset>
     <normaloff>:/icon/map.yaml</normaloff>:/icon/map.yaml</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -28,7 +28,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="MainPage">
      <widget class="QWidget" name="widget_2" native="true">
@@ -406,13 +406,13 @@ border-radius: 20px</string>
           <string>할당대기</string>
          </property>
         </widget>
-        <widget class="QTableView" name="taskView">
+        <widget class="QTableWidget" name="taskView">
          <property name="geometry">
           <rect>
            <x>20</x>
-           <y>150</y>
+           <y>140</y>
            <width>256</width>
-           <height>291</height>
+           <height>301</height>
           </rect>
          </property>
         </widget>
@@ -748,22 +748,6 @@ p, li { white-space: pre-wrap; }
         <string/>
        </property>
       </widget>
-      <widget class="QLabel" name="statusLabel">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>430</y>
-         <width>401</width>
-         <height>141</height>
-        </rect>
-       </property>
-       <property name="frameShape">
-        <enum>QFrame::Box</enum>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
       <widget class="QTextEdit" name="textEdit_6">
        <property name="geometry">
         <rect>
@@ -826,6 +810,16 @@ p, li { white-space: pre-wrap; }
          <string>STOP</string>
         </property>
        </widget>
+      </widget>
+      <widget class="QTableWidget" name="status">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>430</y>
+         <width>401</width>
+         <height>141</height>
+        </rect>
+       </property>
       </widget>
      </widget>
     </widget>
