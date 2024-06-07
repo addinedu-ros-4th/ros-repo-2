@@ -24,4 +24,4 @@ wss.on('close', () => {
     console.log(`Connection closed: ${parsedData.deviceId}`);
 });
 
-console.log('WebSocket server is running on ws://172.20.10.3:8080');
+console.log('WebSocket server is running on ws://192.168.0.85:8080');

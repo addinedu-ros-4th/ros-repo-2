@@ -28,7 +28,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="MainPage">
      <widget class="QWidget" name="widget_2" native="true">
@@ -350,12 +350,12 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>10</x>
           <y>350</y>
-          <width>67</width>
+          <width>91</width>
           <height>17</height>
          </rect>
         </property>
         <property name="text">
-         <string>할당대기</string>
+         <string>Pending List</string>
         </property>
        </widget>
        <widget class="QTableWidget" name="taskView">
@@ -739,7 +739,7 @@ p, li { white-space: pre-wrap; }
         <string/>
        </property>
       </widget>
-      <widget class="QTextEdit" name="textEdit_6">
+      <widget class="QTextEdit" name="transactionEdit">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -753,7 +753,7 @@ p, li { white-space: pre-wrap; }
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Status Bar&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Transaction&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QTextEdit" name="textEdit_7">
