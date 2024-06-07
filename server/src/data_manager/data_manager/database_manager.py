@@ -10,7 +10,7 @@ class DatabaseManager:
         self.db_name = "amr"
         self.cur = None
         self.conn = None
-        self.password = "0000"
+        self.password = "1234"
 
 
     # def get_password_from_config(self):

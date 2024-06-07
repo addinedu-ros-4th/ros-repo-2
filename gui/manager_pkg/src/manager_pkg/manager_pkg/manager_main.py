@@ -25,7 +25,7 @@ from geometry_msgs.msg import PoseWithCovarianceStamped
 from std_srvs.srv import SetBool
 from std_msgs.msg import Empty
 from task_msgs.msg import RobotStatus
-from task_msgs.msg import TaskList
+from task_msgs.msg import PendingTaskList
 
 
 
@@ -241,7 +241,7 @@ class PendingTaskSubscriber(Node):
         super().__init__('pending_task_node')
         
         self.ui = ui
-        self.pending_task_sub = self.create_subscription(TaskList, '/unassigned_tasks', self.pending_task_callback, 10)
+        self.pending_task_sub = self.create_subscription(PendingTaskList, '/pending_tasks', self.pending_task_callback, 10)
 
     def pending_task_callback(self, data):
         tasks = []
@@ -277,7 +277,7 @@ class Ui_MainWindow(QMainWindow):
         self.db_manager = DatabaseManager(host='localhost')
         self.db_manager.connect_database()
         self.db_manager.create_table()
-        
+
         # Load UI
         ui_path = os.path.join(get_package_share_directory('manager_pkg'), 'ui', 'manager.ui')
         uic.loadUi(ui_path, self)
@@ -300,8 +300,16 @@ class Ui_MainWindow(QMainWindow):
         # Set up a timer to update stock info every 5 seconds
         self.stock_update_timer = QTimer(self)
         self.stock_update_timer.timeout.connect(self.update_stock_info)
-        self.stock_update_timer.start(5000)  # Update every 5000 milliseconds (5 seconds)
+        self.stock_update_timer.start(2000)  # Update every 5000 milliseconds (5 seconds)
         print("Timer started for updating stock info every 5 seconds")
+
+        self.inbound_update_timer = QTimer(self)
+        self.inbound_update_timer.timeout.connect(self.update_inbound_list)
+        self.inbound_update_timer.start(1000)  
+
+        self.order_update_timer = QTimer(self)
+        self.order_update_timer.timeout.connect(self.update_order_list)
+        self.order_update_timer.start(1000)  
 
 
     def init_navigation_buttons(self):
@@ -430,7 +438,7 @@ class Ui_MainWindow(QMainWindow):
         self.map.setPixmap(final_pixmap)
     
     def draw_robot(self, painter, amcl, color, label):
-        x, y = self.calc_grid_position(100, 100)
+        x, y = self.calc_grid_position(amcl.pose.pose.position.x, amcl.pose.pose.position.y)
         painter.setPen(QPen(color, 14, Qt.SolidLine))
         painter.drawPoint(int((self.width - x) * self.image_scale), int(y * self.image_scale))
         painter.drawText(int((self.width - x) * self.image_scale + 13), int(y * self.image_scale + 5), label)
@@ -494,7 +502,7 @@ class Ui_MainWindow(QMainWindow):
     def init_robot_control_page(self):
         self.robotComboBox = self.findChild(QComboBox, 'robotComboBox')
         self.picamLabel = self.findChild(QLabel, 'picamLabel')
-        self.status = self.findChild(QTableWidget, 'status')
+        self.statusLabel = self.findChild(QLabel, 'statusLabel')
         self.btnStop = self.findChild(QPushButton, 'btnStop')
 
         self.robotComboBox.addItems(["robot_1", "robot_2", "robot_3"])
@@ -502,19 +510,6 @@ class Ui_MainWindow(QMainWindow):
         self.btnStop.clicked.connect(self.robot_stop)
         # Initialize with the first robot's data
         self.update_robot_info(0)
-        
-        self.status.setColumnCount(2)
-        self.status.setHorizontalHeaderLabels(['Task ID', 'Location'])
-        self.status.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.pending_task_subscriber = PendingTaskSubscriber(self)
-        
-        # ROS 2 Executor 설정
-        self.executor = MultiThreadedExecutor()
-        self.executor.add_node(self.pending_task_subscriber)
-        
-        # Executor를 별도의 스레드에서 실행
-        self.executor_thread = Thread(target=self.executor.spin)
-        self.executor_thread.start()
 
     def update_robot_info(self, index):
         robot_name = self.robotComboBox.itemText(index)
@@ -543,6 +538,9 @@ class Ui_MainWindow(QMainWindow):
 
         self.refresh_button_2 = self.findChild(QPushButton, 'refresh_button_2')
         self.refresh_button_2.clicked.connect(self.update_order_list)
+
+        self.inbound_list.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.OrderList.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
 
     def update_inbound_list(self, data=None):
@@ -573,6 +571,9 @@ class Ui_MainWindow(QMainWindow):
         self.OrderList.setColumnCount(len(df.columns))
         self.OrderList.setHorizontalHeaderLabels(df.columns)
 
+        self.db_manager.connect_database()  # Reconnect to refresh the cursor
+        all_rows = self.db_manager.get_data("ProductOrder", ['order_id', 'user_id', 'item_id', 'item_name', 'quantities', 'order_time'])
+        
         for row_index, row in enumerate(df.itertuples(index=False)):
             for col_index, value in enumerate(row):
                 item = QTableWidgetItem(str(value))
