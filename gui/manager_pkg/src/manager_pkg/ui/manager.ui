@@ -61,7 +61,7 @@ border-radius: 30px</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../../../../../consumer/ui/Downloads/home.png</normaloff>../../../../../../consumer/ui/Downloads/home.png</iconset>
+         <normaloff>../image/home.png</normaloff>../image/home.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -88,7 +88,7 @@ border-radius: 30px</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../../../../../consumer/ui/Downloads/pngwing.com.png</normaloff>../../../../../../consumer/ui/Downloads/pngwing.com.png</iconset>
+         <normaloff>../image/robot.png</normaloff>../image/robot.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -115,7 +115,7 @@ border-radius: 30px</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
+         <normaloff>../image/list.png</normaloff>../image/list.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -604,7 +604,7 @@ border-radius: 30px</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../../../../../consumer/ui/Downloads/home.png</normaloff>../../../../../../consumer/ui/Downloads/home.png</iconset>
+         <normaloff>../image/home.png</normaloff>../image/home.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -631,7 +631,7 @@ border-radius: 30px</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../../../../../consumer/ui/Downloads/pngwing.com.png</normaloff>../../../../../../consumer/ui/Downloads/pngwing.com.png</iconset>
+         <normaloff>../image/robot.png</normaloff>../image/robot.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -658,7 +658,7 @@ border-radius: 30px</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
+         <normaloff>../image/list.png</normaloff>../image/list.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -845,7 +845,7 @@ border-radius: 30px</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../../../../../consumer/ui/Downloads/home.png</normaloff>../../../../../../consumer/ui/Downloads/home.png</iconset>
+         <normaloff>../image/home.png</normaloff>../image/home.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -872,7 +872,7 @@ border-radius: 30px</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../../../../../consumer/ui/Downloads/pngwing.com.png</normaloff>../../../../../../consumer/ui/Downloads/pngwing.com.png</iconset>
+         <normaloff>../image/robot.png</normaloff>../image/robot.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -899,7 +899,7 @@ border-radius: 30px</string>
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../../../../../consumer/ui/Downloads/bar-chart.png</normaloff>../../../../../../consumer/ui/Downloads/bar-chart.png</iconset>
+         <normaloff>../image/list.png</normaloff>../image/list.png</iconset>
        </property>
        <property name="iconSize">
         <size>

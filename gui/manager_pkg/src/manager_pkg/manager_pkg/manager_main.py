@@ -267,6 +267,12 @@ class Ui_MainWindow(QMainWindow):
         self.init_inbound_order_control_page()
         self.init_navigation_buttons()
         self.init_ros2_node()
+        
+         # Set up a timer to update stock info every 5 seconds
+        self.stock_update_timer = QTimer(self)
+        self.stock_update_timer.timeout.connect(self.update_stock_info)
+        self.stock_update_timer.start(5000)  # Update every 5000 milliseconds (5 seconds)
+        print("Timer started for updating stock info every 5 seconds")
 
         # Set Timer
         self.map_timer = QTimer(self)
@@ -339,6 +345,7 @@ class Ui_MainWindow(QMainWindow):
             self.robotComboBox.setCurrentIndex(robot_index)
 
     def init_main_page(self):
+<<<<<<< HEAD
         # Set map
         self.map_yaml_file = os.path.join(get_package_share_directory('manager_pkg'), 'map', 'map.yaml')
         self.map_yaml_data = self.load_yaml(self.map_yaml_file)
@@ -374,6 +381,33 @@ class Ui_MainWindow(QMainWindow):
         # Executor를 별도의 스레드에서 실행
         self.executor_thread = Thread(target=self.executor.spin)
         self.executor_thread.start()
+=======
+        pass
+    #     # Main Page: Real-time location of robots, Task list, Current Stock info
+        self.map_label = self.findChild(QLabel, 'mapLabel')  # Assuming there's a QLabel for the map
+        self.update_stock_info()
+
+        robotstatus = self.db_manager.fetch_all_product("RobotStatus")
+
+        df = pd.DataFrame(robotstatus, columns=['robot_id', 'status'])
+        id_list = df['robot_id'].tolist()
+        status_list = df['status'].tolist()
+
+        self.update_robot_button(self.R1, self.status1, id_list[0], status_list[0])
+        self.update_robot_button(self.R2, self.status2, id_list[1], status_list[1])
+        self.update_robot_button(self.R3, self.status3, id_list[2], status_list[2])
+
+
+    def update_robot_button(self, button, status_label, robot_id, status):
+        button.setText(robot_id)
+        status_label.setText(status)
+        if status == "busy":
+            button.setStyleSheet("background-color: rgb(246, 97, 81);""border-radius: 20px")
+        elif status == "available":
+            button.setStyleSheet("background-color: rgb(143, 240, 164);""border-radius: 20px")
+        else:
+            button.setStyleSheet("")
+>>>>>>> afef4dacd92108210eaf50aa1a0cac008a3834db
 
     def init_ros2_node(self):
         pass
@@ -428,6 +462,7 @@ class Ui_MainWindow(QMainWindow):
         pass
 
     def update_stock_info(self):
+<<<<<<< HEAD
         product_inventory = self.db_manager.fetch_all_product("ProductInventory")
         product_info = self.db_manager.get_data("ProductInfo", ["item_id", "item_tag"])
 
@@ -461,12 +496,34 @@ class Ui_MainWindow(QMainWindow):
             if item_id in label_mapping:
                 self.label = label_mapping[item_id]
                 self.label.setText(f"{item_tag}\n{item_name}\nstock: {stock}")
+=======
+        print("Updating stock info")
+        product_inventory = self.db_manager.fetch_all_product("ProductInventory")
+        print(f"Fetched product inventory: {product_inventory}")
+
+        df = pd.DataFrame(product_inventory, columns=['item_id', 'item_name', 'stock'])
+
+        # tableWidget 업데이트
+        self.tableWidget.setRowCount(len(df))
+        self.tableWidget.setColumnCount(len(df.columns))
+        self.tableWidget.setHorizontalHeaderLabels(df.columns)
+
+        for row_index, row in enumerate(df.itertuples(index=False)):
+            for col_index, value in enumerate(row):
+                item = QTableWidgetItem(str(value))
+                self.tableWidget.setItem(row_index, col_index, item)
+        print("Stock info updated")
+>>>>>>> afef4dacd92108210eaf50aa1a0cac008a3834db
         
     def update_product_quantity(self, product_id, quantity):
         query = "UPDATE ProductInventory SET stock = %s WHERE item_id = %s"
         self.db_manager.cursor.execute(query, (quantity, product_id))
         self.db_manager.conn.commit()
         print(f"Updated product {product_id} with quantity {quantity}")
+<<<<<<< HEAD
+=======
+
+>>>>>>> afef4dacd92108210eaf50aa1a0cac008a3834db
 
     def init_robot_control_page(self):
         self.robotComboBox = self.findChild(QComboBox, 'robotComboBox')

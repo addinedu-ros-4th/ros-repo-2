@@ -1,0 +1,5 @@
+  File "/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/lib/python3.10/site-packages/manager_pkg/manager_main.py", line 15
+    >>>>>>> 75a130c5d2a5987b926194b7fea4e6d9c4496b1d
+             ^
+SyntaxError: invalid decimal literal
+
