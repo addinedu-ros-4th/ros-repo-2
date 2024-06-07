@@ -417,7 +417,7 @@ class RobotController(Node) :
         nearest_point_from_me, nearest_point_from_me_index = self.search_nearest_point(self.my_pose)
         current_point_index = nearest_point_from_me_index.copy()
         
-        self.get_logger().info(f"start stopover : {current_point_index}")
+        self.get_logger().info(f"start stopover : {current_point_index} {nearest_point_from_target_index}")
         
         direction_robot_to_target = [
             1 if nearest_point_from_target_index[0] - nearest_point_from_me_index[0] > 0 else -1,
@@ -427,6 +427,10 @@ class RobotController(Node) :
         self.move_pose(nearest_point_from_me, 0.0)
         
         while current_point_index != nearest_point_from_target_index:
+            direction_robot_to_target = [
+                1 if nearest_point_from_target_index[0] - current_point_index[0] > 0 else -1,
+                1 if nearest_point_from_target_index[1] - current_point_index[1] > 0 else -1
+            ]
             passable_path = self.search_passable_path(current_point_index, direction_robot_to_target, nearest_point_from_target_index)
             if passable_path == []:
                 self.get_logger().info("wait stopover")
@@ -442,12 +446,14 @@ class RobotController(Node) :
                 
             
             elif len(passable_path) == 2:
-                self.move_set(passable_path, current_point_index)
+                self.get_logger().info("nomal move")
+                current_point_index = self.move_set(passable_path, current_point_index)
 
             elif len(passable_path) > 2:
+                self.get_logger().info(f"not nomal move{passable_path}")
                 passable_path_list = [passable_path[:2], passable_path[2:4]]
                 for path in passable_path_list:
-                    self.move_set(path, current_point_index)
+                    current_point_index = self.move_set(path, current_point_index)
 
         self.current_path_msg.start_x = -1 # path에서 장애물 비킴
 
@@ -480,32 +486,36 @@ class RobotController(Node) :
         target_x = target_point_index[0]
         target_y = target_point_index[1]
         return_vel = []
+
         
-        if y != target_y and self.current_is_passable_list[x][y + direction_robot_to_target[1]]:
+
+
+        if y != target_y and self.current_is_passable_list[x][y + direction_robot_to_target[1]] and (0 <= y + direction_robot_to_target[1] < 4):
             return_vel = [x, y + direction_robot_to_target[1]]
 
 
-        if x != target_x and self.current_is_passable_list[x + direction_robot_to_target[0]][y]:
+        if x != target_x and self.current_is_passable_list[x + direction_robot_to_target[0]][y] and (0 <= x + direction_robot_to_target[0] < 7):
             return_vel = [x + direction_robot_to_target[0], y]
 
+
         if return_vel == [] and (y != target_y or x != target_x) : # 
-            if x - target_x > y - target_y and self.current_is_passable_list[x + direction_robot_to_target[0]][y + direction_robot_to_target[1]]:
+            if 0 == y - target_y and self.current_is_passable_list[x + direction_robot_to_target[0]][y + direction_robot_to_target[1]]:
                 return_vel = [x, y + direction_robot_to_target[1], x + direction_robot_to_target[0], y + direction_robot_to_target[1]]
                     
-            elif x - target_x > y - target_y and self.current_is_passable_list[x + direction_robot_to_target[0]][y - direction_robot_to_target[1]]:
+            elif 0 == y - target_y and self.current_is_passable_list[x + direction_robot_to_target[0]][y - direction_robot_to_target[1]]:
                 return_vel = [x, y - direction_robot_to_target[1], x + direction_robot_to_target[0], y - direction_robot_to_target[1]]
             
-            elif x - target_x < y - target_y and self.current_is_passable_list[x + direction_robot_to_target[0]][y + direction_robot_to_target[1]]:
+            elif x - target_x == 0 and self.current_is_passable_list[x + direction_robot_to_target[0]][y + direction_robot_to_target[1]]:
                 return_vel = [x + direction_robot_to_target[0], y, x + direction_robot_to_target[0], y + direction_robot_to_target[1]]
 
-            elif x - target_x < y - target_y and self.current_is_passable_list[x - direction_robot_to_target[0]][y + direction_robot_to_target[1]]:
+            elif x - target_x == 0 and self.current_is_passable_list[x - direction_robot_to_target[0]][y + direction_robot_to_target[1]]:
                 return_vel = [x - direction_robot_to_target[0], y, x - direction_robot_to_target[0], y + direction_robot_to_target[1]]
 
         return return_vel   
         
 
     def move_set(self, passable_path, current_point_index):
-        self.get_logger().info("move stopover")
+        # self.get_logger().info("move stopover")
         self.get_logger().info(f"my pose = {current_point_index}")
         self.get_logger().info(f"go pose = {passable_path}")
         self.current_path_msg.start_x = current_point_index[0]
@@ -518,6 +528,8 @@ class RobotController(Node) :
         self.move_pose(self.PATH_LIST[current_point_index[0]][current_point_index[1]], yaw)
         self.move_pose(self.PATH_LIST[passable_path[0]][passable_path[1]], yaw)
         current_point_index = passable_path.copy()
+        
+        return current_point_index
 
 
     def find_approximation_to_pose_list(self, pose_list, target_vel):
@@ -552,7 +564,7 @@ class RobotController(Node) :
         req = StepControl.Request()
         req.floor = floor
         req.direction = direction
-        self.get_logger().info("before call ")
+
         self.get_logger().info(f"req.floor : {req.floor}")
         self.get_logger().info(f"req.direction : {req.direction}")
         res = self.lift_client.call_async(req)
@@ -645,10 +657,10 @@ class RobotController(Node) :
             if feedback and i % 30 == 0 :
                 self.get_logger().info("distance remaining: " + "{:.2f}".format(feedback.distance_remaining) + " meters.")
                 send_data.data = feedback.distance_remaining
-                # self.feedback_publisher.publish(send_data)
                 
+                ###########
                 if (feedback.distance_remaining <= 0.40 and feedback.distance_remaining != 0.0) or Duration.from_msg(feedback.navigation_time) > Duration(seconds=40.0) :
-                    time.sleep(0.5) # 목표지점 인접시 0.5초후 다음목적지
+                    # time.sleep(0.5) # 목표지점 인접시 0.5초후 다음목적지
                     self.nav.cancelTask()
                     self.get_logger().info("cancel nav Task")
 
