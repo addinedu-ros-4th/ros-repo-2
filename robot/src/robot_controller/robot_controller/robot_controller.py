@@ -106,6 +106,7 @@ class My_Location(Node) :
         
 
     def renew_map_status_1(self, data):
+        
         self.obstacle_1[0][0] = data.start_x
         self.obstacle_1[0][1] = data.start_y
         self.obstacle_1[1][0] = data.end_x
@@ -123,10 +124,19 @@ class My_Location(Node) :
 
     def send_map_status(self):
         map_data = deepcopy(self.controller.is_passable_list)
-        map_data[self.obstacle_1[0][0]][self.obstacle_1[0][1]] = False
-        map_data[self.obstacle_1[1][0]][self.obstacle_1[1][1]] = False
-        map_data[self.obstacle_2[0][0]][self.obstacle_2[0][1]] = False
-        map_data[self.obstacle_2[1][0]][self.obstacle_2[1][1]] = False
+        if self.obstacle_1[0][0] == -1:
+            map_data[self.obstacle_1[0][0]][self.obstacle_1[0][1]] = True
+            map_data[self.obstacle_1[1][0]][self.obstacle_1[1][1]] = True
+        else:
+            map_data[self.obstacle_1[0][0]][self.obstacle_1[0][1]] = False
+            map_data[self.obstacle_1[1][0]][self.obstacle_1[1][1]] = False
+
+        if self.obstacle_2[0][0] == -1:
+            map_data[self.obstacle_2[0][0]][self.obstacle_2[0][1]] = True
+            map_data[self.obstacle_2[1][0]][self.obstacle_2[1][1]] = True
+        else:
+            map_data[self.obstacle_2[0][0]][self.obstacle_2[0][1]] = False
+            map_data[self.obstacle_2[1][0]][self.obstacle_2[1][1]] = False
         
         self.controller.current_is_passable_list = deepcopy(map_data)
 
@@ -381,7 +391,7 @@ class RobotController(Node) :
 
             else : # 나머지 장소
                 self.current_task_location = pose_name
-                self.checking_task_is_out() # 현재 테스크 상태가 OUT이면 대기상태 진입
+                self.checking_task_is_out() 
                 
 
             self.get_logger().info("move end")
@@ -439,6 +449,7 @@ class RobotController(Node) :
                 for path in passable_path_list:
                     self.move_set(path, current_point_index)
 
+        self.current_path_msg.start_x = -1 # path에서 장애물 비킴
 
     def search_nearest_point(self,target_pose): # 타겟에 가장 가까운 point 찾기
         nearest_point = [999, 999, 0.0]

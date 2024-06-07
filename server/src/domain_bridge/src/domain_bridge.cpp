@@ -23,10 +23,10 @@
 #include "domain_bridge/process_cmd_line_arguments.hpp"
 #include "task_msgs/srv/allocate_task.hpp"
 
-int SERVER_ID = 217;
-int ROBOT_1_ID = 213;
-int ROBOT_2_ID = 214;
-int ROBOT_3_ID = 215;
+int SERVER_ID = 90;
+int ROBOT_1_ID = 91;
+int ROBOT_2_ID = 92;
+int ROBOT_3_ID = 93;
 
 int main(int argc, char ** argv)
 {
@@ -42,10 +42,9 @@ int main(int argc, char ** argv)
   auto executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
   auto node = std::make_shared<domain_bridge::ComponentManager>(executor);
 
-  domain_bridge.bridge_service<task_msgs::srv::AllocateTask>(("task_" + std::to_string(ROBOT_1_ID)), ROBOT_1_ID, SERVER_ID);
-  domain_bridge.bridge_service<task_msgs::srv::AllocateTask>(("task_" + std::to_string(ROBOT_2_ID)), ROBOT_2_ID, SERVER_ID);
-  domain_bridge.bridge_service<task_msgs::srv::AllocateTask>(("task_" + std::to_string(ROBOT_3_ID)), ROBOT_3_ID, SERVER_ID);
-  
+  domain_bridge.bridge_service<task_msgs::srv::AllocateTask>(("allocate_task_" + std::to_string(ROBOT_1_ID)), ROBOT_1_ID, SERVER_ID);
+  domain_bridge.bridge_service<task_msgs::srv::AllocateTask>(("allocate_task_" + std::to_string(ROBOT_2_ID)), ROBOT_2_ID, SERVER_ID);
+  domain_bridge.bridge_service<task_msgs::srv::AllocateTask>(("allocate_task_" + std::to_string(ROBOT_3_ID)), ROBOT_3_ID, SERVER_ID);
 
   domain_bridge.add_to_executor(*executor);
   executor->add_node(node);
