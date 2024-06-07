@@ -15,6 +15,7 @@ setup(
         (os.path.join('share', package_name, 'image'), glob.glob('image/*')),
         (os.path.join('share', package_name, 'data'), glob.glob('data/*')),
         (os.path.join('share', package_name, 'ui'), glob.glob('ui/*')),
+        (os.path.join('share', package_name, 'map'), glob.glob('map/*')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

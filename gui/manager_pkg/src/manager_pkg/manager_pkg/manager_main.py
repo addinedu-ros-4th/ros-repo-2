@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 import cv2
 from ament_index_python.packages import get_package_share_directory
+import yaml
 
 # from task_msgs.msg import *
 from std_msgs.msg import String
@@ -284,17 +285,17 @@ class Ui_MainWindow(QMainWindow):
         # Initialize the Stacked Widget
         self.stackedWidget = self.findChild(QStackedWidget, 'stackedWidget')
 
-        # Set Timer
-        timer = QTimer(self)
-        timer.timeout.connect(self.update_map)
-        timer.start(200)
-
         # Initialize pages
         self.init_main_page()
         self.init_robot_control_page()
         self.init_inbound_order_control_page()
         self.init_navigation_buttons()
         self.init_ros2_node()
+
+        # Set Timer
+        self.map_timer = QTimer(self)
+        self.map_timer.timeout.connect(self.update_map)
+        self.map_timer.start(200)
         
         # Set up a timer to update stock info every 5 seconds
         self.stock_update_timer = QTimer(self)
@@ -355,6 +356,24 @@ class Ui_MainWindow(QMainWindow):
 
 
     def init_main_page(self):
+        # Set map
+        self.map_yaml_file = os.path.join(get_package_share_directory('manager_pkg'), 'map', 'map.yaml')
+        self.map_yaml_data = self.load_yaml(self.map_yaml_file)
+        self.map_image = os.path.abspath(self.map_yaml_data['image'])
+        self.pixmap = QPixmap(self.map_image)
+        self.image_scale = 5
+
+
+        # Remove margins from the map pixmap
+        self.pixmap = self.pixmap.copy(QRect(50, 50, self.pixmap.width() - 100, self.pixmap.height() - 100))
+        self.height = self.pixmap.size().height()
+        self.width = self.pixmap.size().width()
+
+
+        self.map_resolution = self.map_yaml_data['resolution']
+        self.map_origin = self.map_yaml_data['origin'][:2]
+
+
     #     # Main Page: Real-time location of robots, Task list, Current Stock info
         self.map_label = self.findChild(QLabel, 'mapLabel')  # Assuming there's a QLabel for the map
         self.update_stock_info()
@@ -384,9 +403,52 @@ class Ui_MainWindow(QMainWindow):
         pass
 
     def update_map(self):
-        # timer 이용해서 amcl값 map에 업데이트하기.
-        # 3기 코드 OR 동규 코드 참고
-        pass
+        
+        scaled_pixmap = self.pixmap.scaled(self.width * self.image_scale, self.height * self.image_scale, Qt.KeepAspectRatio)
+        painter = QPainter(scaled_pixmap)
+        self.font = QFont()
+        self.font.setBold(True)
+        self.font.setPointSize(12)
+        painter.setFont(self.font)
+
+        # 1번 로봇 좌표
+        self.draw_robot(painter, amcl_1, Qt.red, '1')
+        # 2번 로봇 좌표
+        self.draw_robot(painter, amcl_2, Qt.blue, '2')
+        # 3번 로봇 좌표
+        self.draw_robot(painter, amcl_3, Qt.green, '3')
+
+        painter.end()
+
+        # Calculate the required final pixmap size considering cropping
+        final_width = min(self.width * self.image_scale - 80, scaled_pixmap.width())
+        final_height = min(self.height * self.image_scale - 80, scaled_pixmap.height())
+
+        # Create a blank pixmap and draw the scaled pixmap on it
+        final_pixmap = QPixmap(final_width, final_height)
+        final_pixmap.fill(Qt.white)
+
+        painter = QPainter(final_pixmap)
+        painter.drawPixmap(0, 0, scaled_pixmap.copy(50, 50, final_width, final_height))
+        painter.end()
+
+        self.map.setPixmap(final_pixmap)
+    
+    def draw_robot(self, painter, amcl, color, label):
+        x, y = self.calc_grid_position(100, 100)
+        painter.setPen(QPen(color, 14, Qt.SolidLine))
+        painter.drawPoint(int((self.width - x) * self.image_scale), int(y * self.image_scale))
+        painter.drawText(int((self.width - x) * self.image_scale + 13), int(y * self.image_scale + 5), label)
+
+
+    def calc_grid_position(self, x, y):
+        x_grid = (x - self.map_origin[0]) / self.map_resolution
+        y_grid = (y - self.map_origin[1]) / self.map_resolution
+        return x_grid, y_grid
+    
+    def load_yaml(self, file_path):
+        with open(file_path, 'r') as f:
+            return yaml.full_load(f)
 
 
     def update_task_list(self):
