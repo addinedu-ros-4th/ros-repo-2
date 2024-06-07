@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.executors import MultiThreadedExecutor
+from std_msgs.msg import String
 from task_msgs.srv import AllocateTask
 from task_msgs.msg import TaskList, RobotStatus, TaskCompletion, Task
 from task_manager.task_factory import TaskFactory
@@ -24,32 +25,21 @@ class TaskAllocator(Node):
         # Subscriber
         self.task_list_sub    = self.create_subscription(TaskList,       '/task_list',       self.receive_task_list,       10)
         self.robot_status_sub = self.create_subscription(RobotStatus,    '/robot_status',    self.update_robot_status,     10)
-        self.completion_sub   = self.create_subscription(TaskCompletion, '/task_completion', self.process_task_completion, 10)
+        self.completion_sub   = self.create_subscription(TaskCompletion, '/task_completion', self.handle_task_completion, 10)
 
         # Publisher
-        self.unassigned_tasks_pub = self.create_publisher(TaskList, '/unassigned_tasks', 10)
+        self.current_transactions_pub = self.create_publisher(String,   '/current_transactions', 10)
+        self.unassigned_tasks_pub     = self.create_publisher(TaskList, '/unassigned_tasks',     10)
         
-        # Database
+        # Database controller
         self.robot_controller = robot_controller
 
+        # Data
         self.tasks = []                             # Priority queue for tasks
         self.tasks_in_progress = {}                 # Dictionary to keep track of transactions in progress
         self.robot_status = {}                      # Dictionary to keep track of robot statuses
         self.outbound_to_task_map = {}              # Dictionary to map outbound tasks to tasks
         self.inbound_to_task_map = {}               # Dictionary to map inbound tasks to unloading and storage locations
-
-
-    def get_final_location_from_db(self, task):
-        self.robot_controller.ensure_connection()   # Ensure the connection is valid
-        bundle_id = task.bundle_id
-        query = "SELECT item_tag FROM Inbound WHERE inbound_id = %s"
-        result = self.robot_controller.fetchone(query, (bundle_id,))
-        
-        if result:
-            return result[0]
-        else:
-            self.get_logger().error("No item_tag found for the given inbound_id")
-            return None
 
 
     def receive_task_list(self, msg):
@@ -92,14 +82,6 @@ class TaskAllocator(Node):
                 priority = min(task.priority for task in unique_tasks)
                 heapq.heappush(self.tasks, PriorityTask(priority, unique_tasks))
         self.inbound_to_task_map.clear()
-
-
-    def update_robot_status(self, msg):
-        self.robot_status[msg.robot_id] = msg.robot_status
-        self.robot_controller.update_robot_status(msg.robot_id, msg.robot_status)   # Update Robot Status Database
-        self.get_logger().info(f'Received status from {msg.robot_id}: {msg.robot_status}')
-        
-        self.allocate_transaction()                                                 # Allocate task
 
 
     # Assign work by determining robot status
@@ -161,6 +143,45 @@ class TaskAllocator(Node):
         self.robot_controller.update_robot_status(robot_id, 'busy')
 
 
+    def requeue_task(self, task):
+        heapq.heappush(self.tasks, PriorityTask(task.priority, [task]))
+        self.publish_unassigned_tasks()
+
+
+    def reassign_transaction(self, transaction_id):
+        if transaction_id in self.tasks_in_progress:
+            tasks, robot_id = self.tasks_in_progress[transaction_id]
+
+            for task in tasks:
+                self.requeue_task(task)
+
+            del self.tasks_in_progress[transaction_id]
+            self.robot_status[robot_id] = 'available'
+            self.get_logger().info(f'Reassigning tasks for transaction {transaction_id} due to failure')
+            self.allocate_transaction()
+
+
+    def get_final_location_from_db(self, task):
+        self.robot_controller.ensure_connection()   # Ensure the connection is valid
+        bundle_id = task.bundle_id
+        query = "SELECT item_tag FROM Inbound WHERE inbound_id = %s"
+        result = self.robot_controller.fetchone(query, (bundle_id,))
+        
+        if result:
+            return result[0]
+        else:
+            self.get_logger().error("No item_tag found for the given inbound_id")
+            return None
+        
+    
+    def update_robot_status(self, msg):
+        self.robot_status[msg.robot_id] = msg.robot_status
+        self.robot_controller.update_robot_status(msg.robot_id, msg.robot_status)   # Update Robot Status Database
+        self.get_logger().info(f'Received status from {msg.robot_id}: {msg.robot_status}')
+        
+        self.allocate_transaction()                                                 # Allocate task
+        
+        
     def process_task_allocation_response(self, future, task, robot_id, transaction_id):
         try:
             response = future.result()
@@ -179,6 +200,26 @@ class TaskAllocator(Node):
         finally:
             self.publish_unassigned_tasks()
             
+            
+    def publish_current_transactions(self):
+        transactions_info = ""
+        for transaction_id, (tasks, robot_id) in self.tasks_in_progress.items():
+            tasks_info = ", ".join([f"{task.task_id} (completed: {self.tasks_assigned.get(task.task_id, False)})" for task in tasks])
+            transactions_info += f"Robot {robot_id} executing transaction {transaction_id} with tasks: {tasks_info}\n"
+        msg = String(data=transactions_info)
+        self.current_transactions_pub.publish(msg)
+
+
+    def publish_unassigned_tasks(self):
+        unassigned_tasks = [task for priority_task in self.tasks for task in priority_task.task if isinstance(task, Task)]
+        task_list_msg = TaskList(tasks=unassigned_tasks)
+        self.unassigned_tasks_pub.publish(task_list_msg)
+
+    
+    def handle_task_completion(self, msg):
+        self.process_task_completion(msg)
+        self.additional_task_completion_processing(msg)
+        
 
     def process_task_completion(self, msg):
         self.get_logger().info(f'Received task completion for task {msg.task_id} by robot {msg.robot_id}')
@@ -212,30 +253,17 @@ class TaskAllocator(Node):
             self.get_logger().warn(f'Transaction {transaction_id} not found in progress')
             
             
-    def requeue_task(self, task):
-        heapq.heappush(self.tasks, PriorityTask(task.priority, [task]))
-        self.publish_unassigned_tasks()
-
-
-    def reassign_transaction(self, transaction_id):
-        if transaction_id in self.tasks_in_progress:
-            tasks, robot_id = self.tasks_in_progress[transaction_id]
-
+    # For GUI data
+    def additional_task_completion_processing(self, msg):
+        task_id = msg.task_id
+        for transaction_id, (tasks, robot_id) in self.tasks_in_progress.items():
             for task in tasks:
-                self.requeue_task(task)
-
-            del self.tasks_in_progress[transaction_id]
-            self.robot_status[robot_id] = 'available'
-            self.get_logger().info(f'Reassigning tasks for transaction {transaction_id} due to failure')
-            self.allocate_transaction()
-
-
-    def publish_unassigned_tasks(self):
-        unassigned_tasks = [task for priority_task in self.tasks for task in priority_task.task if isinstance(task, Task)]
-        task_list_msg = TaskList(tasks=unassigned_tasks)
-        self.unassigned_tasks_pub.publish(task_list_msg)
-        self.get_logger().info(f"Published unassigned tasks: {unassigned_tasks}")
-
+                if task.task_id == task_id:
+                    self.tasks_assigned[task_id] = True
+                    self.publish_current_transactions()
+                    return
+        self.get_logger().warn(f'Task {task_id} completion received but not found in progress')
+        
 
 def main(args=None):
     rclpy.init(args=args)
