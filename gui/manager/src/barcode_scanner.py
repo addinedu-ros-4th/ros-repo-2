@@ -89,7 +89,7 @@ class BarcodeScanner(QObject):
     def send_task_to_ros(self):
         try:
         # Connect to ROS bridge using websocket
-            ws = create_connection("ws://192.168.1.107:9090")
+            ws = create_connection("ws://172.20.10.3:9090")
             
             # Create Json
             order_message = {
