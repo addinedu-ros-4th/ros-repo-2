@@ -7,6 +7,7 @@ from task_msgs.msg import TaskList, RobotStatus, TaskCompletion, Task
 from task_manager.task_factory import TaskFactory
 from data_manager.robot_controller import RobotController
 import heapq
+import json
 
 
 class PriorityTask:
@@ -99,7 +100,7 @@ class TaskAllocator(Node):
 
             # Immediately change status to prevent reallocation
             self.robot_status[robot_id] = "busy"
-
+            self.robot_status_sub.publish(robot_id, "busy")
             self.assign_transaction(tasks, robot_id)
 
 
@@ -204,11 +205,23 @@ class TaskAllocator(Node):
             
             
     def publish_current_transactions(self):
-        transactions_info = ""
+        transactions = []
         for transaction_id, (tasks, robot_id) in self.tasks_in_progress.items():
-            tasks_info = ", ".join([f"{task.task_id} (completed: {self.tasks_assigned.get(task.task_id, False)})" for task in tasks])
-            transactions_info += f"Robot {robot_id} executing transaction {transaction_id} with tasks: {tasks_info}\n"
-        msg = String(data=transactions_info)
+            task_list = []
+            for task in tasks:
+                task_info = {
+                    "task_id": task.task_id,
+                    "location": task.location,
+                    "completed": self.tasks_assigned.get(task.task_id, False)
+                }
+                task_list.append(task_info)
+            transaction_info = {
+                "transaction_id": transaction_id,
+                "robot_id": robot_id,
+                "tasks": task_list
+            }
+            transactions.append(transaction_info)
+        msg = String(data=json.dumps(transactions))
         self.current_transactions_pub.publish(msg)
 
 
