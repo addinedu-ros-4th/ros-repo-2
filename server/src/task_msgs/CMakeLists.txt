@@ -21,11 +21,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RobotStatus.msg"
   "msg/TaskCompletion.msg"
   "msg/OutTask.msg"
-<<<<<<< HEAD
   "msg/CurrentPath.msg"
-=======
   "msg/PendingTaskList.msg"
->>>>>>> afe279bb2c853b82f93992872c97d9219793e223
+
   "srv/AllocateTask.srv"
   
   "srv/ArucoCommand.srv"
