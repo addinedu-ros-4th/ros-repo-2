@@ -26,6 +26,8 @@ manager_pkg/manager_test.py
 manager_pkg/transactions_subscriber.py
 map/map.pgm
 map/map.yaml
+map/re_map.pgm
+map/re_map.yaml
 resource/manager_pkg
 test/test_copyright.py
 test/test_flake8.py
