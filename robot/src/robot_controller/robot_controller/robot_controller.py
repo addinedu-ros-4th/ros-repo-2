@@ -279,11 +279,11 @@ class RobotController(Node) :
             "O1" : [1.45, 1.06, 0.0],   "O2" : [1.45, 0.66, 0.0],   "O3" : [1.45, 0.46, 0.0],
             "P1" : [0.4, 1.16, 0.0],    "P2" : [0.4, 0.58, 0.0],    "P3" : [0.4, 0.0, 0.0],
             "R1" : [1.45, -1.2, 0.0],   "R2" : [1.45, -0.9, 0.0],
-            "A1" : [0.7, 0.3, 0.0],    "A1_2" : [0.7, 0.3, 0.0], 
+            "A1" : [0.8, 0.3, 0.0],    "A1_2" : [0.8, 0.3, 0.0], 
             "A2" : [1.15, 0.3, 0.0],    "A2_2" : [1.15, 0.3, 0.0],
-            "B1" : [0.7, -0.5, 0.0],   "B1_2" : [0.7, -0.5, 0.0], 
+            "B1" : [0.8, -0.5, 0.0],   "B1_2" : [0.8, -0.5, 0.0], 
             "B2" : [1.15, -0.5, 0.0],   "B2_2" : [1.15, -0.5, 0.0],
-            "C1" : [0.7, -1.2, 0.0],   "C1_2" : [0.7, -1.2, 0.0], 
+            "C1" : [0.8, -1.2, 0.0],   "C1_2" : [0.8, -1.2, 0.0], 
             "C2" : [1.15, -1.2, 0.0],   "C2_2" : [1.15, -1.2, 0.0]
         }
 
@@ -410,17 +410,17 @@ class RobotController(Node) :
 
             if lift == "Up" : # lift up first place (첫 장소 리프트 업)
                 self.get_logger().info("lift up")
-                # self.service_call_lift(pose_name, "down")
-                # self.service_call_marker(pose_name, "forward")
-                # self.service_call_lift(pose_name, "up")
-                # self.service_call_marker(pose_name, "backward")
+                self.service_call_lift(pose_name, "down")
+                self.service_call_marker(pose_name, "forward")
+                self.service_call_lift(pose_name, "up")
+                self.service_call_marker(pose_name, "backward")
 
             elif lift == "Down" : # lift down last place(마지막 장소 리프트 다운)
                 self.get_logger().info("lift down")
-                # self.service_call_lift(pose_name, "up")
-                # self.service_call_marker(pose_name, "forward")
-                # self.service_call_lift(pose_name, "down")
-                # self.service_call_marker(pose_name, "backward")
+                self.service_call_lift(pose_name, "up")
+                self.service_call_marker(pose_name, "forward")
+                self.service_call_lift(pose_name, "down")
+                self.service_call_marker(pose_name, "backward")
 
             else : # 나머지 장소
                 self.current_task_location = pose_name
@@ -559,7 +559,7 @@ class RobotController(Node) :
         yaw = self.point_to_yaw(self.PATH_LIST[current_point_index[0]][current_point_index[1]],
                                 self.PATH_LIST[passable_path[0]][passable_path[1]])
         
-        self.move_pose(self.PATH_LIST[current_point_index[0]][current_point_index[1]], yaw)
+        self.nav.spin(spin_dist = yaw)
         self.move_pose(self.PATH_LIST[passable_path[0]][passable_path[1]], yaw)
         
         current_point_index = passable_path.copy()
@@ -650,7 +650,7 @@ class RobotController(Node) :
         goal_pose.pose.orientation.y = q[1]
         goal_pose.pose.orientation.z = q[2]
         goal_pose.pose.orientation.w = q[3]
-
+        
         self.nav.goToPose(goal_pose)
 
         self.nav_distance_feedback(yaw)
