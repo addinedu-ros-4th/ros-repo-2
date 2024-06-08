@@ -65,7 +65,7 @@ class OrderReceiver(Node):
                         item=item_name,
                         quantity=quantity,
                         location=inbound_zone if order_type == "inbound" else self.get_location_for_item(item_name),
-                        lift="X" if order_type == "inbound" else "Up"
+                        lift="Up"
                     )
             
                 tasks.append(task)
