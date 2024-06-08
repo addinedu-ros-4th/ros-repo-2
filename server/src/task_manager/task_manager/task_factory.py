@@ -27,7 +27,7 @@ class TaskFactory:
                 bundle_id=bundle_id,
                 item='',
                 quantity=0,
-                location='O1',
+                location='O2',
                 lift = 'Up'
             )
 
@@ -38,7 +38,7 @@ class TaskFactory:
                 bundle_id=bundle_id,
                 item='',
                 quantity=0,
-                location='O1',
+                location='O2',
                 lift = 'Down'
             )
 
