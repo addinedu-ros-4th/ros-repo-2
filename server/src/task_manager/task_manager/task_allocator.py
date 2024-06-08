@@ -8,6 +8,7 @@ from task_manager.task_factory import TaskFactory
 from data_manager.robot_controller import RobotController
 import heapq
 import json
+import threading
 
 
 class PriorityTask:
@@ -42,7 +43,24 @@ class TaskAllocator(Node):
         self.outbound_to_task_map = {}              # Dictionary to map outbound tasks to tasks
         self.inbound_to_task_map = {}               # Dictionary to map inbound tasks to unloading and storage locations
 
-
+        # Timer
+        self.idle_timers = {}  # Dictionary to keep track of timers for each robot
+        
+        
+    def reset_timer(self, robot_id):
+        if robot_id in self.idle_timers:
+            self.idle_timers[robot_id].cancel()
+        self.idle_timers[robot_id] = threading.Timer(5.0, self.assign_charge_task, args=[robot_id])
+        self.idle_timers[robot_id].start()
+    
+    
+    def assign_charge_task(self, robot_id):
+        # Check if the robot is still available
+        if self.robot_status.get(robot_id) == "available":
+            charge_task = Task(task_id='charge_task', task_type='CG', priority=1, bundle_id='CG', item='', quantity=0, location='P1', lift='X')
+            self.assign_task(charge_task, robot_id)
+        
+        
     def receive_task_list(self, msg):
         for task in msg.tasks:
             if task.task_type == 'OB':
@@ -61,7 +79,12 @@ class TaskAllocator(Node):
         self.publish_unassigned_tasks()
         self.allocate_transaction()
 
-
+        # Reset the timer if a new task is received
+        for robot_id, status in self.robot_status.items():
+            if status == "available":
+                self.reset_timer(robot_id)
+                
+                
     # Tasks grouped by task type (Inbound, Outbound)
     def bundle_tasks(self):
         # In case of outbound
@@ -193,6 +216,9 @@ class TaskAllocator(Node):
         self.robot_controller.update_robot_status(msg.robot_id, msg.robot_status)   # Update Robot Status Database
         self.get_logger().info(f'Received status from {msg.robot_id}: {msg.robot_status}')
         
+        if msg.robot_status == "available":
+            self.reset_timer(msg.robot_id)                                          # Reset timer for available robots
+    
         self.allocate_transaction()                                                 # Allocate task
         
         
@@ -252,7 +278,11 @@ class TaskAllocator(Node):
     def process_task_completion(self, msg):
         self.get_logger().info(f'Received task completion for task {msg.task_id} by robot {msg.robot_id}')
 
-        transaction_id = f'{msg.task_id.split("_")[0]}_{msg.robot_id}'
+        if msg.task_type == 'Consumer':
+            prefix = 'C'
+        else:
+            prefix = 'M'
+        transaction_id = f'{prefix}{msg.bundle_id}_{msg.robot_id}'
 
         if transaction_id in self.tasks_in_progress:
             tasks, _ = self.tasks_in_progress[transaction_id]
@@ -272,11 +302,13 @@ class TaskAllocator(Node):
                 else:
                     self.get_logger().info(f'All tasks in transaction {transaction_id} completed')
                     del self.tasks_in_progress[transaction_id]
+                    
                     self.robot_status[msg.robot_id] = "available"
                     self.robot_status_sub.publish(msg.robot_id, "busy")
                     # Update robot status database
                     self.robot_controller.update_robot_status(msg.robot_id, 'available')
 
+                    self.reset_timer(msg.robot_id)  # Reset timer when all tasks are completed
                     self.allocate_transaction()
         else:
             self.get_logger().warn(f'Transaction {transaction_id} not found in progress')
