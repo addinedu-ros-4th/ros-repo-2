@@ -105,7 +105,12 @@ class TaskAllocator(Node):
 
 
     def assign_transaction(self, tasks, robot_id):
-        transaction_id = f'{tasks[0].task_id.split("_")[0]}_{robot_id}'
+        # Create Transaction ID (Consumer, Manager)
+        if tasks[0].task_type == 'Consumer':
+            prefix = 'C'
+        else:
+            prefix = 'M'
+        transaction_id = f'{prefix}{tasks[0].bundle_id}_{robot_id}'
         self.tasks_in_progress[transaction_id] = (tasks, robot_id)
         self.tasks_assigned = {task.task_id: False for task in tasks}
         self.get_logger().info(f'Assigned transaction {transaction_id} with {len(tasks)} tasks to robot {robot_id}')
@@ -120,7 +125,11 @@ class TaskAllocator(Node):
     # One robot is responsible for one transaction
     def assign_task(self, task, robot_id, transaction_id=None):
         if transaction_id is None:
-            transaction_id = f'{task.task_id.split("_")[0]}_{robot_id}'
+            if task.task_type == 'Consumer':
+                prefix = 'C'
+            else:
+                prefix = 'M'
+            transaction_id = f'{prefix}{task.bundle_id}_{robot_id}'
 
         if transaction_id not in self.tasks_in_progress:
             self.tasks_in_progress[transaction_id] = ([task], robot_id)
@@ -144,6 +153,7 @@ class TaskAllocator(Node):
 
         # Update robot status database
         self.robot_controller.update_robot_status(robot_id, 'busy')
+        self.robot_status_sub.publish(robot_id, "busy")
 
 
     def requeue_task(self, task):
@@ -160,6 +170,7 @@ class TaskAllocator(Node):
 
             del self.tasks_in_progress[transaction_id]
             self.robot_status[robot_id] = 'available'
+            self.robot_status_sub.publish(robot_id, "available")
             self.get_logger().info(f'Reassigning tasks for transaction {transaction_id} due to failure')
             self.allocate_transaction()
 
@@ -190,16 +201,18 @@ class TaskAllocator(Node):
             response = future.result()
             if response.success:
                 self.get_logger().info(f'Task allocation successful for task {task.task_id}')
-                self.tasks_assigned[task.task_id] = True                                # Success Allocation status save
+                self.tasks_assigned[task.task_id] = True                            # Success Allocation status save
                 self.get_logger().info(f'Waiting for task {task.task_id} completion by robot {robot_id}')
             else:
                 self.get_logger().warn(f'Task allocation failed for task {task.task_id}')
                 self.requeue_task(task)
                 self.robot_status[robot_id] = "available"
+                self.robot_status_sub.publish(robot_id, "available")
         except Exception as e:
             self.get_logger().error(f'Task allocation service call failed for task {task.task_id}: {e}')
             self.requeue_task(task)
             self.robot_status[robot_id] = "available"
+            self.robot_status_sub.publish(robot_id, "available")
         finally:
             self.publish_unassigned_tasks()
             
@@ -260,6 +273,7 @@ class TaskAllocator(Node):
                     self.get_logger().info(f'All tasks in transaction {transaction_id} completed')
                     del self.tasks_in_progress[transaction_id]
                     self.robot_status[msg.robot_id] = "available"
+                    self.robot_status_sub.publish(msg.robot_id, "busy")
                     # Update robot status database
                     self.robot_controller.update_robot_status(msg.robot_id, 'available')
 
