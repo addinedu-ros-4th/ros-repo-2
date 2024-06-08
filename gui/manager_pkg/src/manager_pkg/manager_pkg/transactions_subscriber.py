@@ -6,6 +6,7 @@ from PyQt5.QtCore import QThread
 from task_msgs.msg import TaskCompletion
 import rclpy
 import json
+from ament_index_python.packages import get_package_share_directory
 
 class TaskSubscriber(Node, QObject):
     current_transactions_signal = pyqtSignal(list)

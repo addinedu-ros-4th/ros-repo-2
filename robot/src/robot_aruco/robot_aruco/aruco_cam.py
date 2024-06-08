@@ -107,20 +107,20 @@ class ArucoCam(Node):
                         self.twist.angular.z = 0.0
                     elif self.x_offset > 0.02:
                         self.get_logger().info("turning left.")
-                        self.twist.linear.x = 0.015 # Stop forward movement
-                        self.twist.angular.z = -0.04  # Turn left
+                        self.twist.linear.x = 0.05 # Stop forward movement
+                        self.twist.angular.z = -0.05  # Turn left
                     elif self.x_offset < -0.02:
                         self.get_logger().info("turning right.")
-                        self.twist.linear.x = 0.015  # Stop forward movement
-                        self.twist.angular.z = 0.04  # Turn right
+                        self.twist.linear.x = 0.05  # Stop forward movement
+                        self.twist.angular.z = 0.05  # Turn right
                 else:
                     if self.x_offset > 0.1:
                         self.get_logger().info("turning left.")
-                        self.twist.linear.x = 0.015  # Stop forward movement
+                        self.twist.linear.x = 0.05  # Stop forward movement
                         self.twist.angular.z = -0.07  # Turn left
                     elif self.x_offset < -0.1:
                         self.get_logger().info("turning right.")
-                        self.twist.linear.x = 0.015  # Stop forward movement
+                        self.twist.linear.x = 0.05  # Stop forward movement
                         self.twist.angular.z = 0.07  # Turn right
                 self.cmd_pub.publish(self.twist)
         
@@ -133,7 +133,7 @@ class ArucoCam(Node):
                 self.aruco_toggle = False
             else:
                 self.get_logger().info("Marker directly in front, moving backward.")
-                self.twist.linear.x = -0.05
+                self.twist.linear.x = -0.1
                 self.twist.angular.z = 0.0
                 self.cmd_pub.publish(self.twist)
     

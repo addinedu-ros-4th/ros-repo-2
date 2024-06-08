@@ -33,7 +33,8 @@ from ui_setup import Ui_Setup  # ui_setup 모듈 임포트
 class Ui_MainWindow(QMainWindow, Ui_Setup):
     def __init__(self, db_manager):
         super().__init__()
-        self.db_manager = db_manager 
+        self.db_manager = db_manager
+        
         self.user_id = self.db_manager.utils.get_last_user_id("ProductOrder") + 1  # 마지막 user_id에서 이어서 시작
         self.setupUi(self)
         self.setWindowTitle("Main")
@@ -112,7 +113,7 @@ class Ui_MainWindow(QMainWindow, Ui_Setup):
         
         for item, quantity in zip(last_order["item_name"], last_order["quantities"]):
             product_id = self.db_manager.utils.get_product_id(item)
-            # print(f"save_to_database: item={item}, product_id={product_id}")  # 디버깅 정보 출력
+            print(f"save_to_database: item={item}, product_id={product_id}")  # 디버깅 정보 출력
             if product_id is None:
                 QMessageBox.warning(self, "Error", f"Product ID for item '{item}' not found.")
                 return
@@ -286,6 +287,7 @@ if __name__ == "__main__":
         db_manager = DatabaseManager(host)
         db_manager.connect_database()
         db_manager.create_table()
+        db_manager.utils.initialize_inventory() 
     except Exception as e:
         print(f"Failed to initialize the database manager: {e}")
         sys.exit(1)

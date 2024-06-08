@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS ProductInventory (
     item_id INT NOT NULL PRIMARY KEY,
     item_name VARCHAR(16) NOT NULL,
-    stock INT NOT NULL DEFAULT 10
+    stock INT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS ProductOrder (
@@ -34,6 +34,19 @@ CREATE TABLE IF NOT EXISTS Inbound (
 ); 
 
 
+<<<<<<< HEAD
+=======
+CREATE TABLE IF NOT EXISTS TaskList (
+    task_id INT AUTO_INCREMENT PRIMARY KEY,
+    task_type VARCHAR(36) NOT NULL,
+    task_name VARCHAR(36) NOT NULL,
+    allocate BOOLEAN,
+    robot_id VARCHAR(36)
+    perform BOOLEAN
+);
+
+
+>>>>>>> afef4dacd92108210eaf50aa1a0cac008a3834db
 CREATE TABLE IF NOT EXISTS RobotStatus (
     RobotID VARCHAR(255) PRIMARY KEY,
     Status VARCHAR(255)
