@@ -240,11 +240,17 @@ class TaskAllocator(Node):
             self.publish_unassigned_tasks()
             
             
-    def publish_current_transactions(self):
+    def publish_current_transactions(self, transaction_id=None):
         transactions_info = []
-        for transaction_id, (tasks, robot_id) in self.tasks_in_progress.items():
+        
+        if transaction_id:
+            tasks, robot_id = self.tasks_in_progress[transaction_id]
             tasks_info = [{"task_id": task.task_id, "location": task.location, "completed": self.tasks_assigned.get(task.task_id, False)} for task in tasks]
             transactions_info.append({"transaction_id": transaction_id, "robot_id": robot_id, "tasks": tasks_info})
+        else:
+            for transaction_id, (tasks, robot_id) in self.tasks_in_progress.items():
+                tasks_info = [{"task_id": task.task_id, "location": task.location, "completed": self.tasks_assigned.get(task.task_id, False)} for task in tasks]
+                transactions_info.append({"transaction_id": transaction_id, "robot_id": robot_id, "tasks": tasks_info})
         
         msg = String(data=json.dumps(transactions_info))
         self.current_transactions_pub.publish(msg)
@@ -301,6 +307,8 @@ class TaskAllocator(Node):
 
                     self.reset_timer(msg.robot_id)  # Reset timer when all tasks are completed
                     self.allocate_transaction()
+                    
+            self.publish_current_transactions(transaction_id)
         else:
             self.get_logger().warn(f'Transaction {transaction_id} not found in progress')
             
