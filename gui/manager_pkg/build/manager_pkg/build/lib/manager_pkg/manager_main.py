@@ -1,5 +1,4 @@
 import sys, os
-
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -15,17 +14,17 @@ from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSReliabilityPolic
 import numpy as np
 import pandas as pd
 import cv2
+import json
 from ament_index_python.packages import get_package_share_directory
+import yaml
 
-# from task_msgs.msg import *
 from std_msgs.msg import String
 from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import PoseWithCovarianceStamped 
 from std_srvs.srv import SetBool
-from geometry_msgs.msg import Twist
-from task_msgs.msg import RobotStatus
-
-
+from std_msgs.msg import Empty
+from task_msgs.msg import RobotStatus, TaskList
+from manager_pkg.transactions_subscriber import TaskSubscriber, TaskThread
 
 global amcl_1, amcl_2, amcl_3
 amcl_1 = PoseWithCovarianceStamped()
@@ -51,10 +50,10 @@ class AmclSubscriber(Node):
     def amcl_callback3(self, amcl):
         global amcl_3
         amcl_3 = amcl
-    
+
 class PiCamSubscriber(Node):
     def __init__(self, ui):
-        super().__init__('pi_cam_sub_scriber') 
+        super().__init__('pi_cam_subscriber') 
         
         self.ui = ui
         self.ui.robot_picam_clicked.connect(self.handle_picam)
@@ -81,7 +80,6 @@ class PiCamSubscriber(Node):
                 self.picam_sub3.destroy_subscription()
                 self.cam_client3.call_async(False)
 
-            
         elif robot_name == 'robot_2':
             self.picam_sub2 = self.create_subscription(CompressedImage, '/camera/compressed_2', self.img_callback2, 10)
             self.cam_client2.call_async(True)
@@ -95,7 +93,6 @@ class PiCamSubscriber(Node):
                 self.picam_sub3.destroy_subscription()
                 self.cam_client3.call_async(False)
 
-            
         elif robot_name == 'robot_3':
             self.picam_sub3 = self.create_subscription(CompressedImage, '/camera/compressed_3', self.img_callback3, 10)
             self.cam_client3.call_async(True)
@@ -112,7 +109,6 @@ class PiCamSubscriber(Node):
         else:
             self.get_logger().info("robot_name invalid")
 
-
     def img_callback1(self, data):
         if self.robot_name == 'robot_1':
             np_arr = np.frombuffer(data.data, np.uint8)
@@ -123,9 +119,6 @@ class PiCamSubscriber(Node):
             q_image = QImage(image_np.data, width, height, bytes_per_line, QImage.Format_RGB888)
             pixmap = QPixmap.fromImage(q_image)
             self.ui.picamLabel.setPixmap(pixmap)
-        
-        else:
-            pass
         
     def img_callback2(self, data):
         if self.robot_name == 'robot_2':
@@ -138,9 +131,6 @@ class PiCamSubscriber(Node):
             pixmap = QPixmap.fromImage(q_image)
             self.ui.picamLabel.setPixmap(pixmap)
         
-        else:
-            pass
-    
     def img_callback3(self, data):
         if self.robot_name == 'robot_3':
             np_arr = np.frombuffer(data.data, np.uint8)
@@ -151,58 +141,58 @@ class PiCamSubscriber(Node):
             q_image = QImage(image_np.data, width, height, bytes_per_line, QImage.Format_RGB888)
             pixmap = QPixmap.fromImage(q_image)
             self.ui.picamLabel.setPixmap(pixmap)
-        
-        else:
-            pass
+
+class RobotStatusBarSubscriber(Node):
+    def __init__(self, ui):
+        super().__init__('robot_statusbar_subscriber')
+        self.ui = ui
+        self.ui.robot_status_clicked.connect(self.handle_statusbar)
+        self.statusbar_sub = None
+
+    def handle_statusbar(self, robot_name):
+        self.robot_name = robot_name
 
 class RobotStatusSubscriber(Node):
     def __init__(self, ui):
         super().__init__('robot_status_subscriber')
-
         self.ui = ui
-        self.ui.robot_status_clicked.connect(self.handle_status)
+        self.status_sub = self.create_subscription(RobotStatus, '/robot_status', self.status_callback, 10)
+        
+    def status_callback(self, data):
+        self.ui.refresh_button.click()
+        self.ui.refresh_button_2.click()
 
-        self.status_sub1 = self.create_subscription(RobotStatus, '/robot_status_1', self.status_callback1, 10)
-        self.status_sub2 = self.create_subscription(RobotStatus, '/robot_status_2', self.status_callback2, 10)
-        self.status_sub3 = self.create_subscription(RobotStatus, '/robot_status_3', self.status_callback3, 10) 
-        self.robot_name = None
+        self.robot_id = data.robot_id
+        if self.robot_id == '91':
+            self.robot_status1 = data.robot_status
+            self.ui.status1.setText(self.robot_status1)
+            self.update_button_style(self.ui.R1, self.robot_status1)
+        elif self.robot_id == '92':
+            self.robot_status2 = data.robot_status
+            self.ui.status2.setText(self.robot_status2)
+            self.update_button_style(self.ui.R2, self.robot_status2)
+        elif self.robot_id == '93':
+            self.robot_status3 = data.robot_status
+            self.ui.status3.setText(self.robot_status3)
+            self.update_button_style(self.ui.R3, self.robot_status3)
 
-    def handle_status(self, robot_name):
-        self.robot_name = robot_name
-
-    def status_callback1(self, data):
-        if self.robot_name == 'robot_1':
-            self.ui.statusLabel.setText(data)
-
+    def update_button_style(self, button, status):
+        if status == "busy":
+            button.setStyleSheet("background-color: rgb(246, 97, 81);""border-radius: 20px")
+        elif status == "available":
+            button.setStyleSheet("background-color: rgb(143, 240, 164);""border-radius: 20px")
         else:
-            pass
-
-    def status_callback2(self, data):
-        if self.robot_name == 'robot_2':
-            self.ui.statusLabel.setText(data)
-
-        else:
-            pass
-
-    def status_callback3(self, data):
-        if self.robot_name == 'robot_3':
-            self.ui.statusLabel.setText(data)
-
-        else:
-            pass
+            button.setStyleSheet("")
 
 class RobotController(Node):
     def __init__(self, ui):
         super().__init__('robot_controller')   
-        
         self.ui = ui
         self.ui.robot_control_clicked.connect(self.handle_control)
         self.ui.robot_stop_clicked.connect(self.robot_stop)
-        self.control_pub1 = self.create_publisher(Twist, 'base_controller/cmd_vel_unstamped_1', 10)
-        self.control_pub2 = self.create_publisher(Twist, 'base_controller/cmd_vel_unstamped_2', 10)
-        self.control_pub3 = self.create_publisher(Twist, 'base_controller/cmd_vel_unstamped_3', 10)
-        
-        self.Twist = Twist()
+        self.emergency_pub1 = self.create_publisher(Empty, '/emergency_stop_1', 10)
+        self.emergency_pub2 = self.create_publisher(Empty, '/emergency_stop_2', 10)
+        self.emergency_pub3 = self.create_publisher(Empty, '/emergency_stop_3', 10)
         self.robot_name = None
 
     def handle_control(self, robot_name):
@@ -210,23 +200,63 @@ class RobotController(Node):
 
     def robot_stop(self):
         if self.robot_name == 'robot_1':
-            self.Twist.linear.x = 0.0
-            self.Twist.angular.z = 0.0
-            self.control_pub1.publish(self.Twist)
-
+            self.emergency_pub1.publish()
         elif self.robot_name == 'robot_2':
-            self.Twist.linear.x = 0.0
-            self.Twist.angular.z = 0.0
-            self.control_pub1.publish(self.Twist)
-        
+            self.emergency_pub2.publish()
         elif self.robot_name == 'robot_3':
-            self.Twist.linear.x = 0.0
-            self.Twist.angular.z = 0.0
-            self.control_pub1.publish(self.Twist)
-
+            self.emergency_pub3.publish()
         else: 
             self.get_logger().info("robot_name invalid")
 
+class PendingTaskSubscriber(Node):
+    def __init__(self, ui):
+        super().__init__('pending_task_node')
+        self.ui = ui
+        self.pending_task_sub = self.create_subscription(TaskList, '/unassigned_tasks', self.pending_task_callback, 10)
+
+    def pending_task_callback(self, data):
+        tasks = []
+        for task in data.tasks:
+            tasks.append({
+                'task_id': task.task_id,
+                'bundle_id': task.bundle_id,
+                'task_type': task.task_type,
+                'location': task.location,
+                'priority': task.priority
+            })
+        self.update_pending_tasks(tasks)
+
+    def update_pending_tasks(self, tasks):
+        self.ui.taskView.setRowCount(len(tasks))
+        for row, task in enumerate(tasks):
+            self.ui.taskView.setItem(row, 0, QTableWidgetItem(task['task_id']))
+            self.ui.taskView.setItem(row, 1, QTableWidgetItem(task['bundle_id']))
+            self.ui.taskView.setItem(row, 2, QTableWidgetItem(task['task_type']))
+            self.ui.taskView.setItem(row, 3, QTableWidgetItem(task['location']))
+            self.ui.taskView.setItem(row, 4, QTableWidgetItem(str(task['priority'])))
+
+class SignalEmitter(QObject):
+    update_transactions_signal = pyqtSignal(list)
+
+class TransactionSubscriber(Node):
+    def __init__(self, signal_emitter):
+        super().__init__('transaction_subscriber')
+        self.signal_emitter = signal_emitter
+        self.subscription = self.create_subscription(
+            String,
+            '/current_transactions',
+            self.listener_callback,
+            10)
+        self.subscription  # prevent unused variable warning
+
+    def listener_callback(self, msg):
+        self.get_logger().info(f'Received message: {msg.data}')
+        try:
+            transactions = json.loads(msg.data)
+            self.signal_emitter.update_transactions_signal.emit(transactions)  # Emit the signal
+        except json.JSONDecodeError as e:
+            self.get_logger().error(f"JSON decoding failed: {e}")
+            return
 
 class Ui_MainWindow(QMainWindow):
     robot_picam_clicked = pyqtSignal(str)
@@ -241,29 +271,63 @@ class Ui_MainWindow(QMainWindow):
         self.db_manager = DatabaseManager(host='localhost')
         self.db_manager.connect_database()
         self.db_manager.create_table()
-
+        
+        self.task_subscriber = TaskSubscriber()
+        self.task_subscriber.current_transactions_signal.connect(self.update_current_transactions_display)
+        self.ros2_thread = TaskThread(self.task_subscriber)
+        self.ros2_thread.start()
+        
         # Load UI
         ui_path = os.path.join(get_package_share_directory('manager_pkg'), 'ui', 'manager.ui')
         uic.loadUi(ui_path, self)
 
         # Initialize the Stacked Widget
         self.stackedWidget = self.findChild(QStackedWidget, 'stackedWidget')
-
+        self.stackedWidget.setCurrentIndex(0)
+        
         # Initialize pages
         self.init_main_page()
         self.init_robot_control_page()
         self.init_inbound_order_control_page()
-
         self.init_navigation_buttons()
-
         self.init_ros2_node()
         
-         # Set up a timer to update stock info every 5 seconds
+        # 신호 에미터 생성 및 연결
+        self.signal_emitter = SignalEmitter()
+        self.signal_emitter.update_transactions_signal.connect(self.update_current_transactions_display)
+        
+        # ROS2 노드 생성 및 실행
+        self.executor = MultiThreadedExecutor()
+        self.transaction_subscriber = TransactionSubscriber(self.signal_emitter)
+        self.executor.add_node(self.transaction_subscriber)
+        self.executor_thread = Thread(target=self.executor.spin)
+        self.executor_thread.start()
+                           
+        # Set up a timer to update stock info every 5 seconds
         self.stock_update_timer = QTimer(self)
         self.stock_update_timer.timeout.connect(self.update_stock_info)
         self.stock_update_timer.start(5000)  # Update every 5000 milliseconds (5 seconds)
         print("Timer started for updating stock info every 5 seconds")
 
+        # Set Timer
+        self.map_timer = QTimer(self)
+        self.map_timer.timeout.connect(self.update_map)
+        self.map_timer.start(200)
+        
+        # Set up a timer to update stock info every 5 seconds
+        self.stock_update_timer = QTimer(self)
+        self.stock_update_timer.timeout.connect(self.update_stock_info)
+        self.stock_update_timer.start(2000)  # Update every 2000 milliseconds (2 seconds)
+        print("Timer started for updating stock info every 5 seconds")
+        
+        self.inbound_update_timer = QTimer(self)
+        self.inbound_update_timer.timeout.connect(self.update_inbound_list)
+        self.inbound_update_timer.start(1000)  
+
+        self.order_update_timer = QTimer(self)
+        self.order_update_timer.timeout.connect(self.update_order_list)
+        self.order_update_timer.start(1000)  
+  
 
     def init_navigation_buttons(self):
         # Find buttons
@@ -278,15 +342,18 @@ class Ui_MainWindow(QMainWindow):
         self.list_3 = self.findChild(QPushButton, 'list_3')
 
         # Set icons for buttons
-        self.set_button_icon(self.home, 'gui/manager/image/home.png')
-        self.set_button_icon(self.robot, 'gui/manager/image/robot.png')
-        self.set_button_icon(self.list, 'gui/manager/image/list.png')
-        self.set_button_icon(self.home_2, 'gui/manager/image/home.png')
-        self.set_button_icon(self.robot_2, 'gui/manager/image/robot.png')
-        self.set_button_icon(self.list_2, 'gui/manager/image/list.png')
-        self.set_button_icon(self.home_3, 'gui/manager/image/home.png')
-        self.set_button_icon(self.robot_3, 'gui/manager/image/robot.png')
-        self.set_button_icon(self.list_3, 'gui/manager/image/list.png')
+        home_png_path = os.path.join(get_package_share_directory('manager_pkg'), 'image', 'home.png')
+        robot_png_path = os.path.join(get_package_share_directory('manager_pkg'), 'image', 'robot.png')
+        list_png_path = os.path.join(get_package_share_directory('manager_pkg'), 'image', 'list.png')
+        self.set_button_icon(self.home, home_png_path)
+        self.set_button_icon(self.robot, robot_png_path)
+        self.set_button_icon(self.list, list_png_path)
+        self.set_button_icon(self.home_2, home_png_path)
+        self.set_button_icon(self.robot_2, robot_png_path)
+        self.set_button_icon(self.list_2, list_png_path)
+        self.set_button_icon(self.home_3, home_png_path)
+        self.set_button_icon(self.robot_3, robot_png_path)
+        self.set_button_icon(self.list_3, list_png_path)
 
         # Connect buttons to switch pages
         self.home.clicked.connect(lambda: self.switch_page(0))
@@ -313,84 +380,128 @@ class Ui_MainWindow(QMainWindow):
             self.robotComboBox.setCurrentIndex(robot_index)
 
     def init_main_page(self):
-        pass
-    #     # Main Page: Real-time location of robots, Task list, Current Stock info
-        self.map_label = self.findChild(QLabel, 'mapLabel')  # Assuming there's a QLabel for the map
+        # Set map
+        self.map_yaml_file = os.path.join(get_package_share_directory('manager_pkg'), 'map', 'map.yaml')
+        self.map_yaml_data = self.load_yaml(self.map_yaml_file)
+        self.map_image = os.path.abspath(self.map_yaml_data['image'])
+        self.pixmap = QPixmap(self.map_image)
+        self.image_scale = 5
+
+        # Remove margins from the map pixmap
+        self.pixmap = self.pixmap.copy(QRect(50, 50, self.pixmap.width() - 100, self.pixmap.height() - 100))
+        self.height = self.pixmap.size().height()
+        self.width = self.pixmap.size().width()
+
+        self.map_resolution = self.map_yaml_data['resolution']
+        self.map_origin = self.map_yaml_data['origin'][:2]
+
+        # Main Page: Real-time location of robots, Task list, Current Stock info
+        self.map_label = self.findChild(QLabel, 'mapLabel')
         self.update_stock_info()
-
-        robotstatus = self.db_manager.fetch_all_product("RobotStatus")
-
-        df = pd.DataFrame(robotstatus, columns=['robot_id', 'status'])
-        id_list = df['robot_id'].tolist()
-        status_list = df['status'].tolist()
-
-        self.update_robot_button(self.R1, self.status1, id_list[0], status_list[0])
-        self.update_robot_button(self.R2, self.status2, id_list[1], status_list[1])
-        self.update_robot_button(self.R3, self.status3, id_list[2], status_list[2])
-
-
-    def update_robot_button(self, button, status_label, robot_id, status):
-        button.setText(robot_id)
-        status_label.setText(status)
-        if status == "busy":
-            button.setStyleSheet("background-color: rgb(246, 97, 81);""border-radius: 20px")
-        elif status == "available":
-            button.setStyleSheet("background-color: rgb(143, 240, 164);""border-radius: 20px")
-        else:
-            button.setStyleSheet("")
+        
+        self.task_view = self.findChild(QTableWidget, 'taskView')
+        self.task_view.setColumnCount(5)
+        self.task_view.setHorizontalHeaderLabels(['Task ID', 'Bundle ID', 'Task Type', 'Location', 'Priority'])
+        self.task_view.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        
+        self.pending_task_subscriber = PendingTaskSubscriber(self)
+        self.robot_status_subscriber = RobotStatusSubscriber(self)
+        
+        # ROS 2 Executor 설정
+        self.executor = MultiThreadedExecutor()
+        self.executor.add_node(self.pending_task_subscriber)
+        self.executor.add_node(self.robot_status_subscriber)
+        
+        # Executor를 별도의 스레드에서 실행
+        self.executor_thread = Thread(target=self.executor.spin)
+        self.executor_thread.start()
 
     def init_ros2_node(self):
-        # rclpy.init()
-        # self.executor = MultiThreadedExecutor()
-        # self.amcl_subscriber = AmclSubscriber()
-        # self.executor.add_node(self.amcl_subscriber)
-
-        # # Run ROS 2 executor in a separate thread
-        # self.ros_thread = Thread(target=self.executor.spin)
-        # self.ros_thread.start()
-
-        # # Timer to update the map periodically
-        # self.timer = QTimer(self)
-        # self.timer.timeout.connect(self.update_map)
-        # self.timer.start(1000)  # Update the map every second
         pass
 
     def update_map(self):
-        # # Fetch the latest positions
-        # global amcl_1, amcl_2, amcl_3
-        # positions = [amcl_1, amcl_2, amcl_3]
-        
-        # # Placeholder for actual map update logic
-        # for idx, pose in enumerate(positions):
-        #     if pose:
-        #         position = pose.pose.pose.position
-        #         orientation = pose.pose.pose.orientation
-        #         print(f"Robot {idx + 1} Position: {position.x}, {position.y}, Orientation: {orientation.z}")
-        
-        # # Update your QLabel or map with the positions
-        # self.map_label.setPixmap(updated_map_pixmap)
-        pass
+        scaled_pixmap = self.pixmap.scaled(self.width * self.image_scale, self.height * self.image_scale, Qt.KeepAspectRatio)
+        painter = QPainter(scaled_pixmap)
+        self.font = QFont()
+        self.font.setBold(True)
+        self.font.setPointSize(12)
+        painter.setFont(self.font)
+
+        # 1번 로봇 좌표
+        self.draw_robot(painter, amcl_1, Qt.red, '1')
+        # 2번 로봇 좌표
+        self.draw_robot(painter, amcl_2, Qt.blue, '2')
+        # 3번 로봇 좌표
+        self.draw_robot(painter, amcl_3, Qt.green, '3')
+
+        painter.end()
+
+        # Calculate the required final pixmap size considering cropping
+        final_width = min(self.width * self.image_scale - 80, scaled_pixmap.width())
+        final_height = min(self.height * self.image_scale - 80, scaled_pixmap.height())
+
+        # Create a blank pixmap and draw the scaled pixmap on it
+        final_pixmap = QPixmap(final_width, final_height)
+        final_pixmap.fill(Qt.white)
+
+        painter = QPainter(final_pixmap)
+        painter.drawPixmap(0, 0, scaled_pixmap.copy(50, 50, final_width, final_height))
+        painter.end()
+
+        self.map.setPixmap(final_pixmap)
+    
+    def draw_robot(self, painter, amcl, color, label):
+        x, y = self.calc_grid_position(100, 100)
+        painter.setPen(QPen(color, 14, Qt.SolidLine))
+        painter.drawPoint(int((self.width - x) * self.image_scale), int(y * self.image_scale))
+        painter.drawText(int((self.width - x) * self.image_scale + 13), int(y * self.image_scale + 5), label)
+
+    def calc_grid_position(self, x, y):
+        x_grid = (x - self.map_origin[0]) / self.map_resolution
+        y_grid = (y - self.map_origin[1]) / self.map_resolution
+        return x_grid, y_grid
+    
+    def load_yaml(self, file_path):
+        with open(file_path, 'r') as f:
+            return yaml.full_load(f)
 
     def update_task_list(self):
         pass
 
     def update_stock_info(self):
-        print("Updating stock info")
         product_inventory = self.db_manager.fetch_all_product("ProductInventory")
-        print(f"Fetched product inventory: {product_inventory}")
+        product_info = self.db_manager.get_data("ProductInfo", ["item_id", "item_tag"])
 
-        df = pd.DataFrame(product_inventory, columns=['item_id', 'item_name', 'stock'])
+        df_inventory = pd.DataFrame(product_inventory, columns=['item_id', 'item_name', 'stock'])
+        df_info = pd.DataFrame(product_info, columns=(["item_id", "item_tag"]))
 
-        # tableWidget 업데이트
-        self.tableWidget.setRowCount(len(df))
-        self.tableWidget.setColumnCount(len(df.columns))
-        self.tableWidget.setHorizontalHeaderLabels(df.columns)
+        df_merged = pd.merge(df_inventory, df_info, on='item_id')
 
-        for row_index, row in enumerate(df.itertuples(index=False)):
-            for col_index, value in enumerate(row):
-                item = QTableWidgetItem(str(value))
-                self.tableWidget.setItem(row_index, col_index, item)
-        print("Stock info updated")
+        self.A1Label = self.findChild(QLabel, 'A1Label')
+        self.A2Label = self.findChild(QLabel, 'A2Label')
+        self.B1Label = self.findChild(QLabel, 'B1Label')
+        self.B2Label = self.findChild(QLabel, 'B2Label')
+        self.C1Label = self.findChild(QLabel, 'C1Label')
+        self.C2Label = self.findChild(QLabel, 'C2Label')
+
+        label_mapping = {
+            1: self.A1Label,
+            2: self.A2Label,
+            3: self.B1Label,
+            4: self.B2Label,
+            5: self.C1Label,
+            6: self.C2Label,
+        }
+        
+        for index, row in df_merged.iterrows():
+            item_id = row['item_id']
+            item_name = row['item_name']
+            stock = row['stock']
+            item_tag = row['item_tag']
+
+            if item_id in label_mapping:
+                self.label = label_mapping[item_id]
+                self.label.setText(f"{item_tag}\n{item_name}\nstock: {stock}")
         
     def update_product_quantity(self, product_id, quantity):
         query = "UPDATE ProductInventory SET stock = %s WHERE item_id = %s"
@@ -398,11 +509,10 @@ class Ui_MainWindow(QMainWindow):
         self.db_manager.conn.commit()
         print(f"Updated product {product_id} with quantity {quantity}")
 
-
     def init_robot_control_page(self):
         self.robotComboBox = self.findChild(QComboBox, 'robotComboBox')
         self.picamLabel = self.findChild(QLabel, 'picamLabel')
-        self.statusLabel = self.findChild(QLabel, 'statusLabel')
+        self.status = self.findChild(QTableWidget, 'status')
         self.btnStop = self.findChild(QPushButton, 'btnStop')
 
         self.robotComboBox.addItems(["robot_1", "robot_2", "robot_3"])
@@ -410,6 +520,54 @@ class Ui_MainWindow(QMainWindow):
         self.btnStop.clicked.connect(self.robot_stop)
         # Initialize with the first robot's data
         self.update_robot_info(0)
+        
+        self.status.setColumnCount(3)
+        self.status.setHorizontalHeaderLabels(['Task ID', 'Location', 'Complete'])
+        self.status.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        
+        self.transactionEdit = self.findChild(QTextEdit, 'transactionEdit')
+        self.transactionEdit.setAlignment(Qt.AlignCenter)
+        
+        # Transaction Subscriber 추가
+        # self.transaction_subscriber = TransactionSubscriber(self)
+        
+        # self.executor.add_node(self.transaction_subscriber)
+
+
+    def update_current_transactions_display(self, transactions):
+        print("Updating transactions display")  # 디버깅 메시지
+        if not transactions:
+            return
+
+        for transaction in transactions:
+            transaction_id = transaction["transaction_id"]
+            robot_id = transaction["robot_id"]
+            tasks = transaction["tasks"]
+
+            if robot_id == '91':
+                self.robotComboBox.setCurrentIndex(0)
+            elif robot_id == '92':
+                self.robotComboBox.setCurrentIndex(1)
+            elif robot_id == '93':
+                self.robotComboBox.setCurrentIndex(2)
+
+            if self.transactionEdit is not None:
+                self.transactionEdit.setText(transaction_id)  
+            else:
+                print(f"transactionEdit is None when trying to set text to {transaction_id}")
+            
+            self.status.setRowCount(len(tasks))
+            
+            for row, task in enumerate(tasks):
+                task_id = QTableWidgetItem(task["task_id"])
+                location = QTableWidgetItem(task["location"])
+                completed = QTableWidgetItem(str(task["completed"]))
+                
+                print(f"Setting row {row}: {task['task_id']}, {task['location']}, {task['completed']}")  # 디버깅 메시지
+                self.status.setItem(row, 0, task_id)
+                self.status.setItem(row, 1, location)
+                self.status.setItem(row, 2, completed)
+
 
     def update_robot_info(self, index):
         robot_name = self.robotComboBox.itemText(index)
@@ -420,44 +578,60 @@ class Ui_MainWindow(QMainWindow):
     def robot_stop(self):
         self.robot_stop_clicked.emit(True)
 
-
     def init_inbound_order_control_page(self):
-        self.inbound_list = self.findChild(QTableWidget, 'inbound_list')  # Ensure this matches the object name in your UI
+        self.inbound_list = self.findChild(QTableWidget, 'inbound_list')
+        self.OrderList = self.findChild(QTableWidget, 'OrderList')
+
         self.scanned_data = ""
-        self.scan_button = self.findChild(QPushButton, 'scan_button')  # Ensure this matches the object name in your UI
+        self.scan_button = self.findChild(QPushButton, 'scan_button')
         self.scan_button.clicked.connect(self.scan_barcode)
         
-        self.refresh_button = self.findChild(QPushButton, 'refresh_button')  # Ensure this matches the object name in your UI
+        self.refresh_button = self.findChild(QPushButton, 'refresh_button')
         self.refresh_button.clicked.connect(self.update_inbound_list)
 
-        self.barcode_scanner = BarcodeScanner()  # Properly initialize BarcodeScanner
-        self.barcode_scanner.barcode_scanned.connect(self.update_inbound_list)  # Connect signal to slot
+        self.barcode_scanner = BarcodeScanner()
+        self.barcode_scanner.barcode_scanned.connect(self.update_inbound_list)
+
+        self.refresh_button_2 = self.findChild(QPushButton, 'refresh_button_2')
+        self.refresh_button_2.clicked.connect(self.update_order_list)
+
+        self.inbound_list.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.OrderList.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
     def update_inbound_list(self, data=None):
-        # Clear the existing rows in the QTableWidget
         self.inbound_list.setRowCount(0)
         self.inbound_list.setColumnCount(5)
         self.inbound_list.setHorizontalHeaderLabels(["Item Name", "Quantity", "Inbound Zone", "Arrival Date", "Status"])
 
-        # Create a new cursor and fetch all rows from the Inbound table
-        self.db_manager.connect_database()  # Reconnect to refresh the cursor
+        self.db_manager.connect_database()
         all_rows = self.db_manager.get_data("Inbound", ["item_name", "quantity", "inbound_zone", "arrival_date", "current_status"])
         
-        # Populate the QTableWidget with data from the Inbound table
         for row in all_rows:
             row_position = self.inbound_list.rowCount()
             self.inbound_list.insertRow(row_position)
             for column, value in enumerate(row):
                 self.inbound_list.setItem(row_position, column, QTableWidgetItem(str(value)))
-        print("Updated inbound_list with new data")  # Debugging print statement
+        print("Updated inbound_list with new data")
 
     def update_order_list(self):
-        pass
+        order_list = self.db_manager.fetch_all_product("ProductOrder")
+        df = pd.DataFrame(order_list, columns=['order_id', 'user_id', 'item_id', 'item_name', 'quantities', 'order_time'])
+
+        self.OrderList.setRowCount(len(df))
+        self.OrderList.setColumnCount(len(df.columns))
+        self.OrderList.setHorizontalHeaderLabels(df.columns)
+
+        self.db_manager.connect_database()
+        all_rows = self.db_manager.get_data("ProductOrder", ['order_id', 'user_id', 'item_id', 'item_name', 'quantities', 'order_time'])
+        
+        for row_index, row in enumerate(df.itertuples(index=False)):
+            for col_index, value in enumerate(row):
+                item = QTableWidgetItem(str(value))
+                self.OrderList.setItem(row_index, col_index, item)
 
     def scan_barcode(self):
         import threading
         threading.Thread(target=self.barcode_scanner.append_list).start()
-        
 
 def main(args=None):
     rclpy.init(args=args)
@@ -470,14 +644,19 @@ def main(args=None):
 
     amcl_node = AmclSubscriber()
     picam_node = PiCamSubscriber(window)
+    statusbar_node = RobotStatusBarSubscriber(window)
     status_node = RobotStatusSubscriber(window)
+    pending_task_node = PendingTaskSubscriber(window)
     control_node = RobotController(window)
-
+    transaction_node = TransactionSubscriber(window)
 
     executor.add_node(amcl_node)
     executor.add_node(picam_node)
+    executor.add_node(statusbar_node)
     executor.add_node(status_node)
+    executor.add_node(pending_task_node)
     executor.add_node(control_node)
+    executor.add_node(transaction_node)
 
     thread = Thread(target=executor.spin)
     thread.start()

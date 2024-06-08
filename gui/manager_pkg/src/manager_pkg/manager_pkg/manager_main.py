@@ -14,6 +14,7 @@ from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSReliabilityPolic
 import numpy as np
 import pandas as pd
 import cv2
+import json
 from ament_index_python.packages import get_package_share_directory
 import yaml
 
@@ -234,6 +235,29 @@ class PendingTaskSubscriber(Node):
             self.ui.taskView.setItem(row, 3, QTableWidgetItem(task['location']))
             self.ui.taskView.setItem(row, 4, QTableWidgetItem(str(task['priority'])))
 
+class SignalEmitter(QObject):
+    update_transactions_signal = pyqtSignal(list)
+
+class TransactionSubscriber(Node):
+    def __init__(self, signal_emitter):
+        super().__init__('transaction_subscriber')
+        self.signal_emitter = signal_emitter
+        self.subscription = self.create_subscription(
+            String,
+            '/current_transactions',
+            self.listener_callback,
+            10)
+        self.subscription  # prevent unused variable warning
+
+    def listener_callback(self, msg):
+        self.get_logger().info(f'Received message: {msg.data}')
+        try:
+            transactions = json.loads(msg.data)
+            self.signal_emitter.update_transactions_signal.emit(transactions)  # Emit the signal
+        except json.JSONDecodeError as e:
+            self.get_logger().error(f"JSON decoding failed: {e}")
+            return
+
 class Ui_MainWindow(QMainWindow):
     robot_picam_clicked = pyqtSignal(str)
     robot_status_clicked = pyqtSignal(str)
@@ -268,7 +292,18 @@ class Ui_MainWindow(QMainWindow):
         self.init_navigation_buttons()
         self.init_ros2_node()
         
-         # Set up a timer to update stock info every 5 seconds
+        # 신호 에미터 생성 및 연결
+        self.signal_emitter = SignalEmitter()
+        self.signal_emitter.update_transactions_signal.connect(self.update_current_transactions_display)
+        
+        # ROS2 노드 생성 및 실행
+        self.executor = MultiThreadedExecutor()
+        self.transaction_subscriber = TransactionSubscriber(self.signal_emitter)
+        self.executor.add_node(self.transaction_subscriber)
+        self.executor_thread = Thread(target=self.executor.spin)
+        self.executor_thread.start()
+                           
+        # Set up a timer to update stock info every 5 seconds
         self.stock_update_timer = QTimer(self)
         self.stock_update_timer.timeout.connect(self.update_stock_info)
         self.stock_update_timer.start(5000)  # Update every 5000 milliseconds (5 seconds)
@@ -345,7 +380,6 @@ class Ui_MainWindow(QMainWindow):
             self.robotComboBox.setCurrentIndex(robot_index)
 
     def init_main_page(self):
-<<<<<<< HEAD
         # Set map
         self.map_yaml_file = os.path.join(get_package_share_directory('manager_pkg'), 'map', 'map.yaml')
         self.map_yaml_data = self.load_yaml(self.map_yaml_file)
@@ -381,33 +415,6 @@ class Ui_MainWindow(QMainWindow):
         # Executor를 별도의 스레드에서 실행
         self.executor_thread = Thread(target=self.executor.spin)
         self.executor_thread.start()
-=======
-        pass
-    #     # Main Page: Real-time location of robots, Task list, Current Stock info
-        self.map_label = self.findChild(QLabel, 'mapLabel')  # Assuming there's a QLabel for the map
-        self.update_stock_info()
-
-        robotstatus = self.db_manager.fetch_all_product("RobotStatus")
-
-        df = pd.DataFrame(robotstatus, columns=['robot_id', 'status'])
-        id_list = df['robot_id'].tolist()
-        status_list = df['status'].tolist()
-
-        self.update_robot_button(self.R1, self.status1, id_list[0], status_list[0])
-        self.update_robot_button(self.R2, self.status2, id_list[1], status_list[1])
-        self.update_robot_button(self.R3, self.status3, id_list[2], status_list[2])
-
-
-    def update_robot_button(self, button, status_label, robot_id, status):
-        button.setText(robot_id)
-        status_label.setText(status)
-        if status == "busy":
-            button.setStyleSheet("background-color: rgb(246, 97, 81);""border-radius: 20px")
-        elif status == "available":
-            button.setStyleSheet("background-color: rgb(143, 240, 164);""border-radius: 20px")
-        else:
-            button.setStyleSheet("")
->>>>>>> afef4dacd92108210eaf50aa1a0cac008a3834db
 
     def init_ros2_node(self):
         pass
@@ -462,7 +469,6 @@ class Ui_MainWindow(QMainWindow):
         pass
 
     def update_stock_info(self):
-<<<<<<< HEAD
         product_inventory = self.db_manager.fetch_all_product("ProductInventory")
         product_info = self.db_manager.get_data("ProductInfo", ["item_id", "item_tag"])
 
@@ -496,34 +502,12 @@ class Ui_MainWindow(QMainWindow):
             if item_id in label_mapping:
                 self.label = label_mapping[item_id]
                 self.label.setText(f"{item_tag}\n{item_name}\nstock: {stock}")
-=======
-        print("Updating stock info")
-        product_inventory = self.db_manager.fetch_all_product("ProductInventory")
-        print(f"Fetched product inventory: {product_inventory}")
-
-        df = pd.DataFrame(product_inventory, columns=['item_id', 'item_name', 'stock'])
-
-        # tableWidget 업데이트
-        self.tableWidget.setRowCount(len(df))
-        self.tableWidget.setColumnCount(len(df.columns))
-        self.tableWidget.setHorizontalHeaderLabels(df.columns)
-
-        for row_index, row in enumerate(df.itertuples(index=False)):
-            for col_index, value in enumerate(row):
-                item = QTableWidgetItem(str(value))
-                self.tableWidget.setItem(row_index, col_index, item)
-        print("Stock info updated")
->>>>>>> afef4dacd92108210eaf50aa1a0cac008a3834db
         
     def update_product_quantity(self, product_id, quantity):
         query = "UPDATE ProductInventory SET stock = %s WHERE item_id = %s"
         self.db_manager.cursor.execute(query, (quantity, product_id))
         self.db_manager.conn.commit()
         print(f"Updated product {product_id} with quantity {quantity}")
-<<<<<<< HEAD
-=======
-
->>>>>>> afef4dacd92108210eaf50aa1a0cac008a3834db
 
     def init_robot_control_page(self):
         self.robotComboBox = self.findChild(QComboBox, 'robotComboBox')
@@ -541,10 +525,20 @@ class Ui_MainWindow(QMainWindow):
         self.status.setHorizontalHeaderLabels(['Task ID', 'Location', 'Complete'])
         self.status.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         
-        self.transactionEdit = self.findChild(QLabel, 'transactionEdit')
+        self.transactionEdit = self.findChild(QTextEdit, 'transactionEdit')
+        self.transactionEdit.setAlignment(Qt.AlignCenter)
+        
+        # Transaction Subscriber 추가
+        # self.transaction_subscriber = TransactionSubscriber(self)
+        
+        # self.executor.add_node(self.transaction_subscriber)
 
 
     def update_current_transactions_display(self, transactions):
+        print("Updating transactions display")  # 디버깅 메시지
+        if not transactions:
+            return
+
         for transaction in transactions:
             transaction_id = transaction["transaction_id"]
             robot_id = transaction["robot_id"]
@@ -557,7 +551,10 @@ class Ui_MainWindow(QMainWindow):
             elif robot_id == '93':
                 self.robotComboBox.setCurrentIndex(2)
 
-            self.transactionEdit.setText(transaction_id)
+            if self.transactionEdit is not None:
+                self.transactionEdit.setText(transaction_id)  
+            else:
+                print(f"transactionEdit is None when trying to set text to {transaction_id}")
             
             self.status.setRowCount(len(tasks))
             
@@ -566,6 +563,7 @@ class Ui_MainWindow(QMainWindow):
                 location = QTableWidgetItem(task["location"])
                 completed = QTableWidgetItem(str(task["completed"]))
                 
+                print(f"Setting row {row}: {task['task_id']}, {task['location']}, {task['completed']}")  # 디버깅 메시지
                 self.status.setItem(row, 0, task_id)
                 self.status.setItem(row, 1, location)
                 self.status.setItem(row, 2, completed)
@@ -650,6 +648,7 @@ def main(args=None):
     status_node = RobotStatusSubscriber(window)
     pending_task_node = PendingTaskSubscriber(window)
     control_node = RobotController(window)
+    transaction_node = TransactionSubscriber(window)
 
     executor.add_node(amcl_node)
     executor.add_node(picam_node)
@@ -657,6 +656,7 @@ def main(args=None):
     executor.add_node(status_node)
     executor.add_node(pending_task_node)
     executor.add_node(control_node)
+    executor.add_node(transaction_node)
 
     thread = Thread(target=executor.spin)
     thread.start()
