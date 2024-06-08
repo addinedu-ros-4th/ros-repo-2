@@ -28,7 +28,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="MainPage">
      <widget class="QWidget" name="widget_2" native="true">
@@ -554,10 +554,10 @@ border-radius: 20px</string>
        <widget class="QLabel" name="map">
         <property name="geometry">
          <rect>
-          <x>350</x>
-          <y>50</y>
-          <width>291</width>
-          <height>311</height>
+          <x>370</x>
+          <y>20</y>
+          <width>261</width>
+          <height>341</height>
          </rect>
         </property>
         <property name="frameShape">

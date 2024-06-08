@@ -35,6 +35,9 @@ amcl_1 = PoseWithCovarianceStamped()
 amcl_2 = PoseWithCovarianceStamped()
 amcl_3 = PoseWithCovarianceStamped()
 
+#추가
+map_yaml_file = os.path.join(get_package_share_directory('manager_pkg'), 'map', 're_map.yaml')
+
 class AmclSubscriber(Node):
     def __init__(self):
         super().__init__('amcl_subscriber')
@@ -289,6 +292,7 @@ class Ui_MainWindow(QMainWindow):
 
         # Initialize pages
         self.init_main_page()
+        self.init_map()
         self.init_robot_control_page()
         self.init_inbound_order_control_page()
         self.init_navigation_buttons()
@@ -370,27 +374,26 @@ class Ui_MainWindow(QMainWindow):
             self.robotComboBox.setCurrentIndex(robot_index)
 
 
-    def init_main_page(self):
-        # Set map
-        self.map_yaml_file = os.path.join(get_package_share_directory('manager_pkg'), 'map', 'map.yaml')
-        self.map_yaml_data = self.load_yaml(self.map_yaml_file)
-        self.map_image = os.path.abspath(self.map_yaml_data['image'])
-        self.pixmap = QPixmap(self.map_image)
-        self.image_scale = 5
+    def init_map(self):
+        with open(map_yaml_file) as f:
+            self.map_yaml_data = yaml.full_load(f)
 
-
-        # Remove margins from the map pixmap
-        self.pixmap = self.pixmap.copy(QRect(50, 50, self.pixmap.width() - 100, self.pixmap.height() - 100))
+        self.image_scale = 1.5
+        self.pixmap = QPixmap(os.path.join(get_package_share_directory('manager_pkg'), 'map', self.map_yaml_data['image']))
+        self.scaled_pixmap = self.pixmap.scaled(int(self.map.width() * self.image_scale), int(self.map.height() * self.image_scale), Qt.KeepAspectRatio)
+        
+        # self.pixmap = self.pixmap.copy(QRect(50, 50, self.pixmap.width() - 30, self.pixmap.height() - 30))
         self.height = self.pixmap.size().height()
         self.width = self.pixmap.size().width()
 
-
         self.map_resolution = self.map_yaml_data['resolution']
         self.map_origin = self.map_yaml_data['origin'][:2]
+        self.update_map()
 
 
-    #    Main Page: Real-time location of robots, Task list, Current Stock info
-        self.map_label = self.findChild(QLabel, 'mapLabel')  # Assuming there's a QLabel for the map
+    def init_main_page(self):
+        # Main Page: Real-time location of robots, Task list, Current Stock info
+        self.map_label = self.findChild(QLabel, 'map')  # Assuming there's a QLabel for the map
         self.update_stock_info()
         
         self.task_view = self.findChild(QTableWidget, 'taskView')
@@ -437,47 +440,40 @@ class Ui_MainWindow(QMainWindow):
             
     def update_map(self):
         
-        scaled_pixmap = self.pixmap.scaled(self.width * self.image_scale, self.height * self.image_scale, Qt.KeepAspectRatio)
-        painter = QPainter(scaled_pixmap)
+        self.scaled_pixmap = self.pixmap.scaled(int(self.map.width() * self.image_scale), int(self.map.height() * self.image_scale), Qt.KeepAspectRatio)
+        painter = QPainter(self.scaled_pixmap)
+
+        # 로봇 번호 표시
         self.font = QFont()
         self.font.setBold(True)
-        self.font.setPointSize(12)
+        self.font.setPointSize(13)
         painter.setFont(self.font)
 
         # 1번 로봇 좌표
         self.draw_robot(painter, amcl_1, Qt.red, '1')
+
         # 2번 로봇 좌표
         self.draw_robot(painter, amcl_2, Qt.blue, '2')
+        
         # 3번 로봇 좌표
         self.draw_robot(painter, amcl_3, Qt.green, '3')
-
         painter.end()
 
-        # Calculate the required final pixmap size considering cropping
-        final_width = min(self.width * self.image_scale - 80, scaled_pixmap.width())
-        final_height = min(self.height * self.image_scale - 80, scaled_pixmap.height())
-
-        # Create a blank pixmap and draw the scaled pixmap on it
-        final_pixmap = QPixmap(final_width, final_height)
-        final_pixmap.fill(Qt.white)
-
-        painter = QPainter(final_pixmap)
-        painter.drawPixmap(0, 0, scaled_pixmap.copy(50, 50, final_width, final_height))
-        painter.end()
-
-        self.map.setPixmap(final_pixmap)
-    
+        self.map.setPixmap(self.scaled_pixmap)
     
     def draw_robot(self, painter, amcl, color, label):
-        x, y = self.calc_grid_position(100, 100)
-        painter.setPen(QPen(color, 14, Qt.SolidLine))
+        # x, y = self.calc_grid_position(amcl.pose.position.x, amcl.pose.position.y)
+        x, y = self.calc_grid_position(0.0, 0.0) # test용
+        painter.setPen(QPen(color, 13, Qt.SolidLine))
         painter.drawPoint(int((self.width - x) * self.image_scale), int(y * self.image_scale))
-        painter.drawText(int((self.width - x) * self.image_scale + 13), int(y * self.image_scale + 5), label)
-
+        painter.drawText(int((self.width - x) * self.image_scale - 30), int(y * self.image_scale + 5), label)
+    
 
     def calc_grid_position(self, x, y):
-        x_grid = (x - self.map_origin[0]) / self.map_resolution
-        y_grid = (y - self.map_origin[1]) / self.map_resolution
+        x_offset = -85
+        y_offset = 85
+        x_grid = x_offset + ((x * 3.2 - self.map_origin[0]) / 0.05 )
+        y_grid = y_offset + ((y * 3.0 - self.map_origin[1]) / 0.05 )
         return x_grid, y_grid
     
     
