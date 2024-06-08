@@ -72,6 +72,7 @@ topics:
     to_domain: 93
     remap: obstacle_2
 
+
   task_completion:
     type: task_msgs/msg/TaskCompletion
     from_domain: 91
