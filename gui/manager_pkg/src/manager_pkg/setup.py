@@ -26,8 +26,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'manager_main = manager_pkg.manager_main:main',
-            'manager_test = manager_pkg.manager_test:main'   
+            'manager_main = manager_pkg.manager_main:main'
         ],
     },
 )
