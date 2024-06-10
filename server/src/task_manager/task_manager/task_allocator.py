@@ -25,13 +25,14 @@ class TaskAllocator(Node):
         super().__init__('task_allocator')
         
         # Subscriber
-        self.task_list_sub    = self.create_subscription(TaskList,       '/task_list',       self.receive_task_list,       10)
-        self.robot_status_sub = self.create_subscription(RobotStatus,    '/robot_status',    self.update_robot_status,     10)
+        self.task_list_sub    = self.create_subscription(TaskList,       '/task_list',       self.receive_task_list,      10)
+        self.robot_status_sub = self.create_subscription(RobotStatus,    '/robot_status',    self.robot_status_callback,  10)
         self.completion_sub   = self.create_subscription(TaskCompletion, '/task_completion', self.handle_task_completion, 10)
-
+        
         # Publisher
-        self.current_transactions_pub = self.create_publisher(String,   '/current_transactions', 10)
-        self.unassigned_tasks_pub     = self.create_publisher(TaskList, '/unassigned_tasks',     10)
+        self.current_transactions_pub = self.create_publisher(String,      '/current_transactions', 10)
+        self.unassigned_tasks_pub     = self.create_publisher(TaskList,    '/unassigned_tasks',     10)
+        self.robot_status_pub         = self.create_publisher(RobotStatus, '/robot_status'        , 10)
         
         # Database controller
         self.robot_controller = robot_controller
@@ -44,7 +45,20 @@ class TaskAllocator(Node):
         self.inbound_to_task_map = {}               # Dictionary to map inbound tasks to unloading and storage locations
 
         # Timer
-        self.idle_timers = {}  # Dictionary to keep track of timers for each robot
+        self.idle_timers = {}                       # Dictionary to keep track of timers for each robot
+        
+        # Initialize states
+        self.initialize_states()
+        
+
+    def initialize_states(self):
+        # Clear in-progress tasks
+        self.tasks_in_progress.clear()
+        self.tasks_assigned = {}
+
+        # Publish empty current transactions to reset the GUI
+        self.publish_current_transactions()
+        self.publish_unassigned_tasks()
         
         
     def reset_timer(self, robot_id):
@@ -123,6 +137,14 @@ class TaskAllocator(Node):
 
             # Immediately change status to prevent reallocation
             self.robot_status[robot_id] = "busy"
+            
+            # Robot status topic publish
+            msg = RobotStatus()
+            msg.robot_id = robot_id
+            msg.robot_status = "busy"
+            self.robot_status_pub.publish(msg)
+            
+            # Assign
             self.assign_transaction(tasks, robot_id)
 
 
@@ -132,6 +154,7 @@ class TaskAllocator(Node):
             prefix = 'I'
         else:
             prefix = 'O'
+            
         transaction_id = f'{prefix}{tasks[0].bundle_id}_{robot_id}'
         self.tasks_in_progress[transaction_id] = (tasks, robot_id)
         self.tasks_assigned = {task.task_id: False for task in tasks}
@@ -191,7 +214,6 @@ class TaskAllocator(Node):
 
             del self.tasks_in_progress[transaction_id]
             self.robot_status[robot_id] = 'available'
-            # self.robot_status_sub.publish(robot_id, "available")
             self.get_logger().info(f'Reassigning tasks for transaction {transaction_id} due to failure')
             self.allocate_transaction()
 
@@ -209,7 +231,7 @@ class TaskAllocator(Node):
             return None
         
     
-    def update_robot_status(self, msg):
+    def robot_status_callback(self, msg):
         self.robot_status[msg.robot_id] = msg.robot_status
         self.robot_controller.update_robot_status(msg.robot_id, msg.robot_status)   # Update Robot Status Database
         self.get_logger().info(f'Received status from {msg.robot_id}: {msg.robot_status}')
@@ -242,18 +264,23 @@ class TaskAllocator(Node):
             
     def publish_current_transactions(self, transaction_id=None):
         transactions_info = []
-        
+
         if transaction_id:
-            tasks, robot_id = self.tasks_in_progress[transaction_id]
-            tasks_info = [{"task_id": task.task_id, "location": task.location, "completed": self.tasks_assigned.get(task.task_id, False)} for task in tasks]
-            transactions_info.append({"transaction_id": transaction_id, "robot_id": robot_id, "tasks": tasks_info})
+            if transaction_id in self.tasks_in_progress:
+                tasks, robot_id = self.tasks_in_progress[transaction_id]
+                tasks_info = [{"task_id": task.task_id, "location": task.location, "completed": self.tasks_assigned.get(task.task_id, False)} for task in tasks]
+                transactions_info.append({"transaction_id": transaction_id, "robot_id": robot_id, "tasks": tasks_info})
         else:
             for transaction_id, (tasks, robot_id) in self.tasks_in_progress.items():
                 tasks_info = [{"task_id": task.task_id, "location": task.location, "completed": self.tasks_assigned.get(task.task_id, False)} for task in tasks]
                 transactions_info.append({"transaction_id": transaction_id, "robot_id": robot_id, "tasks": tasks_info})
-        
-        msg = String(data=json.dumps(transactions_info))
-        self.current_transactions_pub.publish(msg)
+
+        if transactions_info:
+            msg = String(data=json.dumps(transactions_info))
+            self.current_transactions_pub.publish(msg)
+            self.get_logger().info(f'Published current transactions: {transactions_info}')
+        else:
+            self.get_logger().info(f'All transactions are completed. Published empty transactions list.')
 
 
     def publish_unassigned_tasks(self):
@@ -261,26 +288,16 @@ class TaskAllocator(Node):
         task_list_msg = TaskList(tasks=unassigned_tasks)
         self.unassigned_tasks_pub.publish(task_list_msg)
 
-    
+
     def handle_task_completion(self, msg):
         self.process_task_completion(msg)
         self.additional_task_completion_processing(msg)
-        
+
 
     def process_task_completion(self, msg):
         self.get_logger().info(f'Received task completion for task {msg.task_id} by robot {msg.robot_id}')
 
-        # Find the transaction and task type using the task_id
-        transaction_id = None
-        task_type = None
-        for t_id, (tasks, robot_id) in self.tasks_in_progress.items():
-            for task in tasks:
-                if task.task_id == msg.task_id:
-                    transaction_id = t_id
-                    task_type = task.task_type
-                    break
-            if transaction_id:
-                break
+        transaction_id = self.get_transaction_id_by_task_id(msg.task_id)
 
         if transaction_id in self.tasks_in_progress:
             tasks, _ = self.tasks_in_progress[transaction_id]
@@ -300,14 +317,13 @@ class TaskAllocator(Node):
                 else:
                     self.get_logger().info(f'All tasks in transaction {transaction_id} completed')
                     del self.tasks_in_progress[transaction_id]
-                    
                     self.robot_status[msg.robot_id] = "available"
                     # Update robot status database
                     self.robot_controller.update_robot_status(msg.robot_id, 'available')
 
                     self.reset_timer(msg.robot_id)  # Reset timer when all tasks are completed
                     self.allocate_transaction()
-                    
+
             self.publish_current_transactions(transaction_id)
         else:
             self.get_logger().warn(f'Transaction {transaction_id} not found in progress')
@@ -316,14 +332,20 @@ class TaskAllocator(Node):
     # For GUI data
     def additional_task_completion_processing(self, msg):
         task_id = msg.task_id
+        transaction_id = self.get_transaction_id_by_task_id(task_id)
+        if transaction_id:
+            self.publish_current_transactions(transaction_id)
+        else:
+            self.get_logger().warn(f'Task {task_id} completion received but not found in progress')
+        
+
+    def get_transaction_id_by_task_id(self, task_id):
         for transaction_id, (tasks, robot_id) in self.tasks_in_progress.items():
             for task in tasks:
                 if task.task_id == task_id:
-                    self.tasks_assigned[task_id] = True
-                    self.publish_current_transactions()
-                    return
-        self.get_logger().warn(f'Task {task_id} completion received but not found in progress')
-        
+                    return transaction_id
+        return None
+
 
 def main(args=None):
     rclpy.init(args=args)
