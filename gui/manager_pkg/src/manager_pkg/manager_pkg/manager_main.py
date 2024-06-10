@@ -17,7 +17,7 @@ import pandas as pd
 import cv2
 from ament_index_python.packages import get_package_share_directory
 import yaml
-
+import json
 # from task_msgs.msg import *
 from std_msgs.msg import String
 from sensor_msgs.msg import CompressedImage
@@ -576,7 +576,6 @@ class Ui_MainWindow(QMainWindow):
 
 
     def update_current_transactions_display(self, transactions):
-        print("Updating transactions display")  # 디버깅 메시지
         if not transactions:
             return
 
@@ -604,11 +603,15 @@ class Ui_MainWindow(QMainWindow):
                 location = QTableWidgetItem(task["location"])
                 completed = QTableWidgetItem(str(task["completed"]))
                 
-                print(f"Setting row {row}: {task['task_id']}, {task['location']}, {task['completed']}")  # 디버깅 메시지
+                if task["completed"]:
+                    completed.setBackground(QColor(204, 51, 51))
+                    
                 self.status.setItem(row, 0, task_id)
                 self.status.setItem(row, 1, location)
                 self.status.setItem(row, 2, completed)
 
+            self.transactionEdit.setAlignment(Qt.AlignCenter)
+            
     def update_robot_info(self, index):
         robot_name = self.robotComboBox.itemText(index)
         self.robot_picam_clicked.emit(robot_name)
