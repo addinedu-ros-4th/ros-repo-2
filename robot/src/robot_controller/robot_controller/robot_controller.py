@@ -38,8 +38,8 @@ class My_Location(Node) :
         super().__init__("robot_sub_controller")
         self.controller = controller
         
-        self.obstacle_1 = [[2, 2],[2, 2]]
-        self.obstacle_2 = [[2, 2],[2, 2]]
+        self.obstacle_1 = [[1, 1],[1, 1]]
+        self.obstacle_2 = [[1, 1],[1, 1]]
         # publisher
         self.publisher_out_task = self.create_publisher(
             OutTask,
@@ -494,7 +494,7 @@ class RobotController(Node) :
                     current_point_index = self.move_set(path, current_point_index)
 
         self.current_path_msg.start_x = 1 # path에서 장애물 비킴
-        self.current_path_msg.start_y = 3
+        self.current_path_msg.start_y = 2
 
     def search_nearest_point(self,target_pose): # 타겟에 가장 가까운 point 찾기
         nearest_point = [999, 999, 0.0]
@@ -529,11 +529,12 @@ class RobotController(Node) :
 
         if y != target_y and self.current_is_passable_list[x][y + direction_robot_to_target[1]] and (0 <= y + direction_robot_to_target[1] < 4):
             return_vel = [x, y + direction_robot_to_target[1]]
+            self.get_logger().info("y is can use")
 
 
         if x != target_x and self.current_is_passable_list[x + direction_robot_to_target[0]][y] and (0 <= x + direction_robot_to_target[0] < 7):
             return_vel = [x + direction_robot_to_target[0], y]
-
+            self.get_logger().info("x is can use")
 
         if return_vel == [] and (y != target_y or x != target_x) : # 
             if 0 == y - target_y   and self.current_is_passable_list[x + direction_robot_to_target[0]][y + direction_robot_to_target[1]] and self.current_is_passable_list[x][y + direction_robot_to_target[1]]:
