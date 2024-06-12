@@ -98,7 +98,7 @@ class ArucoCam(Node):
     def motor_control(self):
         self.distance = self.tvec[0][0][2]
         self.x_offset = self.tvec[0][0][0]
-        self.get_logger().info(f"Distance: {self.distance}, X offset: {self.x_offset}")
+        # self.get_logger().info(f"Distance: {self.distance}, X offset: {self.x_offset}")
         
         if self.direction == 'forward':
             if self.distance <= 0.17:
@@ -159,6 +159,7 @@ class ArucoCam(Node):
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             parameters = aruco.DetectorParameters()
             corners, ids, _ = aruco.detectMarkers(gray, self.aruco_dict, parameters=parameters)
+            
             if ids is not None:
                 # self.get_logger().info(f'Detected {len(ids)} markers.')
                 for i in range(len(ids)):
@@ -197,6 +198,8 @@ class ArucoCam(Node):
                     elif (self.location == marker_name and self.is_mid):
                         self.motor_control()
                         
+                    elif self.direction == "backward":
+                        self.motor_control()
             else:
                 # self.get_logger().info('No markers detected.')
                 pass
@@ -216,9 +219,9 @@ class ArucoCam(Node):
         self.twist.angular.z = 0.0
         self.get_logger().info(f'find target_error_distance')
         if pitch > 0.03:
-            self.twist.angular.z = -0.1  # Turn left
+            self.twist.angular.z = -0.05  # Turn left
         elif pitch < -0.03:
-            self.twist.angular.z = 0.1  # Turn right
+            self.twist.angular.z = 0.05  # Turn right
         else:
             self.target_distance = self.tvec[0][0][0]
             self.get_logger().info(f'target_error_distance: {self.target_distance}')
