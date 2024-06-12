@@ -7,13 +7,14 @@ import numpy as np
 from cv2 import aruco
 from task_msgs.srv import ArucoCommand
 from task_msgs.srv import ArucoCommandResponse
+from nav2_simple_commander.robot_navigator import BasicNavigator
 from std_srvs.srv import SetBool
 from geometry_msgs.msg import Twist
 
 class ArucoCam(Node):
     def __init__(self):
         super().__init__('Aruco_cam')
-        
+        self.nav = BasicNavigator()
         self.img_pub = self.create_publisher(CompressedImage, '/camera/compressed', 10) 
         self.aruco_server = self.create_service(ArucoCommand, '/aruco_control', self.handle_aruco_control)
         self.cmd_pub = self.create_publisher(Twist, '/base_controller/cmd_vel_unstamped', 10)
@@ -56,6 +57,8 @@ class ArucoCam(Node):
         self.x_offset = None
         self.tvec = None
         self.aruco_toggle = False
+        self.is_mid = False
+        self.target_distance = 0.0
         self.marker_id_map = {
             0: "I1", 1: "I2", 2: "I3",
             3: "O1", 4: "O2", 5: "O3",
@@ -86,7 +89,7 @@ class ArucoCam(Node):
         res.success = True
         self.marker_done_client.call_async(res)
 
-    def motor_control(self):
+    def motor_control(self, pitch):
         self.distance = self.tvec[0][0][2]
         self.x_offset = self.tvec[0][0][0]
         self.get_logger().info(f"Distance: {self.distance}, X offset: {self.x_offset}")
@@ -99,6 +102,8 @@ class ArucoCam(Node):
                 self.cmd_pub.publish(self.twist)
                 self.send_response()
                 self.aruco_toggle = False
+                self.target_distance = 0.0
+                self.is_mid = False
             else:
                 if -0.1 < self.x_offset < 0.1:
                     if -0.02 < self.x_offset < 0.02:
@@ -114,7 +119,15 @@ class ArucoCam(Node):
                         self.twist.linear.x = 0.05  # Stop forward movement
                         self.twist.angular.z = 0.05  # Turn right
                 else:
-                    if self.x_offset > 0.1:
+                    if self.x_offset > 0.25:
+                        self.get_logger().info("more turning left.")
+                        self.twist.linear.x = 0.05  # Stop forward movement
+                        self.twist.angular.z = -0.1  # Turn left
+                    elif self.x_offset < -0.25:
+                        self.get_logger().info("more turning right.")
+                        self.twist.linear.x = 0.05  # Stop forward movement
+                        self.twist.angular.z = 0.1  # Turn right
+                    elif self.x_offset > 0.1:
                         self.get_logger().info("turning left.")
                         self.twist.linear.x = 0.05  # Stop forward movement
                         self.twist.angular.z = -0.07  # Turn left
@@ -122,6 +135,17 @@ class ArucoCam(Node):
                         self.get_logger().info("turning right.")
                         self.twist.linear.x = 0.05  # Stop forward movement
                         self.twist.angular.z = 0.07  # Turn right
+
+                    
+                
+                ## pitch is plus == turn left
+                if abs(pitch) <= 30 and pitch > 0:
+                    self.twist.angular.z += -0.02  # Turn left
+                elif abs(pitch) <= 30 and pitch < 0:
+                    self.twist.angular.z += 0.02  # Turn right
+                else:
+                    pass    
+                
                 self.cmd_pub.publish(self.twist)
         
         elif self.direction == 'backward':
@@ -152,12 +176,19 @@ class ArucoCam(Node):
                 self.get_logger().info(f'Detected {len(ids)} markers.')
                 for i in range(len(ids)):
                     marker_id = ids[i][0]
+
                     marker_name = self.marker_id_map.get(marker_id, "Unknown")
                     self.get_logger().info(f'Marker detected: {marker_name}')
+
                     self.rvec, self.tvec, _ = aruco.estimatePoseSingleMarkers(corners[i], 0.025, self.matrix_coefficients, self.distortion_coefficients)
+                    roll, pitch, yaw = self.get_orientation_from_rvec()
                     frame = cv2.drawFrameAxes(frame, self.matrix_coefficients, self.distortion_coefficients, self.rvec, self.tvec, 0.1)
-                    if (self.location == marker_name):
-                        self.motor_control()
+                    if self.direction == "forword" and self.target_distance == 0.0:
+                        self.get_target_distance(pitch)
+                    elif not self.is_mid and self.target_distance != 0.0:
+                        pass
+                    elif (self.location == marker_name):
+                        self.motor_control(pitch)
             else:
                 # self.get_logger().info('No markers detected.')
                 pass
@@ -169,6 +200,27 @@ class ArucoCam(Node):
                 self.img_msg.format = "jpeg"
                 self.img_msg.data = buffer.tobytes()
                 self.img_pub.publish(self.img_msg)
+
+    def get_target_distance(self, pitch):
+        self.twist.linear.x = 0.0
+        if pitch > 0.03:
+            self.twist.angular.z = -0.02  # Turn left
+        elif pitch < -0.03:
+            self.twist.angular.z = 0.02  # Turn right
+        else:
+            self.target_distance = self.tvec[0][0][2]
+
+        self.cmd_pub.publish(self.twist)
+
+    def get_orientation_from_rvec(self):
+        rotation_matrix, _ = cv2.Rodrigues(self.rvec)
+
+        # Extract angles using rotation matrix
+        roll = np.arctan2(rotation_matrix[2, 1], rotation_matrix[2, 2])
+        pitch = np.arctan2(-rotation_matrix[2, 0], np.sqrt(rotation_matrix[2, 1] ** 2 + rotation_matrix[2, 2] ** 2))
+        yaw = np.arctan2(rotation_matrix[1, 0], rotation_matrix[0, 0])
+
+        return roll, pitch, yaw
 
 def main():
     rclpy.init()
