@@ -275,16 +275,16 @@ class RobotController(Node) :
         # pose x, y, z
         # 추후 json or yaml로 변경 필요
         self.POSE_DICT = {
-            "I1" : [0.4, -1.425, 0.0],  "I2" : [0.4, -0.925, 0.0],  "I3" : [0.4, -0.625, 0.0],
+            "I1" : [0.4, -1.425, 0.0],  "I2" : [0.4, -0.775, 0.0],  "I3" : [0.4, -0.625, 0.0],
             "O1" : [1.45, 1.06, 0.0],   "O2" : [1.45, 0.66, 0.0],   "O3" : [1.45, 0.46, 0.0],
             "P1" : [0.4, 1.16, 0.0],    "P2" : [0.4, 0.58, 0.0],    "P3" : [0.4, 0.0, 0.0],
             "R1" : [1.45, -1.2, 0.0],   "R2" : [1.45, -0.9, 0.0],
             "A1" : [0.8, 0.3, 0.0],    "A1_2" : [0.8, 0.3, 0.0], 
-            "A2" : [1.15, 0.3, 0.0],    "A2_2" : [1.15, 0.3, 0.0],
+            "A2" : [1.02, 0.3, 0.0],    "A2_2" : [1.02, 0.3, 0.0],
             "B1" : [0.8, -0.5, 0.0],   "B1_2" : [0.8, -0.5, 0.0], 
-            "B2" : [1.15, -0.5, 0.0],   "B2_2" : [1.15, -0.5, 0.0],
+            "B2" : [1.02, -0.5, 0.0],   "B2_2" : [1.02, -0.5, 0.0],
             "C1" : [0.8, -1.2, 0.0],   "C1_2" : [0.8, -1.2, 0.0], 
-            "C2" : [1.15, -1.2, 0.0],   "C2_2" : [1.15, -1.2, 0.0]
+            "C2" : [1.02, -1.2, 0.0],   "C2_2" : [1.02, -1.2, 0.0]
         }
 
         self.YAW_DICT = {
@@ -325,7 +325,7 @@ class RobotController(Node) :
         for i in self.PATH_LIST:
             self.Y_LIST.append(i[0][1])
 
-        self.is_passable_list = [[True for _ in range(len(self.PATH_LIST[0]))] for _ in range(len(self.PATH_LIST))]
+        self.is_passable_list   = [[True for _ in range(len(self.PATH_LIST[0]))] for _ in range(len(self.PATH_LIST))]
         not_passable_index_list = [[1, 1], [1, 2], [3, 1], [3, 2], [5, 1], [5, 2]]
         
         for i in not_passable_index_list:
@@ -422,6 +422,11 @@ class RobotController(Node) :
                 self.service_call_lift(pose_name, "down")
                 self.service_call_marker(pose_name, "backward")
 
+            elif lift == "Parking" :
+                self.get_logger().info("Parking")
+                self.service_call_marker(pose_name, "forward")
+                self.nav.spin(spin_dist = -self.my_yaw)
+
             else : # 나머지 장소
                 self.current_task_location = pose_name
                 self.checking_task_is_out() 
@@ -435,7 +440,7 @@ class RobotController(Node) :
         
 
     def checking_task_is_out(self):
-        if self.task_status == "OUT":
+        if self.task_status == "OB":
             while not self.next_out:
                 time.sleep(1)
                 self.get_logger().info("wait for button ...")
@@ -559,7 +564,7 @@ class RobotController(Node) :
         yaw = self.point_to_yaw(self.PATH_LIST[current_point_index[0]][current_point_index[1]],
                                 self.PATH_LIST[passable_path[0]][passable_path[1]])
         
-        self.nav.spin(spin_dist = yaw)
+        self.nav.spin(spin_dist = yaw - self.my_yaw)
         self.move_pose(self.PATH_LIST[passable_path[0]][passable_path[1]], yaw)
         
         current_point_index = passable_path.copy()
