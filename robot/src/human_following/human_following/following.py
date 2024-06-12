@@ -62,7 +62,7 @@ class PersonDetector(Node):
                     self.get_logger().info(f"person_center_x: {person_center_x}, center_x: {center_x}, deviation: {deviation}")
 
                     # Determine action based on deviation
-                    if box_size > 250:
+                    if box_size > 220:
                         self.twist.linear.x = 0.0  
                         self.twist.angular.z = 0.0  
                     else:
@@ -82,6 +82,7 @@ class PersonDetector(Node):
                     self.get_logger().info(f"Person detected: {confidence:.2f}")
                     self.cmd_vel_pub.publish(self.twist)
 
+
         if not person_detected:
             # No person detected, stop the robot
             self.twist.linear.x = 0.0
@@ -94,8 +95,8 @@ class PersonDetector(Node):
         #     self.twist.angular.z = 0.0
         #     self.cmd_vel_pub.publish(self.twist)
 
-        # cv2.imshow('following mode', image)
-        # cv2.waitKey(1)
+        cv2.imshow('following mode', image)
+        cv2.waitKey(1)
 
 def main(args=None):
     rclpy.init()

@@ -46,7 +46,7 @@ class ButtonLCDControl(Node):
         
         # Define pin number
         self.button1_pin = 20
-        # self.button2_pin = 25
+        self.button2_pin = 25
         self.button3_pin = 26
         self.response = CompletePickingResponse.Request()
         # Define LCD 
@@ -56,7 +56,7 @@ class ButtonLCDControl(Node):
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.button1_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        # GPIO.setup(self.button2_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(self.button2_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.setup(self.button3_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
         # Service Client
@@ -72,7 +72,7 @@ class ButtonLCDControl(Node):
         
         # Button event
         GPIO.add_event_detect(self.button1_pin, GPIO.RISING, callback=self.button1_callback, bouncetime=300)
-        # GPIO.add_event_detect(self.button2_pin, GPIO.RISING, callback=self.button2_callback, bouncetime=300)
+        GPIO.add_event_detect(self.button2_pin, GPIO.RISING, callback=self.button2_callback, bouncetime=300)
         GPIO.add_event_detect(self.button3_pin, GPIO.RISING, callback=self.button3_callback, bouncetime=300)
 
 
@@ -94,6 +94,11 @@ class ButtonLCDControl(Node):
     def button1_callback(self, channel):
         self.get_logger().info('Emergency Stop button pressed!')
         self.emergency_stop_pub.publish(Empty())
+
+    # Emergency case
+    def button2_callback(self, channel):
+        self.lcd.send_command(0x01)
+        self.lcd.write(4, 0, "Following Mode")
 
 
     # Outbound: move to next place
