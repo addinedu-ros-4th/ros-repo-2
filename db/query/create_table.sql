@@ -34,8 +34,7 @@ CREATE TABLE IF NOT EXISTS Inbound (
 ); 
 
 
-<<<<<<< HEAD
-=======
+
 CREATE TABLE IF NOT EXISTS TaskList (
     task_id INT AUTO_INCREMENT PRIMARY KEY,
     task_type VARCHAR(36) NOT NULL,
@@ -46,7 +45,7 @@ CREATE TABLE IF NOT EXISTS TaskList (
 );
 
 
->>>>>>> afef4dacd92108210eaf50aa1a0cac008a3834db
+
 CREATE TABLE IF NOT EXISTS RobotStatus (
     RobotID VARCHAR(255) PRIMARY KEY,
     Status VARCHAR(255)
