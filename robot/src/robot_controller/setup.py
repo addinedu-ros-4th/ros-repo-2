@@ -26,7 +26,8 @@ setup(
     entry_points={
         'console_scripts': [
             'robot_controller = robot_controller.robot_controller:main',
-            'waypoint_test = robot_controller.waypoint_test:main'
+            'waypoint_test = robot_controller.waypoint_test:main',
+            'robot_qt = robot_controller.robot_qt:main'
         ],
     },
 )

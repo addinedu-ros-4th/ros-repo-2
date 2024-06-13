@@ -425,15 +425,15 @@ class Ui_MainWindow(QMainWindow):
         # 2번 로봇 좌표
         self.draw_robot(painter, amcl_2, Qt.blue, '2')
         
-        # 3번 로봇 좌표
-        self.draw_robot(painter, amcl_3, Qt.green, '3')
+        # # 3번 로봇 좌표
+        # self.draw_robot(painter, amcl_3, Qt.green, '3')
         painter.end()
 
         self.map.setPixmap(self.scaled_pixmap)
     
     def draw_robot(self, painter, amcl, color, label):
-        # x, y = self.calc_grid_position(amcl.pose.position.x, amcl.pose.position.y)
-        x, y = self.calc_grid_position(0.0, 0.0) # test용
+        x, y = self.calc_grid_position(amcl.pose.position.x, amcl.pose.position.y)
+        # x, y = self.calc_grid_position(0.0, 0.0) # test용
         painter.setPen(QPen(color, 13, Qt.SolidLine))
         painter.drawPoint(int((self.width - x) * self.image_scale), int(y * self.image_scale))
         painter.drawText(int((self.width - x) * self.image_scale - 30), int(y * self.image_scale + 5), label)

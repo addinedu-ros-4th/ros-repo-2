@@ -18,13 +18,17 @@ import json
 from ament_index_python.packages import get_package_share_directory
 import yaml
 
+# from task_msgs.msg import *
 from std_msgs.msg import String
 from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import PoseWithCovarianceStamped 
 from std_srvs.srv import SetBool
 from std_msgs.msg import Empty
-from task_msgs.msg import RobotStatus, TaskList
-from manager_pkg.transactions_subscriber import TaskSubscriber, TaskThread
+from task_msgs.msg import RobotStatus
+from task_msgs.msg import TaskList
+from manager_pkg.transactions_subscriber import TaskSubscriber,TaskThread
+
+
 
 global amcl_1, amcl_2, amcl_3
 amcl_1 = PoseWithCovarianceStamped()
@@ -238,29 +242,6 @@ class PendingTaskSubscriber(Node):
             self.ui.taskView.setItem(row, 3, QTableWidgetItem(task['location']))
             self.ui.taskView.setItem(row, 4, QTableWidgetItem(str(task['priority'])))
 
-class SignalEmitter(QObject):
-    update_transactions_signal = pyqtSignal(list)
-
-class TransactionSubscriber(Node):
-    def __init__(self, signal_emitter):
-        super().__init__('transaction_subscriber')
-        self.signal_emitter = signal_emitter
-        self.subscription = self.create_subscription(
-            String,
-            '/current_transactions',
-            self.listener_callback,
-            10)
-        self.subscription  # prevent unused variable warning
-
-    def listener_callback(self, msg):
-        self.get_logger().info(f'Received message: {msg.data}')
-        try:
-            transactions = json.loads(msg.data)
-            self.signal_emitter.update_transactions_signal.emit(transactions)  # Emit the signal
-        except json.JSONDecodeError as e:
-            self.get_logger().error(f"JSON decoding failed: {e}")
-            return
-
 class Ui_MainWindow(QMainWindow):
     robot_picam_clicked = pyqtSignal(str)
     robot_status_clicked = pyqtSignal(str)
@@ -409,8 +390,9 @@ class Ui_MainWindow(QMainWindow):
         self.task_view = self.findChild(QTableWidget, 'taskView')
         self.task_view.setColumnCount(5)
         self.task_view.setHorizontalHeaderLabels(['Task ID', 'Bundle ID', 'Task Type', 'Location', 'Priority'])
-        self.task_view.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         
+        self.task_view.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+   
         self.pending_task_subscriber = PendingTaskSubscriber(self)
         self.robot_status_subscriber = RobotStatusSubscriber(self)
         
@@ -443,15 +425,15 @@ class Ui_MainWindow(QMainWindow):
         # 2번 로봇 좌표
         self.draw_robot(painter, amcl_2, Qt.blue, '2')
         
-        # 3번 로봇 좌표
-        self.draw_robot(painter, amcl_3, Qt.green, '3')
+        # # 3번 로봇 좌표
+        # self.draw_robot(painter, amcl_3, Qt.green, '3')
         painter.end()
 
         self.map.setPixmap(self.scaled_pixmap)
     
     def draw_robot(self, painter, amcl, color, label):
-        # x, y = self.calc_grid_position(amcl.pose.position.x, amcl.pose.position.y)
-        x, y = self.calc_grid_position(0.0, 0.0) # test용
+        x, y = self.calc_grid_position(amcl.pose.position.x, amcl.pose.position.y)
+        # x, y = self.calc_grid_position(0.0, 0.0) # test용
         painter.setPen(QPen(color, 13, Qt.SolidLine))
         painter.drawPoint(int((self.width - x) * self.image_scale), int(y * self.image_scale))
         painter.drawText(int((self.width - x) * self.image_scale - 30), int(y * self.image_scale + 5), label)
@@ -528,49 +510,7 @@ class Ui_MainWindow(QMainWindow):
         self.status.setHorizontalHeaderLabels(['Task ID', 'Location', 'Complete'])
         self.status.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         
-        self.transactionEdit = self.findChild(QTextEdit, 'transactionEdit')
-        self.transactionEdit.setAlignment(Qt.AlignCenter)
-        
-        # Transaction Subscriber 추가
-        # self.transaction_subscriber = TransactionSubscriber(self)
-        
-        # self.executor.add_node(self.transaction_subscriber)
-
-
-    def update_current_transactions_display(self, transactions):
-        print("Updating transactions display")  # 디버깅 메시지
-        if not transactions:
-            return
-
-        for transaction in transactions:
-            transaction_id = transaction["transaction_id"]
-            robot_id = transaction["robot_id"]
-            tasks = transaction["tasks"]
-
-            if robot_id == '91':
-                self.robotComboBox.setCurrentIndex(0)
-            elif robot_id == '92':
-                self.robotComboBox.setCurrentIndex(1)
-            elif robot_id == '93':
-                self.robotComboBox.setCurrentIndex(2)
-
-            if self.transactionEdit is not None:
-                self.transactionEdit.setText(transaction_id)  
-            else:
-                print(f"transactionEdit is None when trying to set text to {transaction_id}")
-            
-            self.status.setRowCount(len(tasks))
-            
-            for row, task in enumerate(tasks):
-                task_id = QTableWidgetItem(task["task_id"])
-                location = QTableWidgetItem(task["location"])
-                completed = QTableWidgetItem(str(task["completed"]))
-                
-                print(f"Setting row {row}: {task['task_id']}, {task['location']}, {task['completed']}")  # 디버깅 메시지
-                self.status.setItem(row, 0, task_id)
-                self.status.setItem(row, 1, location)
-                self.status.setItem(row, 2, completed)
-
+        self.transactionEdit = self.findChild(QLabel, 'transactionEdit')
 
     def update_robot_info(self, index):
         robot_name = self.robotComboBox.itemText(index)
@@ -584,7 +524,9 @@ class Ui_MainWindow(QMainWindow):
     def init_inbound_order_control_page(self):
         self.inbound_list = self.findChild(QTableWidget, 'inbound_list')
         self.OrderList = self.findChild(QTableWidget, 'OrderList')
-
+        self.inbound_list.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.OrderList.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+                
         self.scanned_data = ""
         self.scan_button = self.findChild(QPushButton, 'scan_button')
         self.scan_button.clicked.connect(self.scan_barcode)
@@ -618,7 +560,10 @@ class Ui_MainWindow(QMainWindow):
 
     def update_order_list(self):
         order_list = self.db_manager.fetch_all_product("ProductOrder")
-        df = pd.DataFrame(order_list, columns=['order_id', 'user_id', 'item_id', 'item_name', 'quantities', 'order_time'])
+
+        df = pd.DataFrame(order_list, columns=['order_id', 'user_id', 'item_id', 'item_name', 'quantities', 'arrival date'])
+        df = pd.drop(labels='order_id')
+        df = pd.drop(labels='item_id')
 
         self.OrderList.setRowCount(len(df))
         self.OrderList.setColumnCount(len(df.columns))

@@ -270,33 +270,7 @@
      <string>W1</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_6">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>130</y>
-      <width>21</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>W2</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_7">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>200</y>
-      <width>21</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>W3</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_8">
     <property name="geometry">
      <rect>
       <x>30</x>
@@ -306,7 +280,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>W4</string>
+     <string>W5</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_9">
@@ -348,32 +322,6 @@
      <string>I3</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_12">
-    <property name="geometry">
-     <rect>
-      <x>80</x>
-      <y>70</y>
-      <width>21</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>W5</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_27">
-    <property name="geometry">
-     <rect>
-      <x>80</x>
-      <y>260</y>
-      <width>21</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>W8</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_30">
     <property name="geometry">
      <rect>
@@ -384,33 +332,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>W9</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_31">
-    <property name="geometry">
-     <rect>
-      <x>140</x>
-      <y>130</y>
-      <width>31</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>W10</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_32">
-    <property name="geometry">
-     <rect>
-      <x>140</x>
-      <y>200</y>
-      <width>31</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>W11</string>
+     <string>W2</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_33">
@@ -423,33 +345,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>W12</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_34">
-    <property name="geometry">
-     <rect>
-      <x>200</x>
-      <y>70</y>
-      <width>31</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>W13</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_37">
-    <property name="geometry">
-     <rect>
-      <x>200</x>
-      <y>260</y>
-      <width>31</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>W16</string>
+     <string>W6</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_38">
@@ -462,33 +358,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>W17</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_39">
-    <property name="geometry">
-     <rect>
-      <x>260</x>
-      <y>130</y>
-      <width>31</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>W18</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_40">
-    <property name="geometry">
-     <rect>
-      <x>260</x>
-      <y>200</y>
-      <width>31</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>W19</string>
+     <string>W3</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_41">
@@ -501,33 +371,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>W20</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_42">
-    <property name="geometry">
-     <rect>
-      <x>320</x>
-      <y>70</y>
-      <width>31</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>W21</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_44">
-    <property name="geometry">
-     <rect>
-      <x>320</x>
-      <y>260</y>
-      <width>31</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>W24</string>
+     <string>W7</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_45">
@@ -644,33 +488,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>W25</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_56">
-    <property name="geometry">
-     <rect>
-      <x>380</x>
-      <y>130</y>
-      <width>31</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>W26</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_57">
-    <property name="geometry">
-     <rect>
-      <x>380</x>
-      <y>210</y>
-      <width>31</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>W27</string>
+     <string>W4</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_58">
@@ -683,7 +501,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>W287</string>
+     <string>W8</string>
     </property>
    </widget>
   </widget>
@@ -1008,87 +826,17 @@
    </item>
    <item>
     <property name="text">
+     <string>w6</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>w7</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
      <string>w8</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>w9</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>w10</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>w11</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>w12</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>w13</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>w16</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>w17</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>w18</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>w19</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>w20</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>w21</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>w24</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>w25</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>w26</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>w27</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>w28</string>
     </property>
    </item>
   </widget>

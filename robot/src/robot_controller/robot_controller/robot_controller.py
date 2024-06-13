@@ -38,8 +38,8 @@ class My_Location(Node) :
         super().__init__("robot_sub_controller")
         self.controller = controller
         
-        self.obstacle_1 = [[2, 2],[2, 2]]
-        self.obstacle_2 = [[2, 2],[2, 2]]
+        self.obstacle_1 = [[1, 1],[1, 1]]
+        self.obstacle_2 = [[1, 1],[1, 1]]
         # publisher
         self.publisher_out_task = self.create_publisher(
             OutTask,
@@ -357,7 +357,7 @@ class RobotController(Node) :
 
 
     def task_callback(self, req, res) :
-        self.get_logger().info("task_list:" + req.location)
+        self.get_logger().info(f"task_list: {req.location}, {req.task_type}, {req.lift}")
         if not self.tasking:
             try:
                 self.item                   = req.item
@@ -435,7 +435,7 @@ class RobotController(Node) :
         
 
     def checking_task_is_out(self):
-        if self.task_status == "OUT":
+        if self.task_status == "OB":
             while not self.next_out:
                 time.sleep(1)
                 self.get_logger().info("wait for button ...")
@@ -464,6 +464,8 @@ class RobotController(Node) :
                 1 if nearest_point_from_target_index[1] - current_point_index[1] > 0 else -1
             ]
             passable_path = self.search_passable_path(current_point_index, direction_robot_to_target, nearest_point_from_target_index)
+            if passable_path == nearest_point_from_target_index:
+                break
             if passable_path == []:
                 self.get_logger().info("wait stopover")
 
@@ -489,7 +491,7 @@ class RobotController(Node) :
                     current_point_index = self.move_set(path, current_point_index)
 
         self.current_path_msg.start_x = 1 # path에서 장애물 비킴
-        self.current_path_msg.start_y = 3
+        self.current_path_msg.start_y = 2
 
     def search_nearest_point(self,target_pose): # 타겟에 가장 가까운 point 찾기
         nearest_point = [999, 999, 0.0]

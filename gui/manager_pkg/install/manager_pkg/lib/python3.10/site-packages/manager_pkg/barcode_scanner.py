@@ -20,8 +20,6 @@ class BarcodeScanner(QObject):
         # self.db_manager.insert_initial_data()
         self.db_manager.initialize_inventory()
 
-
-
     def append_list(self):
         barcodes = []
         try:
