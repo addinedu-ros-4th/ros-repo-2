@@ -19,7 +19,7 @@ class RasGPIOController:
 
         # floor 설정 
         self.current_step = 0
-        self.stepfloors = {"1place": 0, "1lift": -3000, "2place": -6000, "2lift": -7000}
+        self.stepfloors = {"1place": 0, "1lift": -3500, "2place": -6000, "2lift": -7000}
 
     def step_control(self, floor):
         desired_step  = self.stepfloors[floor]

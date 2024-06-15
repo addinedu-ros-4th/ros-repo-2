@@ -16,12 +16,13 @@ find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/Order.msg"
   "msg/Task.msg"
   "msg/TaskList.msg"
   "msg/RobotStatus.msg"
   "msg/TaskCompletion.msg"
   "msg/OutTask.msg"
+  "msg/CurrentPath.msg"
+
   "srv/AllocateTask.srv"
   
   "srv/ArucoCommand.srv"

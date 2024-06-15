@@ -1,37 +1,89 @@
 # Name of the domain bridge, used for node naming and logging
-# robot_1_ID: 213
+# server: 90
+# robot_1_ID: 91
+# robot_2_ID: 92
+# robot_3_ID: 93
 name: domain_bridge
 
 topics:
   amcl_pose:
     type: geometry_msgs/msg/PoseWithCovarianceStamped
-    from_domain: 213
-    to_domain: 212
+    from_domain: 91
+    to_domain: 90
     remap: amcl_pose_1
   amcl_pose:
     type: geometry_msgs/msg/PoseWithCovarianceStamped
-    from_domain: 214
-    to_domain: 212
+    from_domain: 92
+    to_domain: 90
     remap: amcl_pose_2
   amcl_pose:
     type: geometry_msgs/msg/PoseWithCovarianceStamped
-    from_domain: 215
-    to_domain: 212
+    from_domain: 93
+    to_domain: 90
     remap: amcl_pose_3
 
 
-  task_213:
+  allocate_task_91:
     type: task_msgs/srv/AllocateTask
-    from_domain: 217
-    to_domain: 213
+    from_domain: 91
+    to_domain: 90
 
-  task_214:
+  allocate_task_92:
     type: task_msgs/srv/AllocateTask
-    from_domain: 213
-    to_domain: 212
+    from_domain: 92
+    to_domain: 90
 
-  task_215:
+  allocate_task_93:
     type: task_msgs/srv/AllocateTask
-    from_domain: 215
-    to_domain: 212
+    from_domain: 93
+    to_domain: 90
     
+    
+  obstacle:
+    type: task_msgs/msg/CurrentPath
+    from_domain: 92
+    to_domain: 91
+    remap: obstacle_1
+  obstacle:
+    type: task_msgs/msg/CurrentPath
+    from_domain: 93
+    to_domain: 91
+    remap: obstacle_2
+
+  obstacle:
+    type: task_msgs/msg/CurrentPath
+    from_domain: 91
+    to_domain: 92
+    remap: obstacle_1
+  obstacle:
+    type: task_msgs/msg/CurrentPath
+    from_domain: 93
+    to_domain: 92
+    remap: obstacle_2
+
+  obstacle:
+    type: task_msgs/msg/CurrentPath
+    from_domain: 91
+    to_domain: 93
+    remap: obstacle_1
+  obstacle:
+    type: task_msgs/msg/CurrentPath
+    from_domain: 92
+    to_domain: 93
+    remap: obstacle_2
+
+
+  task_completion:
+    type: task_msgs/msg/TaskCompletion
+    from_domain: 91
+    to_domain: 90
+
+  task_completion:
+    type: task_msgs/msg/TaskCompletion
+    from_domain: 92
+    to_domain: 90
+
+  task_completion:
+    type: task_msgs/msg/TaskCompletion
+    from_domain: 93
+    to_domain: 90

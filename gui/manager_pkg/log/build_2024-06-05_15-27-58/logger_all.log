@@ -1,0 +1,129 @@
+[0.083s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build']
+[0.084s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=12, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=[], cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, verb_parser=<colcon_defaults.argument_parser.defaults.DefaultArgumentsDecorator object at 0x72ad0c3e38b0>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x72ad0c3e33a0>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x72ad0c3e33a0>>)
+[0.111s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.111s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.111s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.111s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.111s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[0.111s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.111s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/addinedu/ros-repo-2/gui/manager_pkg'
+[0.111s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[0.111s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[0.111s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[0.111s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[0.111s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[0.111s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[0.111s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[0.111s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[0.111s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[0.124s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['cmake', 'python']
+[0.124s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'cmake'
+[0.124s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python'
+[0.124s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['python_setup_py']
+[0.124s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python_setup_py'
+[0.125s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extensions ['ignore', 'ignore_ament_install']
+[0.125s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extension 'ignore'
+[0.125s] Level 1:colcon.colcon_core.package_identification:_identify(build) ignored
+[0.125s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extensions ['ignore', 'ignore_ament_install']
+[0.125s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extension 'ignore'
+[0.125s] Level 1:colcon.colcon_core.package_identification:_identify(install) ignored
+[0.125s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extensions ['ignore', 'ignore_ament_install']
+[0.125s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extension 'ignore'
+[0.125s] Level 1:colcon.colcon_core.package_identification:_identify(log) ignored
+[0.125s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['ignore', 'ignore_ament_install']
+[0.125s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ignore'
+[0.125s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ignore_ament_install'
+[0.125s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['colcon_pkg']
+[0.125s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'colcon_pkg'
+[0.125s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['colcon_meta']
+[0.126s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'colcon_meta'
+[0.126s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['ros']
+[0.126s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ros'
+[0.126s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['cmake', 'python']
+[0.126s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'cmake'
+[0.126s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'python'
+[0.126s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['python_setup_py']
+[0.126s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'python_setup_py'
+[0.126s] Level 1:colcon.colcon_core.package_identification:_identify(src/manager_pkg) by extensions ['ignore', 'ignore_ament_install']
+[0.126s] Level 1:colcon.colcon_core.package_identification:_identify(src/manager_pkg) by extension 'ignore'
+[0.126s] Level 1:colcon.colcon_core.package_identification:_identify(src/manager_pkg) by extension 'ignore_ament_install'
+[0.126s] Level 1:colcon.colcon_core.package_identification:_identify(src/manager_pkg) by extensions ['colcon_pkg']
+[0.126s] Level 1:colcon.colcon_core.package_identification:_identify(src/manager_pkg) by extension 'colcon_pkg'
+[0.126s] Level 1:colcon.colcon_core.package_identification:_identify(src/manager_pkg) by extensions ['colcon_meta']
+[0.126s] Level 1:colcon.colcon_core.package_identification:_identify(src/manager_pkg) by extension 'colcon_meta'
+[0.126s] Level 1:colcon.colcon_core.package_identification:_identify(src/manager_pkg) by extensions ['ros']
+[0.126s] Level 1:colcon.colcon_core.package_identification:_identify(src/manager_pkg) by extension 'ros'
+[0.129s] DEBUG:colcon.colcon_core.package_identification:Package 'src/manager_pkg' with type 'ros.ament_python' and name 'manager_pkg'
+[0.129s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.129s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[0.129s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[0.129s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[0.129s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[0.146s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) check parameters
+[0.146s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) discover
+[0.146s] WARNING:colcon.colcon_core.prefix_path.colcon:The path '/home/addinedu/ros-repo-2/gui/install' in the environment variable COLCON_PREFIX_PATH doesn't exist
+[0.147s] WARNING:colcon.colcon_ros.prefix_path.ament:The path '/home/addinedu/ros-repo-2/gui/install/manager_pkg' in the environment variable AMENT_PREFIX_PATH doesn't exist
+[0.148s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 7 installed packages in /home/addinedu/pinkbot/install
+[0.149s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 416 installed packages in /opt/ros/humble
+[0.151s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) using defaults
+[0.196s] Level 5:colcon.colcon_core.verb:set package 'manager_pkg' build argument 'cmake_args' from command line to 'None'
+[0.196s] Level 5:colcon.colcon_core.verb:set package 'manager_pkg' build argument 'cmake_target' from command line to 'None'
+[0.196s] Level 5:colcon.colcon_core.verb:set package 'manager_pkg' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.196s] Level 5:colcon.colcon_core.verb:set package 'manager_pkg' build argument 'cmake_clean_cache' from command line to 'False'
+[0.196s] Level 5:colcon.colcon_core.verb:set package 'manager_pkg' build argument 'cmake_clean_first' from command line to 'False'
+[0.196s] Level 5:colcon.colcon_core.verb:set package 'manager_pkg' build argument 'cmake_force_configure' from command line to 'False'
+[0.196s] Level 5:colcon.colcon_core.verb:set package 'manager_pkg' build argument 'ament_cmake_args' from command line to 'None'
+[0.196s] Level 5:colcon.colcon_core.verb:set package 'manager_pkg' build argument 'catkin_cmake_args' from command line to 'None'
+[0.196s] Level 5:colcon.colcon_core.verb:set package 'manager_pkg' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.196s] DEBUG:colcon.colcon_core.verb:Building package 'manager_pkg' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/addinedu/ros-repo-2/gui/manager_pkg/build/manager_pkg', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg', 'merge_install': False, 'path': '/home/addinedu/ros-repo-2/gui/manager_pkg/src/manager_pkg', 'symlink_install': False, 'test_result_base': None}
+[0.196s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[0.197s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[0.197s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/addinedu/ros-repo-2/gui/manager_pkg/src/manager_pkg' with build type 'ament_python'
+[0.197s] Level 1:colcon.colcon_core.shell:create_environment_hook('manager_pkg', 'ament_prefix_path')
+[0.199s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.199s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/hook/ament_prefix_path.ps1'
+[0.200s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/hook/ament_prefix_path.dsv'
+[0.200s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/hook/ament_prefix_path.sh'
+[0.201s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.201s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.376s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/addinedu/ros-repo-2/gui/manager_pkg/src/manager_pkg'
+[0.376s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.376s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.891s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/addinedu/ros-repo-2/gui/manager_pkg/src/manager_pkg': PYTHONPATH=/home/addinedu/ros-repo-2/gui/manager_pkg/build/manager_pkg/prefix_override:/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/lib/python3.10/site-packages:${PYTHONPATH} VIRTUAL_ENV_PROMPT=(qt_venv) /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base ../../build/manager_pkg build --build-base /home/addinedu/ros-repo-2/gui/manager_pkg/build/manager_pkg/build install --record /home/addinedu/ros-repo-2/gui/manager_pkg/build/manager_pkg/install.log --single-version-externally-managed install_data
+[1.354s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/addinedu/ros-repo-2/gui/manager_pkg/src/manager_pkg' returned '0': PYTHONPATH=/home/addinedu/ros-repo-2/gui/manager_pkg/build/manager_pkg/prefix_override:/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/lib/python3.10/site-packages:${PYTHONPATH} VIRTUAL_ENV_PROMPT=(qt_venv) /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base ../../build/manager_pkg build --build-base /home/addinedu/ros-repo-2/gui/manager_pkg/build/manager_pkg/build install --record /home/addinedu/ros-repo-2/gui/manager_pkg/build/manager_pkg/install.log --single-version-externally-managed install_data
+[1.356s] Level 1:colcon.colcon_core.environment:checking '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg' for CMake module files
+[1.356s] Level 1:colcon.colcon_core.environment:checking '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg' for CMake config files
+[1.357s] Level 1:colcon.colcon_core.environment:checking '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/lib'
+[1.357s] Level 1:colcon.colcon_core.environment:checking '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/bin'
+[1.357s] Level 1:colcon.colcon_core.environment:checking '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/lib/pkgconfig/manager_pkg.pc'
+[1.357s] Level 1:colcon.colcon_core.environment:checking '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/lib/python3.10/site-packages'
+[1.357s] Level 1:colcon.colcon_core.shell:create_environment_hook('manager_pkg', 'pythonpath')
+[1.357s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/hook/pythonpath.ps1'
+[1.357s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/hook/pythonpath.dsv'
+[1.358s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/hook/pythonpath.sh'
+[1.358s] Level 1:colcon.colcon_core.environment:checking '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/bin'
+[1.358s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(manager_pkg)
+[1.359s] INFO:colcon.colcon_core.shell:Creating package script '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/package.ps1'
+[1.359s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/package.dsv'
+[1.359s] INFO:colcon.colcon_core.shell:Creating package script '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/package.sh'
+[1.360s] INFO:colcon.colcon_core.shell:Creating package script '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/package.bash'
+[1.360s] INFO:colcon.colcon_core.shell:Creating package script '/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/manager_pkg/package.zsh'
+[1.361s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/addinedu/ros-repo-2/gui/manager_pkg/install/manager_pkg/share/colcon-core/packages/manager_pkg)
+[1.361s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[1.361s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[1.361s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '0'
+[1.362s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[1.365s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[1.365s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[1.365s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[1.374s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[1.374s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/addinedu/ros-repo-2/gui/manager_pkg/install/local_setup.ps1'
+[1.375s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/addinedu/ros-repo-2/gui/manager_pkg/install/_local_setup_util_ps1.py'
+[1.376s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/addinedu/ros-repo-2/gui/manager_pkg/install/setup.ps1'
+[1.377s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/addinedu/ros-repo-2/gui/manager_pkg/install/local_setup.sh'
+[1.377s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/addinedu/ros-repo-2/gui/manager_pkg/install/_local_setup_util_sh.py'
+[1.377s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/addinedu/ros-repo-2/gui/manager_pkg/install/setup.sh'
+[1.379s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/addinedu/ros-repo-2/gui/manager_pkg/install/local_setup.bash'
+[1.379s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/addinedu/ros-repo-2/gui/manager_pkg/install/setup.bash'
+[1.380s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/addinedu/ros-repo-2/gui/manager_pkg/install/local_setup.zsh'
+[1.381s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/addinedu/ros-repo-2/gui/manager_pkg/install/setup.zsh'
