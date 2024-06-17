@@ -189,6 +189,7 @@ class TaskAllocator(Node):
         request.quantity = task.quantity
         request.location = task.location
         request.lift = task.lift
+            
 
         service_name = f'/allocate_task_{robot_id}'                                 # Allocate task service
         allocate_task_client = self.create_client(AllocateTask, service_name)       # Create service client
@@ -225,7 +226,22 @@ class TaskAllocator(Node):
         result = self.robot_controller.fetchone(query, (bundle_id,))
         
         if result:
-            return result[0]
+            item_tag = result[0]
+            query = "SELECT stock FROM ProductInfo WHERE item_name = %s"
+            stock_result = self.robot_controller.fetchone(query, (item_tag,))
+            
+            if stock_result:
+                stock = stock_result[0]
+                if stock == 8:
+                    floor = 2
+                else:
+                    floor = 1
+                    
+                final_location = f"{result[0]}_{floor}"
+                return final_location
+            else:
+                    self.get_logger().error("No stock found for the given item_name")
+                    return None
         else:
             self.get_logger().error("No item_tag found for the given inbound_id")
             return None

@@ -46,6 +46,7 @@ class AmclSubscriber(Node):
         self.pose2_sub = self.create_subscription(PoseWithCovarianceStamped, 'amcl_pose_2', self.amcl_callback2, 10)
         self.pose3_sub = self.create_subscription(PoseWithCovarianceStamped, 'amcl_pose_3', self.amcl_callback3, 10)
 
+
     def amcl_callback1(self, amcl):
         global amcl_1
         amcl_1 = amcl
@@ -418,22 +419,24 @@ class Ui_MainWindow(QMainWindow):
         self.font.setBold(True)
         self.font.setPointSize(13)
         painter.setFont(self.font)
+        
+        # print(amcl_3)
 
-        # 1번 로봇 좌표
+        #1번 로봇 좌표
         self.draw_robot(painter, amcl_1, Qt.red, '1')
 
         # 2번 로봇 좌표
         self.draw_robot(painter, amcl_2, Qt.blue, '2')
         
-        # # 3번 로봇 좌표
-        # self.draw_robot(painter, amcl_3, Qt.green, '3')
+        # 3번 로봇 좌표
+        self.draw_robot(painter, amcl_3, Qt.green, '3')
         painter.end()
 
         self.map.setPixmap(self.scaled_pixmap)
     
     def draw_robot(self, painter, amcl, color, label):
-        x, y = self.calc_grid_position(amcl.pose.position.x, amcl.pose.position.y)
-        # x, y = self.calc_grid_position(0.0, 0.0) # test용
+        # x, y = self.calc_grid_position(amcl.pose.position.x, amcl.pose.position.y)
+        x, y = self.calc_grid_position(0.0, 0.0) # test용
         painter.setPen(QPen(color, 13, Qt.SolidLine))
         painter.drawPoint(int((self.width - x) * self.image_scale), int(y * self.image_scale))
         painter.drawText(int((self.width - x) * self.image_scale - 30), int(y * self.image_scale + 5), label)
