@@ -40,7 +40,7 @@
 - Optimizing logistics center operations through Human-Robot Interaction (HRI).
 - Implementing systems for inbound product registration, shelf inventory management, and consumer order processing.
 
-<img src="https://github.com/AUTO-KKYU/AMR-Logistics-Automation/assets/118419026/25960a9e-af9d-46dc-9f70-1cfc5d5e6168">
+<img src="https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/bd473944-faa3-45ad-8b47-0333070b8721">
 
 ### 1.2. Project Position
 <table>
@@ -211,7 +211,7 @@ sudo chmod a+rw /dev/i2c-*
 **General Setup**
 
 ```sh
-git clone https://github.com/AUTO-KKYU/AMR-Logistics-Automation.git
+git clone https://github.com/addinedu-ros-4th/ros-repo-2.git
 
 cd ros-repo-2/robot
 colcon build
