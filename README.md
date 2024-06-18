@@ -129,6 +129,7 @@
 
 ### 3.3.1 Path Planning
 <img src="https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/18116ef2-704d-460a-a252-a59d1cb2c58b">
+<img src="https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/1532eb62-9f07-48f0-9f73-e8427fa1c97d">
 
 ## 4. ✅Prerequisite
 
