@@ -102,7 +102,7 @@
 - Presentation : https://docs.google.com/presentation/d/1zWYl33Bm2CBIjSyX9Pe78l9VBHL1Ysp2sf91z0QALls/edit?usp=drive_link
 - Additional Information, Contact Email: dknjy3313@gmail.com
 
-## 2. 📋Role Contributions
+## 2. 📋Project Design
 
 ### 2.1. System Architecture
 
@@ -114,19 +114,20 @@
 ### 2.3. Software Architecture
 <img src="https://github.com/AUTO-KKYU/AMR-Logistics-Automation/assets/118419026/e0b8a28a-6034-4173-8754-e2a6924e7939">
 
+## 3. 💡Technology
 
-### 2.4. 3D Pose Estimation
+### 3.1. 3D Pose Estimation
 
-#### 2.4.1. Camera Calibration
+#### 3.1.1. Camera Calibration
 <img src= "https://github.com/AUTO-KKYU/AMR-Logistics-Automation/assets/118419026/ed869dcf-58b9-48e1-8ad6-d9a389a769ce">
 
-#### 2.4.2. ArUCo Navigation
+#### 3.1.2. ArUCo Navigation
 <img src= "https://github.com/AUTO-KKYU/AMR-Logistics-Automation/assets/118419026/acb06277-3130-40a1-b1d1-ec2a3675a078">
 
-### 2.5. Human Following
+### 3.2. Human Following
 <img src="https://github.com/AUTO-KKYU/AMR-Logistics-Automation/assets/118419026/eeb94530-05e6-4cb7-ba7e-3fccffb6b9e1">
 
-## 3. ✅Prerequisite
+## 4. ✅Prerequisite
 
 **How to install ROS2 Humble on PC [Ubuntu 22.04]**
 - Follow the guidelines within the site
@@ -199,7 +200,7 @@ sudo chmod g+rw /dev/gpiomem
 sudo chmod a+rw /dev/i2c-*
 ```
 
-## 4. ⏩Usage
+## 5. ⏩Usage
 
 **General Setup**
 
