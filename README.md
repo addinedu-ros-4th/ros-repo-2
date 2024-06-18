@@ -12,25 +12,6 @@
 
 </div>
 
-
-## Table of Contents
-  * [1. 🤖Project Introduction](#1-project-introduction)
-    + [1.1. Project Overview](#11-project-overview)
-    + [1.2. Project Position](#12-project-position)
-    + [1.3. Tech Stack](#13-tech-stack)
-    + [1.4. Reference](#14-reference)
-  * [2. 📋Role Contributions](#2-role-contributions)
-    + [2.1. System Architecture](#21-system-architecture)
-    + [2.2. Hardware Architecture](#22-hardware-architecture)
-    + [2.3. Software Architecture](#23-software-architecture)
-    + [2.4. 3D Pose Estimation](#24-3d-pose-estimation)
-      - [2.4.1. Camera Calibration](#241-camera-calibration)
-      - [2.4.2. ArUCo Navigation](#242-aruco-navigation)
-    + [2.5. Human Following](#25-human-following)
-  * [3. ✅Prerequisite](#3-prerequisite)
-  * [4. ⏩Usage](#4-usage)
-
-
 ## 1. 🤖Project Introduction
 **Duration: 2024.04.17 - 2024.06.13**
 
@@ -98,9 +79,7 @@
 |**H/W**|<img src="https://img.shields.io/badge/-RaspberryPi 4-C51A4A?style=for-the-badge&logo=Raspberry-Pi"> <img src="https://img.shields.io/badge/-Arduino Mega-00979D?style=for-the-badge&logo=Arduino&logoColor=white">|
 |**COMMUNICATION**|<img src="https://img.shields.io/badge/confluence-%23172BF4.svg?style=for-the-badge&logo=confluence&logoColor=white"> <img src="https://img.shields.io/badge/jira-%230A0FFF.svg?style=for-the-badge&logo=jira&logoColor=white"> <img src="https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=Slack&logoColor=white">  <img src="https://img.shields.io/badge/github-181717?style=for-the-badge&logo=github&logoColor=white">|
 
-### 1.4. Reference
-- Presentation : https://docs.google.com/presentation/d/1zWYl33Bm2CBIjSyX9Pe78l9VBHL1Ysp2sf91z0QALls/edit?usp=drive_link
-- Additional Information, Contact Email: dknjy3313@gmail.com
+<br>
 
 ## 2. 📋Project Design
 
@@ -113,6 +92,8 @@
 
 ### 2.3. Software Architecture
 <img src="https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/561a7e3b-3354-4311-8aa6-33e57b93ff11">
+
+<br>
 
 ## 3. 💡Technology
 
@@ -130,11 +111,13 @@
 ### 3.3 Path Planning
 <img src="https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/a725b3f2-d9cb-4e85-9145-db014f7f7748">
 
-### 3.4 Task Allowcator
+### 3.4 Task Allocator
 <img src="https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/f0b96a9c-c18c-4987-9fe7-ecac2deb2c50">
 
 ### 3.5 Robot Monitoring And Control System
 <img src="https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/beacb508-6174-4b2a-8812-68eb6de427e4">
+
+<br>
 
 ## 4. ✅Prerequisite
 
