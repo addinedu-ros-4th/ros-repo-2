@@ -128,7 +128,7 @@
 <img src="https://github.com/AUTO-KKYU/AMR-Logistics-Automation/assets/118419026/eeb94530-05e6-4cb7-ba7e-3fccffb6b9e1">
 
 ### 3.3.1 Path Planning
-<img src="![Screenshot from 2024-06-18 13-37-49](https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/18116ef2-704d-460a-a252-a59d1cb2c58b)">
+<img src="https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/18116ef2-704d-460a-a252-a59d1cb2c58b">
 
 ## 4. ✅Prerequisite
 
