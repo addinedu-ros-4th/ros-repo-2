@@ -112,20 +112,20 @@
 <img src= "https://github.com/AUTO-KKYU/AMR-Logistics-Automation/assets/118419026/5f911581-c86e-44b8-a48b-21adc2f979da">
 
 ### 2.3. Software Architecture
-<img src="https://github.com/AUTO-KKYU/AMR-Logistics-Automation/assets/118419026/e0b8a28a-6034-4173-8754-e2a6924e7939">
+<img src="https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/6b327300-fc61-4389-8219-fb2ba5b60c00">
 
 ## 3. 💡Technology
 
 ### 3.1. 3D Pose Estimation
 
 #### 3.1.1. Camera Calibration
-<img src= "https://github.com/AUTO-KKYU/AMR-Logistics-Automation/assets/118419026/ed869dcf-58b9-48e1-8ad6-d9a389a769ce">
+<img src= "https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/ec978cc8-c120-4b81-80f5-11d6f1f13173">
 
 #### 3.1.2. ArUCo Navigation
-<img src= "https://github.com/AUTO-KKYU/AMR-Logistics-Automation/assets/118419026/acb06277-3130-40a1-b1d1-ec2a3675a078">
+<img src= "https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/227729b6-08ac-4aa4-8b59-4db3c9a46f73">
 
 ### 3.2. Human Following
-<img src="https://github.com/AUTO-KKYU/AMR-Logistics-Automation/assets/118419026/eeb94530-05e6-4cb7-ba7e-3fccffb6b9e1">
+<img src="https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/bfbcab64-6ab8-4cc2-9e5f-e4d972ba74ee">
 
 ### 3.3 Path Planning
 <img src="https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/a725b3f2-d9cb-4e85-9145-db014f7f7748">
