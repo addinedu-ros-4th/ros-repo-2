@@ -55,17 +55,7 @@
     <tr>
       <td style="text-align:center;">YONG TAK SONG</td>
       <td style="text-align:center;">Team Leader</td>
-      <td>- ArUco Navigation <br> - DL based Human Following Robot <br> - Analysis User/System Requirement <br> - Architecture and Algorithm Design <br> - Setting up Driving Environment <br> - Confluence Management </td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">JEA HYUCK LEE</td>
-      <td style="text-align:center;">Team Member</td>
-      <td>- ArUco Navigation <br> - DL based Human Following Robot <br> - Analysis User/System Requirement <br> - Architecture and Algorithm Design <br> - Setting up Driving Environment <br> - Confluence Management </td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">GEA EUN CHOI</td>
-      <td style="text-align:center;">Team Member</td>
-      <td>- ArUco Navigation <br> - DL based Human Following Robot <br> - Analysis User/System Requirement <br> - Architecture and Algorithm Design <br> - Setting up Driving Environment <br> - Confluence Management </td>
+      <td>- Robot System Integration and Control <br> - Robot Mechanism Design <br> - SLAM & NAV <br> - Architecture and Algorithm Design <br> - Setting up Driving Environment <br> - Detailed Feature Improvement and Code Integration </td>
     </tr>
     <tr>
       <td style="text-align:center;">DONG GYU KIM</td>
@@ -73,14 +63,26 @@
       <td>- ArUco Navigation <br> - DL based Human Following Robot <br> - Analysis User/System Requirement <br> - Architecture and Algorithm Design <br> - Setting up Driving Environment <br> - Confluence Management </td>
     </tr>
     <tr>
-      <td style="text-align:center;">KYEOM HEO YOU</td>
+      <td style="text-align:center;">KYEOM HEE YOU</td>
       <td style="text-align:center;">Team Member</td>
-      <td>- ArUco Navigation <br> - DL based Human Following Robot <br> - Analysis User/System Requirement <br> - Architecture and Algorithm Design <br> - Setting up Driving Environment <br> - Confluence Management </td>
+      <td>- SLAM <br> - Admin GUI <br> - Database Construction
+ <br> - Setting up Driving Environment  </td>
+    </tr>
+    <tr>
+      <td style="text-align:center;">JEA HYUCK LEE</td>
+      <td style="text-align:center;">Team Member</td>
+      <td>- SLAM & NAV <br> - Path Planning Algorithm Design <br> - Multi-Robot Control System Implementation <br> - Detailed Feature Improvement and Code Integration <br> - Setting up Driving Environment  </td>
     </tr>
     <tr>
       <td style="text-align:center;">HA RIN JANG</td>
       <td style="text-align:center;">Team Member</td>
-      <td>- ArUco Navigation <br> - DL based Human Following Robot <br> - Analysis User/System Requirement <br> - Architecture and Algorithm Design <br> - Setting up Driving Environment <br> - Confluence Management </td>
+      <td>- SLAM <br> - Admin GUI <br> - User GUI
+ <br> - Database Construction </td>
+    </tr>
+    <tr>
+      <td style="text-align:center;">GA EUN CHOI</td>
+      <td style="text-align:center;">Team Member</td>
+      <td>- Multi-Robot Task Handling <br> - Communication Interface and Protocol Design <br> - Robot Communication Server Construction <br> - GitHub and Jira Management </td>
     </tr>
   </tbody>
 </table>
