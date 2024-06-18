@@ -57,6 +57,31 @@
       <td style="text-align:center;">Team Member</td>
       <td>- ArUco Navigation <br> - DL based Human Following Robot <br> - Analysis User/System Requirement <br> - Architecture and Algorithm Design <br> - Setting up Driving Environment <br> - Confluence Management </td>
     </tr>
+    <tr>
+      <td style="text-align:center;">DONG GYU KIM</td>
+      <td style="text-align:center;">Team Member</td>
+      <td>- ArUco Navigation <br> - DL based Human Following Robot <br> - Analysis User/System Requirement <br> - Architecture and Algorithm Design <br> - Setting up Driving Environment <br> - Confluence Management </td>
+    </tr>
+    <tr>
+      <td style="text-align:center;">DONG GYU KIM</td>
+      <td style="text-align:center;">Team Member</td>
+      <td>- ArUco Navigation <br> - DL based Human Following Robot <br> - Analysis User/System Requirement <br> - Architecture and Algorithm Design <br> - Setting up Driving Environment <br> - Confluence Management </td>
+    </tr>
+    <tr>
+      <td style="text-align:center;">DONG GYU KIM</td>
+      <td style="text-align:center;">Team Member</td>
+      <td>- ArUco Navigation <br> - DL based Human Following Robot <br> - Analysis User/System Requirement <br> - Architecture and Algorithm Design <br> - Setting up Driving Environment <br> - Confluence Management </td>
+    </tr>
+    <tr>
+      <td style="text-align:center;">DONG GYU KIM</td>
+      <td style="text-align:center;">Team Member</td>
+      <td>- ArUco Navigation <br> - DL based Human Following Robot <br> - Analysis User/System Requirement <br> - Architecture and Algorithm Design <br> - Setting up Driving Environment <br> - Confluence Management </td>
+    </tr>
+    <tr>
+      <td style="text-align:center;">DONG GYU KIM</td>
+      <td style="text-align:center;">Team Member</td>
+      <td>- ArUco Navigation <br> - DL based Human Following Robot <br> - Analysis User/System Requirement <br> - Architecture and Algorithm Design <br> - Setting up Driving Environment <br> - Confluence Management </td>
+    </tr>
   </tbody>
 </table>
 
