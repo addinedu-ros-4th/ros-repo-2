@@ -106,13 +106,13 @@
 
 ### 2.1. System Architecture
 
-<img src="https://github.com/AUTO-KKYU/AMR-Logistics-Automation/assets/118419026/9a9e5e40-1a1d-45e5-b85e-094c319c2f4b">
+<img src="https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/22c544f1-22be-48fb-b88e-ad07626dc193">
 
 ### 2.2. Hardware Architecture
-<img src= "https://github.com/AUTO-KKYU/AMR-Logistics-Automation/assets/118419026/5f911581-c86e-44b8-a48b-21adc2f979da">
+<img src= "https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/6b327300-fc61-4389-8219-fb2ba5b60c00">
 
 ### 2.3. Software Architecture
-<img src="https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/6b327300-fc61-4389-8219-fb2ba5b60c00">
+<img src="https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/561a7e3b-3354-4311-8aa6-33e57b93ff11">
 
 ## 3. 💡Technology
 
