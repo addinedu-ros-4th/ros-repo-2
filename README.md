@@ -133,6 +133,9 @@
 ### 3.4 Task Allowcator
 <img src="https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/f0b96a9c-c18c-4987-9fe7-ecac2deb2c50">
 
+### 3.5 Robot Monitoring And Control System
+<img src="https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/beacb508-6174-4b2a-8812-68eb6de427e4">
+
 ## 4. ✅Prerequisite
 
 **How to install ROS2 Humble on PC [Ubuntu 22.04]**
