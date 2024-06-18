@@ -130,6 +130,9 @@
 ### 3.3 Path Planning
 <img src="https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/a725b3f2-d9cb-4e85-9145-db014f7f7748">
 
+### 3.4 Task Allowcator
+<img src="https://github.com/addinedu-ros-4th/ros-repo-2/assets/61307553/f0b96a9c-c18c-4987-9fe7-ecac2deb2c50">
+
 ## 4. ✅Prerequisite
 
 **How to install ROS2 Humble on PC [Ubuntu 22.04]**
